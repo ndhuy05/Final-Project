@@ -145,7 +145,7 @@
             <div class="border-2 border-dashed border-notebook-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50/50 transition-all cursor-pointer">
               <component :is="icons.Upload" :size="32" class="mx-auto mb-2 text-notebook-400" />
               <p class="text-sm font-medium text-notebook-700">Upload sources</p>
-              <p class="text-xs text-notebook-500 mt-1">PDFs, text, or paste URLs</p>
+              <p class="text-xs text-notebook-500 mt-1">PDFs only</p>
             </div>
           </div>
 
@@ -260,17 +260,7 @@
     <main class="flex-1 flex flex-col bg-white">
       <!-- Header -->
       <header class="h-14 flex items-center justify-between px-6">
-        <h1 class="text-xl font-semibold text-notebook-900">{{ store.activeNotebook.name }}</h1>
-        
-        <!-- Show expand button when right panel is hidden -->
-        <button 
-          v-if="!store.rightPanelVisible"
-          @click="store.toggleRightPanel"
-          class="p-2 hover:bg-notebook-100 rounded-lg transition-colors"
-          title="Show panel"
-        >
-          <component :is="icons.ChevronLeft" :size="18" class="text-notebook-600" />
-        </button>
+        <h1 class="text-xl font-semibold text-notebook-900 truncate">{{ store.activeNotebook.name }}</h1>
       </header>
 
       <!-- Chat Messages Area -->
@@ -373,14 +363,15 @@
       </div>
     </main>
 
-    <!-- Right Panel: Notes / Source Preview -->
+    <!-- Right Panel: Paper Generation Features -->
     <aside :class="[
-      'border-l border-notebook-200 flex flex-col bg-notebook-50 transition-all duration-300 ease-in-out overflow-hidden',
-      store.rightPanelVisible ? 'w-96' : 'w-0 border-l-0'
+      'border-l border-notebook-200 flex flex-col bg-notebook-50 transition-all duration-300 ease-in-out',
+      store.rightPanelVisible ? 'w-96' : 'w-16'
     ]">
+      <!-- Expanded View -->
       <div v-if="store.rightPanelVisible" class="w-96 flex flex-col h-full">
-        <!-- Collapse Button -->
-        <div class="p-4 flex justify-start">
+        <!-- Header with Lab Label and Collapse Button -->
+        <div class="p-4 flex items-center justify-between">
           <button 
             @click="store.toggleRightPanel"
             class="p-1 hover:bg-notebook-200 rounded-lg transition-colors"
@@ -388,103 +379,169 @@
           >
             <component :is="icons.ChevronRight" :size="18" class="text-notebook-600" />
           </button>
+          <h1 class="text-xl font-semibold text-notebook-900 truncate">Lab</h1>
         </div>
 
-        <!-- Mode Toggle Buttons -->
-        <div class="p-4">
-          <div class="flex items-center gap-2">
+        <!-- Feature Cards Grid -->
+        <div class="flex-1 p-4 space-y-4">
+          <!-- Row 1: Paper to Code | Paper to Poster -->
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Paper to Code -->
             <button
-              @click="store.setRightPanelMode('notes')"
-              :class="[
-                'flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
-                store.rightPanelMode === 'notes' 
-                  ? 'bg-white shadow-sm text-notebook-900' 
-                  : 'text-notebook-600 hover:bg-notebook-100'
-              ]"
+              @click="store.openPaperSelector('code')"
+              class="p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-all cursor-pointer bg-white text-left"
             >
-              <component :is="icons.StickyNote" :size="16" class="inline mr-1.5" />
-              Notes
+              <component :is="icons.Code" :size="24" class="text-blue-500 mb-2" />
+              <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Code</h3>
+              <p class="text-xs text-notebook-600">Generate code from paper</p>
             </button>
+
+            <!-- Paper to Poster -->
             <button
-              @click="store.setRightPanelMode('preview')"
-              :class="[
-                'flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
-                store.rightPanelMode === 'preview' 
-                  ? 'bg-white shadow-sm text-notebook-900' 
-                  : 'text-notebook-600 hover:bg-notebook-100'
-              ]"
+              @click="store.openPaperSelector('poster')"
+              class="p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-all cursor-pointer bg-white text-left"
             >
-              <component :is="icons.Eye" :size="16" class="inline mr-1.5" />
-              Preview
+              <component :is="icons.Image" :size="24" class="text-purple-500 mb-2" />
+              <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Poster</h3>
+              <p class="text-xs text-notebook-600">Convert paper in to conference poster</p>
+            </button>
+          </div>
+
+          <!-- Row 2: Paper to Web -->
+          <div class="grid grid-cols-2 gap-4">
+            <button
+              @click="store.openPaperSelector('web')"
+              class="p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-all cursor-pointer bg-white text-left"
+            >
+              <component :is="icons.Globe" :size="24" class="text-green-500 mb-2" />
+              <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Web</h3>
+              <p class="text-xs text-notebook-600">Transform the paper into interactive website</p>
             </button>
           </div>
         </div>
+      </div>
 
-        <!-- Panel Content -->
-        <div class="flex-1 overflow-y-auto scrollbar-thin p-4">
-            <!-- Notes Mode -->
-            <div v-if="store.rightPanelMode === 'notes'">
-              <div v-if="store.activeNotebook.notes.length === 0" class="text-center py-12">
-                <component :is="icons.StickyNote" :size="48" class="mx-auto mb-3 text-notebook-300" />
-                <p class="text-sm text-notebook-500">No notes yet</p>
-                <p class="text-xs text-notebook-400 mt-1">Create notes from your research</p>
-              </div>
-              
-              <div v-else class="grid grid-cols-1 gap-3">
-                <div
-                  v-for="note in store.activeNotebook.notes"
-                  :key="note.id"
-                  class="p-3 bg-white border border-notebook-200 rounded-lg hover:shadow-sm transition-shadow cursor-pointer"
-                >
-                  <h4 class="text-sm font-semibold text-notebook-900 mb-1">{{ note.title }}</h4>
-                  <p class="text-xs text-notebook-600 line-clamp-3">{{ note.content }}</p>
-                  <p class="text-xs text-notebook-400 mt-2">{{ note.date }}</p>
-                </div>
-              </div>
-            </div>
+      <!-- Collapsed View -->
+      <div v-else class="w-16 flex flex-col h-full py-4">
+        <!-- Expand Button -->
+        <button 
+          @click="store.toggleRightPanel"
+          class="mb-4 p-2 mx-auto hover:bg-notebook-200 rounded-lg transition-colors"
+          title="Expand panel"
+        >
+          <component :is="icons.ChevronLeft" :size="18" class="text-notebook-600" />
+        </button>
 
-            <!-- Preview Mode -->
-            <div v-else-if="store.rightPanelMode === 'preview'">
-              <div v-if="!store.selectedSource && !store.selectedCitation" class="text-center py-12">
-                <component :is="icons.Eye" :size="48" class="mx-auto mb-3 text-notebook-300" />
-                <p class="text-sm text-notebook-500">No preview</p>
-                <p class="text-xs text-notebook-400 mt-1">Click a source or citation to preview</p>
-              </div>
+        <!-- Feature Icons -->
+        <div class="flex-1 flex flex-col items-center gap-3 px-2">
+          <!-- Code Icon -->
+          <button
+            @click="store.openPaperSelector('code')"
+            class="p-2 hover:bg-blue-100 rounded-lg transition-colors group"
+            title="Paper to Code"
+          >
+            <component :is="icons.Code" :size="20" class="text-blue-500 group-hover:text-blue-600" />
+          </button>
 
-              <div v-else class="space-y-4">
-                <!-- Selected Citation Preview -->
-                <div v-if="store.selectedCitation" class="bg-white border border-notebook-200 rounded-lg p-4">
-                  <div class="flex items-start justify-between mb-3">
-                    <h3 class="text-sm font-semibold text-notebook-900">Citation [{{ store.selectedCitation.id }}]</h3>
-                    <button @click="store.selectedCitation = null" class="text-notebook-400 hover:text-notebook-600">
-                      <component :is="icons.X" :size="16" />
-                    </button>
-                  </div>
-                  <p class="text-xs text-notebook-600 mb-2">{{ store.selectedCitation.title }}</p>
-                  <div class="text-sm text-notebook-800 bg-notebook-50 rounded p-3 border-l-4 border-blue-500">
-                    {{ store.selectedCitation.excerpt }}
-                  </div>
-                </div>
+          <!-- Poster Icon -->
+          <button
+            @click="store.openPaperSelector('poster')"
+            class="p-2 hover:bg-purple-100 rounded-lg transition-colors group"
+            title="Paper to Poster"
+          >
+            <component :is="icons.Image" :size="20" class="text-purple-500 group-hover:text-purple-600" />
+          </button>
 
-                <!-- Selected Source Preview -->
-                <div v-if="store.selectedSource" class="bg-white border border-notebook-200 rounded-lg p-4">
-                  <div class="flex items-start justify-between mb-3">
-                    <h3 class="text-sm font-semibold text-notebook-900">{{ store.selectedSource.title }}</h3>
-                    <button @click="store.selectedSource = null" class="text-notebook-400 hover:text-notebook-600">
-                      <component :is="icons.X" :size="16" />
-                    </button>
-                  </div>
-                  <p class="text-xs text-notebook-600 mb-3">{{ store.selectedSource.authors }}</p>
-                  <div class="text-sm text-notebook-800 space-y-2">
-                    <p class="font-medium">Abstract</p>
-                    <p class="text-xs text-notebook-600">{{ store.selectedSource.abstract || 'No abstract available' }}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <!-- Web Icon -->
+          <button
+            @click="store.openPaperSelector('web')"
+            class="p-2 hover:bg-green-100 rounded-lg transition-colors group"
+            title="Paper to Web"
+          >
+            <component :is="icons.Globe" :size="20" class="text-green-500 group-hover:text-green-600" />
+          </button>
         </div>
+      </div>
     </aside>
+
+    <!-- Paper Selection Modal -->
+    <div 
+      v-if="store.showPaperSelector"
+      class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      @click.self="store.closePaperSelector"
+    >
+      <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b border-notebook-200">
+          <h2 class="text-xl font-semibold text-notebook-900">Select a Paper</h2>
+          <button 
+            @click="store.closePaperSelector"
+            class="p-1 hover:bg-notebook-100 rounded-lg transition-colors"
+          >
+            <component :is="icons.X" :size="20" class="text-notebook-600" />
+          </button>
+        </div>
+
+        <!-- Papers List -->
+        <div class="flex-1 overflow-y-auto p-6">
+          <div v-if="store.activeNotebook.papers.length === 0" class="text-center py-12">
+            <component :is="icons.FileText" :size="48" class="mx-auto mb-3 text-notebook-300" />
+            <p class="text-sm text-notebook-500">No papers in this notebook</p>
+            <p class="text-xs text-notebook-400 mt-1">Upload papers to get started</p>
+          </div>
+
+          <div v-else class="space-y-3">
+            <button
+              v-for="paper in store.activeNotebook.papers"
+              :key="paper.id"
+              @click="store.selectPaperForGeneration(paper)"
+              class="w-full p-4 border border-notebook-200 rounded-lg hover:bg-notebook-50 hover:border-blue-300 transition-all text-left"
+            >
+              <div class="flex items-start gap-3">
+                <component :is="icons.FileText" :size="20" class="text-notebook-500 mt-0.5 flex-shrink-0" />
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-notebook-900">{{ paper.title }}</p>
+                  <p class="text-xs text-notebook-500 mt-1">{{ paper.authors }}</p>
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <div 
+      v-if="store.showConfirmation"
+      class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      @click.self="store.cancelGeneration"
+    >
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+        <h2 class="text-xl font-semibold text-notebook-900 mb-4">Confirm Generation</h2>
+        <p class="text-sm text-notebook-600 mb-6">
+          Generate <span class="font-semibold">{{ 
+            store.selectedFeature === 'code' ? 'Code' : 
+            store.selectedFeature === 'poster' ? 'Poster' : 
+            'Web Page' 
+          }}</span> for "<span class="font-semibold">{{ store.selectedPaperForGeneration?.title }}</span>"?
+        </p>
+        
+        <div class="flex gap-3">
+          <button
+            @click="store.cancelGeneration"
+            class="flex-1 px-4 py-2 border border-notebook-300 text-notebook-700 rounded-lg hover:bg-notebook-50 transition-colors font-medium"
+          >
+            No
+          </button>
+          <button
+            @click="store.confirmGeneration"
+            class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+          >
+            Yes
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -494,8 +551,8 @@ import { useAppStore } from '../stores/app'
 import { marked } from 'marked'
 import {
   Upload, FileText, Settings, PanelRight, Brain, Quote, Layers, Sparkles,
-  Send, StickyNote, Eye, X, ChevronUp, ChevronLeft, ChevronRight, LogOut,
-  Plus, BookOpen, MoreVertical, Edit, Trash2
+  Send, X, ChevronUp, ChevronLeft, ChevronRight, LogOut,
+  Plus, BookOpen, MoreVertical, Edit, Trash2, Code, Image, Globe
 } from 'lucide-vue-next'
 
 const store = useAppStore()
@@ -503,8 +560,8 @@ const store = useAppStore()
 // Icon components
 const icons = {
   Upload, FileText, Settings, PanelRight, Brain, Quote, Layers, Sparkles,
-  Send, StickyNote, Eye, X, ChevronUp, ChevronLeft, ChevronRight, LogOut,
-  Plus, BookOpen, MoreVertical, Edit, Trash2
+  Send, X, ChevronUp, ChevronLeft, ChevronRight, LogOut,
+  Plus, BookOpen, MoreVertical, Edit, Trash2, Code, Image, Globe
 }
 
 // Chat state

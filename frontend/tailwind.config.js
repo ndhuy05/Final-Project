@@ -6,6 +6,9 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+      },
       colors: {
         'notebook': {
           50: '#f9fafb',
@@ -24,4 +27,3 @@ export default {
   },
   plugins: [],
 }
-

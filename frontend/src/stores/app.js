@@ -48,9 +48,14 @@ export const useAppStore = defineStore('app', () => {
   // UI State
   const leftSidebarCollapsed = ref(false)
   const rightPanelVisible = ref(true)
-  const rightPanelMode = ref('notes') // 'notes' or 'preview'
   const selectedCitation = ref(null)
   const selectedSource = ref(null)
+
+  // Paper Generation Feature State
+  const showPaperSelector = ref(false)
+  const selectedFeature = ref(null) // 'code', 'poster', or 'web'
+  const showConfirmation = ref(false)
+  const selectedPaperForGeneration = ref(null)
 
   // Chat state (now from activeNotebook)
   const messages = ref([])
@@ -173,6 +178,36 @@ export const useAppStore = defineStore('app', () => {
     notebookMenuOpen.value = notebookMenuOpen.value === id ? null : id
   }
 
+  // Paper Generation Actions
+  function openPaperSelector(feature) {
+    selectedFeature.value = feature
+    showPaperSelector.value = true
+  }
+
+  function closePaperSelector() {
+    showPaperSelector.value = false
+    selectedFeature.value = null
+  }
+
+  function selectPaperForGeneration(paper) {
+    selectedPaperForGeneration.value = paper
+    showPaperSelector.value = false
+    showConfirmation.value = true
+  }
+
+  function confirmGeneration() {
+    // Placeholder for future generation logic
+    console.log(`Generating ${selectedFeature.value} for paper: ${selectedPaperForGeneration.value.title}`)
+    showConfirmation.value = false
+    selectedPaperForGeneration.value = null
+    selectedFeature.value = null
+  }
+
+  function cancelGeneration() {
+    showConfirmation.value = false
+    showPaperSelector.value = true
+  }
+
   return {
     // State
     notebooks,
@@ -184,18 +219,20 @@ export const useAppStore = defineStore('app', () => {
     error,
     leftSidebarCollapsed,
     rightPanelVisible,
-    rightPanelMode,
     selectedCitation,
     selectedSource,
     messages,
     notes,
     user,
     showUserMenu,
+    showPaperSelector,
+    selectedFeature,
+    showConfirmation,
+    selectedPaperForGeneration,
     // Actions
     checkHealth,
     toggleLeftSidebar,
     toggleRightPanel,
-    setRightPanelMode,
     selectCitation,
     selectSource,
     toggleUserMenu,
@@ -206,6 +243,11 @@ export const useAppStore = defineStore('app', () => {
     createNotebook,
     renameNotebook,
     deleteNotebook,
-    toggleNotebookMenu
+    toggleNotebookMenu,
+    openPaperSelector,
+    closePaperSelector,
+    selectPaperForGeneration,
+    confirmGeneration,
+    cancelGeneration
   }
 })
