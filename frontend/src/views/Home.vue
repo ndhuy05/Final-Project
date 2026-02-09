@@ -86,10 +86,10 @@
                 :key="notebook.id"
                 class="relative group"
               >
-                <button
-                  @click="store.selectNotebook(notebook.id)"
-                  class="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-notebook-100 transition-colors text-left"
+                <div
+                  class="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-notebook-100 transition-colors cursor-pointer"
                   :class="{ 'bg-blue-50 border border-blue-300': store.activeNotebook.id === notebook.id }"
+                  @click="store.selectNotebook(notebook.id)"
                 >
                   <component :is="icons.BookOpen" :size="18" class="text-notebook-500 mt-0.5 flex-shrink-0" />
                   <div class="flex-1 min-w-0">
@@ -102,7 +102,7 @@
                   >
                     <component :is="icons.MoreVertical" :size="16" class="text-notebook-600" />
                   </button>
-                </button>
+                </div>
 
                 <!-- 3-Dot Menu -->
                 <transition
