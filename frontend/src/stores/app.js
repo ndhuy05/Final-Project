@@ -39,6 +39,7 @@ export const useAppStore = defineStore('app', () => {
   const activeNotebook = ref(notebooks.value[0])
   const sidebarView = ref('notebooks') // 'notebooks' or 'sources'
   const notebookMenuOpen = ref(null)
+  const paperMenuOpen = ref(null)
 
   // Legacy state (now computed from activeNotebook)
   const papers = ref([])
@@ -208,12 +209,42 @@ export const useAppStore = defineStore('app', () => {
     showPaperSelector.value = true
   }
 
+  // Paper Management Actions
+  function togglePaperMenu(paperId) {
+    paperMenuOpen.value = paperMenuOpen.value === paperId ? null : paperId
+  }
+
+  function renamePaper(paperId, newTitle) {
+    if (activeNotebook.value) {
+      const paper = activeNotebook.value.papers.find(p => p.id === paperId)
+      if (paper) {
+        paper.title = newTitle
+        paperMenuOpen.value = null
+      }
+    }
+  }
+
+  function deletePaper(paperId) {
+    if (activeNotebook.value) {
+      const index = activeNotebook.value.papers.findIndex(p => p.id === paperId)
+      if (index !== -1) {
+        activeNotebook.value.papers.splice(index, 1)
+        paperMenuOpen.value = null
+        // Clear selected source if it was deleted
+        if (selectedSource.value?.id === paperId) {
+          selectedSource.value = null
+        }
+      }
+    }
+  }
+
   return {
     // State
     notebooks,
     activeNotebook,
     sidebarView,
     notebookMenuOpen,
+    paperMenuOpen,
     papers,
     loading,
     error,
@@ -244,6 +275,9 @@ export const useAppStore = defineStore('app', () => {
     renameNotebook,
     deleteNotebook,
     toggleNotebookMenu,
+    togglePaperMenu,
+    renamePaper,
+    deletePaper,
     openPaperSelector,
     closePaperSelector,
     selectPaperForGeneration,

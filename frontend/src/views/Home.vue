@@ -161,17 +161,57 @@
               <div 
                 v-for="paper in store.activeNotebook.papers" 
                 :key="paper.id"
-                @click="store.selectSource(paper)"
-                class="p-3 border bg-white border-notebook-200 rounded-lg hover:bg-notebook-100 cursor-pointer transition-colors"
-                :class="{ 'bg-blue-50 border-blue-300': store.selectedSource?.id === paper.id }"
+                class="relative group"
               >
-                <div class="flex items-start gap-2">
-                  <component :is="icons.FileText" :size="16" class="text-notebook-500 mt-0.5" />
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-notebook-900 truncate">{{ paper.title }}</p>
-                    <p class="text-xs text-notebook-500 mt-0.5">{{ paper.authors }}</p>
+                <div
+                  @click="store.selectSource(paper)"
+                  class="p-3 border bg-white border-notebook-200 rounded-lg hover:bg-notebook-100 cursor-pointer transition-colors"
+                  :class="{ 'bg-blue-50 border-blue-300': store.selectedSource?.id === paper.id }"
+                >
+                  <div class="flex items-start gap-2">
+                    <component :is="icons.FileText" :size="16" class="text-notebook-500 mt-0.5" />
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-notebook-900 truncate">{{ paper.title }}</p>
+                      <p class="text-xs text-notebook-500 mt-0.5">{{ paper.authors }}</p>
+                    </div>
+                    <button
+                      @click.stop="store.togglePaperMenu(paper.id)"
+                      class="p-1 opacity-0 group-hover:opacity-100 hover:bg-notebook-200 rounded transition-opacity"
+                    >
+                      <component :is="icons.MoreVertical" :size="16" class="text-notebook-600" />
+                    </button>
                   </div>
                 </div>
+
+                <!-- 3-Dot Menu -->
+                <transition
+                  enter-active-class="transition ease-out duration-100"
+                  enter-from-class="transform opacity-0 scale-95"
+                  enter-to-class="transform opacity-100 scale-100"
+                  leave-active-class="transition ease-in duration-75"
+                  leave-from-class="transform opacity-100 scale-100"
+                  leave-to-class="transform opacity-0 scale-95"
+                >
+                  <div
+                    v-if="store.paperMenuOpen === paper.id"
+                    class="absolute right-2 top-12 w-40 bg-white rounded-lg shadow-lg border border-notebook-200 py-1 z-10"
+                  >
+                    <button
+                      @click="handleRenamePaper(paper)"
+                      class="w-full px-4 py-2 text-left text-sm text-notebook-700 hover:bg-notebook-50 flex items-center gap-2"
+                    >
+                      <component :is="icons.Edit" :size="14" />
+                      Rename
+                    </button>
+                    <button
+                      @click="handleDeletePaper(paper)"
+                      class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    >
+                      <component :is="icons.Trash2" :size="14" />
+                      Delete
+                    </button>
+                  </div>
+                </transition>
               </div>
             </div>
           </div>
@@ -579,6 +619,20 @@ const handleRenameNotebook = (notebook) => {
 const handleDeleteNotebook = (id) => {
   if (confirm('Are you sure you want to delete this notebook? This action cannot be undone.')) {
     store.deleteNotebook(id)
+  }
+}
+
+// Paper handlers
+const handleRenamePaper = (paper) => {
+  const newTitle = prompt('Enter new paper title:', paper.title)
+  if (newTitle && newTitle.trim()) {
+    store.renamePaper(paper.id, newTitle.trim())
+  }
+}
+
+const handleDeletePaper = (paper) => {
+  if (confirm(`Are you sure you want to delete "${paper.title}"? This action cannot be undone.`)) {
+    store.deletePaper(paper.id)
   }
 }
 
