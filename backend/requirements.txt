@@ -7,4 +7,19 @@ pydantic==2.5.3
 pydantic-settings==2.1.0
 python-dotenv==1.0.0
 python-multipart==0.0.6
-qdrant-client==1.7.3
+qdrant-client>=1.9.0
+
+# Document processing
+pymupdf
+Pillow
+aiofiles
+
+# ColQwen2 / ColPali
+colpali-engine
+torch
+torchvision
+transformers
+
+# Qwen2.5-VL vision LLM
+qwen-vl-utils
+bitsandbytes

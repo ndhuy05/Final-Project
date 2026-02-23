@@ -142,11 +142,22 @@
           <div v-else key="sources" class="flex-1 flex flex-col overflow-hidden">
           <!-- Upload Zone -->
           <div class="p-4 border-b border-notebook-200">
-            <div class="border-2 border-dashed border-notebook-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50/50 transition-all cursor-pointer">
-              <component :is="icons.Upload" :size="32" class="mx-auto mb-2 text-notebook-400" />
-              <p class="text-sm font-medium text-notebook-700">Upload sources</p>
-              <p class="text-xs text-notebook-500 mt-1">PDFs only</p>
-            </div>
+            <label
+              :class="[
+                'border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer block',
+                uploadState === 'uploading' ? 'border-blue-300 bg-blue-50/50 cursor-not-allowed' :
+                uploadState === 'success' ? 'border-green-400 bg-green-50/50' :
+                uploadState === 'error' ? 'border-red-400 bg-red-50/50' :
+                'border-notebook-300 hover:border-blue-400 hover:bg-blue-50/50'
+              ]"
+            >
+              <input type="file" accept=".pdf" class="hidden" @change="handleFileUpload" :disabled="uploadState === 'uploading'" />
+              <component :is="icons.Upload" :size="32" :class="['mx-auto mb-2', uploadState === 'uploading' ? 'text-blue-400 animate-pulse' : 'text-notebook-400']" />
+              <p class="text-sm font-medium text-notebook-700">
+                {{ uploadState === 'uploading' ? 'Uploading & embedding...' : uploadState === 'success' ? 'Upload successful!' : uploadState === 'error' ? 'Upload failed' : 'Upload sources' }}
+              </p>
+              <p class="text-xs text-notebook-500 mt-1">{{ uploadState === 'error' ? uploadError : 'PDFs only' }}</p>
+            </label>
           </div>
 
           <!-- Sources List -->
@@ -304,7 +315,7 @@
       </header>
 
       <!-- Chat Messages Area -->
-      <div class="flex-1 overflow-y-auto scrollbar-thin p-6">
+      <div ref="messagesContainer" class="flex-1 overflow-y-auto scrollbar-thin p-6">
         <!-- Welcome State -->
         <div v-if="chatMessages.length === 0" class="max-w-3xl mx-auto">
           <div class="text-center py-12">
@@ -374,6 +385,18 @@
             </div>
           </div>
         </div>
+
+        <!-- Typing Indicator -->
+        <div v-if="store.isTyping" class="max-w-3xl mx-auto mt-6 flex gap-3 justify-start">
+          <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+            <component :is="icons.Sparkles" :size="16" class="text-white" />
+          </div>
+          <div class="bg-notebook-100 rounded-2xl px-4 py-3 flex items-center gap-1">
+            <span class="w-2 h-2 bg-notebook-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+            <span class="w-2 h-2 bg-notebook-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+            <span class="w-2 h-2 bg-notebook-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+          </div>
+        </div>
       </div>
 
       <!-- Fixed Input Bar -->
@@ -383,7 +406,7 @@
             <div class="flex-1 relative flex items-center">
               <textarea
                 v-model="inputMessage"
-                @keydown.enter.prevent="handleSendMessage"
+                @keydown.enter.exact.prevent="handleSendMessage"
                 placeholder="Ask a question about your sources..."
                 rows="1"
                 class="w-full px-4 py-3 pr-12 border border-notebook-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none scrollbar-thin"
@@ -391,7 +414,7 @@
               ></textarea>
               <button
                 @click="handleSendMessage"
-                :disabled="!inputMessage.trim()"
+                :disabled="!inputMessage.trim() || store.isTyping"
                 class="absolute right-2 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors disabled:bg-notebook-300 disabled:cursor-not-allowed"
               >
                 <component :is="icons.Send" :size="16" />
@@ -586,7 +609,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { useAppStore } from '../stores/app'
 import { marked } from 'marked'
 import {
@@ -606,7 +629,38 @@ const icons = {
 
 // Chat state
 const inputMessage = ref('')
-const chatMessages = ref([])
+const messagesContainer = ref(null)
+const chatMessages = computed(() => store.activeNotebook?.messages ?? [])
+
+// Upload state
+const uploadState = ref('idle') // 'idle' | 'uploading' | 'success' | 'error'
+const uploadError = ref('')
+
+const handleFileUpload = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  uploadState.value = 'uploading'
+  uploadError.value = ''
+  try {
+    await store.uploadPaper(file)
+    uploadState.value = 'success'
+    setTimeout(() => { uploadState.value = 'idle' }, 2000)
+  } catch (err) {
+    uploadState.value = 'error'
+    uploadError.value = err?.response?.data?.detail || 'Upload failed. Is the backend running?'
+    setTimeout(() => { uploadState.value = 'idle' }, 3000)
+  }
+  event.target.value = ''
+}
+
+// Auto-scroll to bottom when messages update or typing indicator changes
+watch([chatMessages, () => store.isTyping], () => {
+  nextTick(() => {
+    if (messagesContainer.value) {
+      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+    }
+  })
+}, { deep: true })
 
 // Notebook handlers
 const handleRenameNotebook = (notebook) => {
@@ -643,32 +697,10 @@ const renderMarkdown = (text) => {
 
 // Handle message sending
 const handleSendMessage = () => {
-  if (!inputMessage.value.trim()) return
-
-  // Add user message to active notebook
-  const userMessage = {
-    role: 'user',
-    content: inputMessage.value
-  }
-  store.activeNotebook.messages.push(userMessage)
-  chatMessages.value.push(userMessage)
-
-  const userQuestion = inputMessage.value
+  if (!inputMessage.value.trim() || store.isTyping) return
+  const question = inputMessage.value.trim()
   inputMessage.value = ''
-
-  // Simulate AI response after a delay
-  setTimeout(() => {
-    const aiMessage = {
-      role: 'assistant',
-      content: `Based on the research papers, here's what I found about "${userQuestion}":\n\nThe **Transformer architecture** introduced in "Attention Is All You Need" revolutionized NLP by using self-attention mechanisms instead of recurrence. This allows for better parallelization and capturing long-range dependencies.\n\nKey innovations include:\n- Multi-head attention layers\n- Positional encodings\n- Feed-forward networks\n\nLater work like **BERT** built upon this foundation to create powerful pre-trained models.`,
-      citations: [
-        { id: 1, title: 'Attention Is All You Need', excerpt: 'The Transformer follows this overall architecture using stacked self-attention and point-wise, fully connected layers for both the encoder and decoder...' },
-        { id: 2, title: 'BERT', excerpt: 'BERT is designed to pretrain deep bidirectional representations from unlabeled text by jointly conditioning on both left and right context...' }
-      ]
-    }
-    store.activeNotebook.messages.push(aiMessage)
-    chatMessages.value.push(aiMessage)
-  }, 1000)
+  store.sendMessage(question)
 }
 </script>
 

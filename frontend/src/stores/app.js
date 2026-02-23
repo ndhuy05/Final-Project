@@ -61,6 +61,80 @@ export const useAppStore = defineStore('app', () => {
   // Chat state (now from activeNotebook)
   const messages = ref([])
   const notes = ref([])
+  const isTyping = ref(false)
+
+  // Mock AI response bank
+  const mockResponses = [
+    {
+      keywords: ['transformer', 'attention', 'self-attention'],
+      content: `The **Transformer architecture** introduced in "Attention Is All You Need" (Vaswani et al., 2017) is a sequence-to-sequence model built entirely on attention mechanisms.\n\nKey components:\n- **Multi-Head Self-Attention**: Allows the model to attend to different parts of the input simultaneously\n- **Positional Encodings**: Inject sequence order since there's no recurrence\n- **Feed-Forward Layers**: Applied identically to each position\n\nThis design enables full parallelization during training, which was a major breakthrough over RNNs.`
+    },
+    {
+      keywords: ['bert', 'pre-training', 'bidirectional'],
+      content: `**BERT** (Bidirectional Encoder Representations from Transformers) by Devlin et al. is a landmark pre-training approach.\n\nBERT is trained with two objectives:\n1. **Masked Language Modeling (MLM)**: Randomly masks 15% of tokens and predicts them\n2. **Next Sentence Prediction (NSP)**: Classifies whether two sentences are consecutive\n\nThe bidirectional nature allows BERT to capture context from both left and right, making it far more powerful than unidirectional models like GPT-1.`
+    },
+    {
+      keywords: ['vision', 'image', 'cnn', 'convolutional', 'resnet', 'vit'],
+      content: `Computer vision has seen dramatic progress through deep learning.\n\n**Key milestones:**\n- **AlexNet (2012)**: First deep CNN to win ImageNet, using ReLU and dropout\n- **ResNet (2015)**: Introduced skip connections to train very deep networks (up to 152 layers)\n- **Vision Transformer (ViT, 2020)**: Applied the Transformer architecture directly to image patches\n\nModern vision models increasingly borrow from NLP, with ViT and its variants now outperforming CNNs on many benchmarks.`
+    },
+    {
+      keywords: ['train', 'training', 'optimize', 'loss', 'gradient'],
+      content: `Training deep neural networks involves several key considerations:\n\n- **Loss Function**: Measures prediction error (e.g., cross-entropy for classification)\n- **Optimizer**: SGD, Adam, and AdamW are most common. Adam uses adaptive learning rates per parameter\n- **Regularization**: Dropout, weight decay, and batch normalization prevent overfitting\n- **Learning Rate Scheduling**: Warmup followed by decay is standard in Transformer training\n\nPaper-specific training details are usually found in the "Experiments" section.`
+    },
+    {
+      keywords: [],
+      content: `Based on the papers in this notebook, here is a summary of what I found:\n\nThe research covers advanced topics in machine learning and AI. The authors present empirical results demonstrating significant improvements over prior baselines.\n\n**Common themes across papers:**\n- Architecture innovations that improve efficiency or accuracy\n- Large-scale pre-training followed by fine-tuning on downstream tasks\n- Ablation studies validating each component's contribution\n\nWould you like me to dive deeper into a specific aspect?`
+    }
+  ]
+
+  function getMockResponse(question) {
+    const q = question.toLowerCase()
+    const match = mockResponses.find(r => r.keywords.some(k => q.includes(k)))
+    const response = match || mockResponses[mockResponses.length - 1]
+    const papers = activeNotebook.value?.papers ?? []
+    const citations = papers.slice(0, 2).map((p, i) => ({
+      id: i + 1,
+      title: p.title,
+      excerpt: p.abstract || 'See paper for details.'
+    }))
+    return { content: response.content, citations }
+  }
+
+  function sendMessage(question) {
+    if (!activeNotebook.value || !question.trim()) return
+    activeNotebook.value.messages.push({ role: 'user', content: question })
+    isTyping.value = true
+
+    apiClient.post(`/notebooks/${activeNotebook.value.id}/chat`, { question })
+      .then(res => {
+        const { content, citations } = res.data
+        activeNotebook.value.messages.push({ role: 'assistant', content, citations })
+      })
+      .catch(() => {
+        activeNotebook.value.messages.push({
+          role: 'assistant',
+          content: 'Sorry, there was an error contacting the server. Make sure the backend is running.',
+          citations: []
+        })
+      })
+      .finally(() => {
+        isTyping.value = false
+      })
+  }
+
+  async function uploadPaper(file) {
+    if (!activeNotebook.value) return
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await apiClient.post(
+      `/notebooks/${activeNotebook.value.id}/papers/upload`,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    )
+    const paper = res.data.paper
+    activeNotebook.value.papers.push(paper)
+    return paper
+  }
 
   // User state
   const user = ref({
@@ -254,6 +328,7 @@ export const useAppStore = defineStore('app', () => {
     selectedSource,
     messages,
     notes,
+    isTyping,
     user,
     showUserMenu,
     showPaperSelector,
@@ -282,6 +357,8 @@ export const useAppStore = defineStore('app', () => {
     closePaperSelector,
     selectPaperForGeneration,
     confirmGeneration,
-    cancelGeneration
+    cancelGeneration,
+    sendMessage,
+    uploadPaper
   }
 })
