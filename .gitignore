@@ -68,6 +68,25 @@ htmlcov/
 .pytest_cache/
 .hypothesis/
 
-# Uploads
+# Uploads & generated files
 uploads/
 temp/
+
+# Qdrant local storage
+qdrant_storage/
+
+# ML model cache
+.cache/
+*.bin
+*.safetensors
+*.pt
+*.pth
+huggingface/
+
+# Frontend build output
+frontend/dist/
+frontend/dist-ssr/
+
+# Backend static / generated
+backend/uploads/
+backend/qdrant_storage/
