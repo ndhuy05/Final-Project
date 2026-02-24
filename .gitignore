@@ -89,4 +89,5 @@ frontend/dist-ssr/
 
 # Backend static / generated
 backend/uploads/
-backend/qdrant_storage/
+backend/qdrant_storage
+backend/qdrant_storage

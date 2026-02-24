@@ -154,7 +154,7 @@
               <input type="file" accept=".pdf" class="hidden" @change="handleFileUpload" :disabled="uploadState === 'uploading'" />
               <component :is="icons.Upload" :size="32" :class="['mx-auto mb-2', uploadState === 'uploading' ? 'text-blue-400 animate-pulse' : 'text-notebook-400']" />
               <p class="text-sm font-medium text-notebook-700">
-                {{ uploadState === 'uploading' ? 'Uploading & embedding...' : uploadState === 'success' ? 'Upload successful!' : uploadState === 'error' ? 'Upload failed' : 'Upload sources' }}
+                {{ uploadState === 'uploading' ? 'Extracting content...' : uploadState === 'success' ? `Done! ${tablesIndexed} table${tablesIndexed !== 1 ? 's' : ''}, ${chunksIndexed} text chunk${chunksIndexed !== 1 ? 's' : ''} indexed` : uploadState === 'error' ? 'Upload failed' : 'Upload sources' }}
               </p>
               <p class="text-xs text-notebook-500 mt-1">{{ uploadState === 'error' ? uploadError : 'PDFs only' }}</p>
             </label>
@@ -635,16 +635,22 @@ const chatMessages = computed(() => store.activeNotebook?.messages ?? [])
 // Upload state
 const uploadState = ref('idle') // 'idle' | 'uploading' | 'success' | 'error'
 const uploadError = ref('')
+const tablesIndexed = ref(0)
+const chunksIndexed = ref(0)
 
 const handleFileUpload = async (event) => {
   const file = event.target.files[0]
   if (!file) return
   uploadState.value = 'uploading'
   uploadError.value = ''
+  tablesIndexed.value = 0
+  chunksIndexed.value = 0
   try {
-    await store.uploadPaper(file)
+    const result = await store.uploadPaper(file)
+    tablesIndexed.value = result?.tables_indexed ?? 0
+    chunksIndexed.value = result?.chunks_indexed ?? 0
     uploadState.value = 'success'
-    setTimeout(() => { uploadState.value = 'idle' }, 2000)
+    setTimeout(() => { uploadState.value = 'idle' }, 3000)
   } catch (err) {
     uploadState.value = 'error'
     uploadError.value = err?.response?.data?.detail || 'Upload failed. Is the backend running?'
@@ -684,9 +690,9 @@ const handleRenamePaper = (paper) => {
   }
 }
 
-const handleDeletePaper = (paper) => {
+const handleDeletePaper = async (paper) => {
   if (confirm(`Are you sure you want to delete "${paper.title}"? This action cannot be undone.`)) {
-    store.deletePaper(paper.id)
+    await store.deletePaper(paper.id)
   }
 }
 

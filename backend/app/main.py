@@ -1,7 +1,12 @@
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.routers import health, papers, chat
+
+# Third-party loggers stay at INFO; only our app uses DEBUG
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+logging.getLogger("app").setLevel(logging.DEBUG)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

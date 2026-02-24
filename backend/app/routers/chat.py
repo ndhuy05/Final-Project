@@ -1,19 +1,19 @@
 """
-Chat router: embed user query with ColQwen2, retrieve relevant pages from Qdrant,
-generate a direct answer with Qwen2.5-1.5B-Instruct, return answer with citations.
+Chat router: embed query with fastembed, retrieve relevant chunks
+from Qdrant, build 3-page context windows, generate answer via OpenRouter.
 """
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 
-from app.services import colpali_service, qdrant_service, memory_store, llm_service
+from app.services import qdrant_service, memory_store, embedding_service, openrouter_service
 
 router = APIRouter()
 
 
 class ChatRequest(BaseModel):
     question: str
-    top_k: int = 3
+    top_k: int = 5
 
 
 class Citation(BaseModel):
@@ -41,14 +41,14 @@ async def chat(notebook_id: str, request: ChatRequest):
             citations=[],
         )
 
-    # Embed the query with ColQwen2
-    query_vector = colpali_service.embed_query(request.question)
+    # Embed the query
+    query_vector = embedding_service.embed_text(request.question)
 
-    # Search Qdrant for most relevant pages
+    # Search Qdrant for the most relevant chunks
     try:
         results = qdrant_service.search(
             notebook_id=notebook_id,
-            query_multi_vector=query_vector,
+            query_vector=query_vector,
             top_k=request.top_k,
         )
     except Exception:
@@ -63,28 +63,57 @@ async def chat(notebook_id: str, request: ChatRequest):
             citations=[],
         )
 
-    # Build citations (no text excerpt — VLM reads images directly)
+    # Filter out empty/broken points and deduplicate by (paper_id, page_num, type)
+    seen: dict = {}
+    for r in results:
+        has_content = bool(r.get("page_text") or r.get("content") or r.get("markdown_table"))
+        if not has_content:
+            continue
+        key = (r.get("paper_id"), r.get("page_num"), r.get("type"))
+        if key not in seen or r.get("score", 0) > seen[key].get("score", 0):
+            seen[key] = r
+    results = list(seen.values())
+
+    # For each text chunk, build a 3-page context window: page N-1, N, N+1
+    for r in results:
+        if r.get("type") != "text":
+            continue
+        paper_id = r.get("paper_id")
+        page = r.get("page_num")  # 1-based
+        window_parts = []
+        for p in [page - 1, page, page + 1]:
+            if p < 1:
+                continue
+            text = qdrant_service.get_page_text(notebook_id, paper_id, p)
+            if text:
+                window_parts.append(f"[Page {p}]\n{text}")
+        r["context_window"] = "\n\n".join(window_parts)
+
+    # Build citations (type-aware)
     citations = []
     for i, result in enumerate(results):
+        page_num = result.get("page_num", 0)
+        title = result.get("paper_title", "Unknown")
+        if result.get("type") == "table":
+            table_idx = result.get("table_index", 1)
+            excerpt = f"Table {table_idx} on page {page_num} of {title}"
+        else:
+            excerpt = f"Page {page_num} of {title}"
         citations.append(Citation(
             id=i + 1,
-            title=result.get("paper_title", "Unknown"),
-            page=result.get("page_num", 0),
-            excerpt=f"Page {result.get('page_num', '?')} of {result.get('paper_title', 'Unknown')}",
+            title=title,
+            page=page_num,
+            excerpt=excerpt,
             score=round(result.get("score", 0), 4),
         ))
 
-    # Generate answer with LLM using retrieved pages as context
+    # Generate answer
     try:
-        content = llm_service.generate_answer(request.question, results)
+        content = await openrouter_service.generate_answer(request.question, results)
     except Exception as e:
-        # Fallback: return raw excerpts if LLM fails
-        excerpts = "\n\n".join(
-            f"**[{c.id}] {c.title} — Page {c.page}**\n{c.excerpt}"
-            for c in citations
-        )
+        listing = "\n\n".join(f"**[{c.id}] {c.excerpt}**" for c in citations)
         content = (
-            f"Based on the most relevant pages found:\n\n{excerpts}\n\n"
+            f"Based on the most relevant content found:\n\n{listing}\n\n"
             f"*(Note: AI answer generation unavailable — {str(e)[:100]})*"
         )
 

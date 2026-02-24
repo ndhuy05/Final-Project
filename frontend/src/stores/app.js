@@ -133,7 +133,7 @@ export const useAppStore = defineStore('app', () => {
     )
     const paper = res.data.paper
     activeNotebook.value.papers.push(paper)
-    return paper
+    return res.data  // includes paper + tables_indexed
   }
 
   // User state
@@ -298,13 +298,17 @@ export const useAppStore = defineStore('app', () => {
     }
   }
 
-  function deletePaper(paperId) {
+  async function deletePaper(paperId) {
     if (activeNotebook.value) {
       const index = activeNotebook.value.papers.findIndex(p => p.id === paperId)
       if (index !== -1) {
+        try {
+          await apiClient.delete(`/notebooks/${activeNotebook.value.id}/papers/${paperId}`)
+        } catch (e) {
+          console.warn('Backend delete failed:', e)
+        }
         activeNotebook.value.papers.splice(index, 1)
         paperMenuOpen.value = null
-        // Clear selected source if it was deleted
         if (selectedSource.value?.id === paperId) {
           selectedSource.value = null
         }

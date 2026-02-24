@@ -7,22 +7,18 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "VibeProject"
     API_V1_STR: str = "/api/v1"
 
-    # Database (for future use)
-    DATABASE_URL: str = "postgresql://user:password@localhost:5432/vibeproject"
-
     # Qdrant — local on-disk mode (no Docker needed)
     QDRANT_LOCAL_PATH: str = "./qdrant_storage"
 
-    # ColQwen2 model
-    COLPALI_MODEL_NAME: str = "vidore/colqwen2-v1.0"
-
-    # VLM for answer generation (vision-language model)
-    LLM_MODEL_NAME: str = "Qwen/Qwen2.5-VL-3B-Instruct"
+    # OpenRouter API
+    OPENROUTER_API_KEY: str = ""
+    OPENROUTER_VISION_MODEL: str = "google/gemini-flash-1.5"
+    OPENROUTER_TEXT_MODEL: str = "openai/gpt-4o-mini"
 
     # Upload storage
     UPLOAD_DIR: str = "./uploads"
 
-    # Page image storage (for VLM input)
+    # Page image storage (for OpenRouter vision input)
     IMAGE_DIR: str = "./uploads/images"
 
     # CORS

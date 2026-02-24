@@ -1,17 +1,98 @@
 """
-Papers router: upload PDF, embed with ColQwen2, store in Qdrant.
-Page images are saved to disk for later use by the VLM.
+Papers router: upload PDF, extract tables with OpenRouter vision model,
+embed table summaries with fastembed, store in Qdrant.
+Original Markdown tables are stored in the Qdrant payload for later retrieval.
 """
 import os
 import uuid
+import shutil
+import asyncio
+from typing import List
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 import aiofiles
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.config import settings
-from app.services import memory_store, pdf_service, colpali_service, qdrant_service
+from app.services import memory_store, pdf_service, qdrant_service, embedding_service, openrouter_service
 
 router = APIRouter()
+
+_text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=75,        # 15% of 500
+    separators=["\n\n", "\n", ". ", " ", ""],
+    strip_whitespace=True,
+)
+
+
+def _chunk_text(text: str) -> List[str]:
+    """Split text into overlapping chunks using LangChain RecursiveCharacterTextSplitter."""
+    chunks = _text_splitter.split_text(text)
+    return [c for c in chunks if len(c) > 20]
+
+
+async def _process_page(image_path: str, page_num: int, paper: dict, notebook_id: str) -> tuple[int, int]:
+    """
+    Extract text + tables from a single page image in one vision call.
+    page_num: 0-based page index.
+    Returns (table_count, chunk_count).
+    """
+    result = await openrouter_service.extract_page_content([image_path])
+    page_label = page_num + 1  # 1-based for display/lookup
+
+    table_count = 0
+    chunk_count = 0
+
+    # --- Tables ---
+    tables = result.get("tables", [])
+    if tables:
+        summaries = await asyncio.gather(*[openrouter_service.summarize_table(t) for t in tables])
+        for table_idx, (markdown_table, summary) in enumerate(zip(tables, summaries)):
+            vector = embedding_service.embed_text(summary)
+            point_id = abs(hash(f"{paper['id']}_{page_num}_table_{table_idx}")) % (2**53)
+            qdrant_service.upsert_table(
+                notebook_id=notebook_id,
+                point_id=point_id,
+                vector=vector,
+                payload={
+                    "type": "table",
+                    "paper_id": paper["id"],
+                    "paper_title": paper["title"],
+                    "page_num": page_label,
+                    "table_index": table_idx + 1,
+                    "markdown_table": markdown_table,
+                    "summary": summary,
+                },
+            )
+            table_count += 1
+
+    # --- Text chunks ---
+    # Store full page text in every chunk payload.
+    # Small chunks drive precise vector search; page_text gives the LLM the full page.
+    # The surrounding pages (N-1, N+1) are fetched at query time for wider context.
+    text = result.get("text", "")
+    if text:
+        chunks = _chunk_text(text)
+        for chunk_idx, chunk in enumerate(chunks):
+            vector = embedding_service.embed_text(chunk)
+            point_id = abs(hash(f"{paper['id']}_{page_num}_text_{chunk_idx}")) % (2**53)
+            qdrant_service.upsert_table(
+                notebook_id=notebook_id,
+                point_id=point_id,
+                vector=vector,
+                payload={
+                    "type": "text",
+                    "paper_id": paper["id"],
+                    "paper_title": paper["title"],
+                    "page_num": page_label,
+                    "content": chunk,
+                    "page_text": text,  # full single-page text for context window lookup
+                },
+            )
+            chunk_count += 1
+
+    return table_count, chunk_count
 
 
 @router.post("/notebooks/{notebook_id}/papers/upload")
@@ -32,12 +113,6 @@ async def upload_paper(notebook_id: str, file: UploadFile = File(...)):
         # Convert PDF pages to images
         images = pdf_service.pdf_to_images(file_path)
 
-        # Embed all page images with ColQwen2
-        embeddings = colpali_service.embed_images(images)
-
-        # Ensure Qdrant collection exists for this notebook
-        qdrant_service.ensure_collection(notebook_id)
-
         # Save paper metadata
         paper = memory_store.add_paper(
             notebook_id=notebook_id,
@@ -46,33 +121,30 @@ async def upload_paper(notebook_id: str, file: UploadFile = File(...)):
             page_count=len(images),
         )
 
-        # Save page images to disk for VLM retrieval
+        # Save page images to disk
         image_dir = os.path.join(settings.IMAGE_DIR, paper["id"])
         os.makedirs(image_dir, exist_ok=True)
+        image_paths = []
         for page_num, img in enumerate(images):
             img_path = os.path.join(image_dir, f"page_{page_num + 1}.png")
             img.save(img_path, format="PNG")
+            image_paths.append(img_path)
 
-        # Upsert each page into Qdrant (no text — VLM reads images directly)
-        for page_num, multi_vec in enumerate(embeddings):
-            point_id = abs(hash(f"{paper['id']}_{page_num}")) % (2**53)
-            img_path = os.path.join(image_dir, f"page_{page_num + 1}.png")
-            qdrant_service.upsert_page(
-                notebook_id=notebook_id,
-                point_id=point_id,
-                multi_vector=multi_vec,
-                payload={
-                    "paper_id": paper["id"],
-                    "paper_title": paper["title"],
-                    "page_num": page_num + 1,
-                    "image_path": img_path,
-                },
-            )
+        # Ensure Qdrant collection exists
+        qdrant_service.ensure_collection(notebook_id)
 
-        return JSONResponse(content={"paper": paper})
+        # Process each page independently — one vision call per page
+        tasks = [
+            _process_page(image_paths[i], i, paper, notebook_id)
+            for i in range(len(image_paths))
+        ]
+        results = await asyncio.gather(*tasks)
+        table_count = sum(r[0] for r in results)
+        chunk_count = sum(r[1] for r in results)
+
+        return JSONResponse(content={"paper": paper, "tables_indexed": table_count, "chunks_indexed": chunk_count})
 
     except Exception as e:
-        # Clean up on error
         if os.path.exists(file_path):
             os.remove(file_path)
         raise HTTPException(status_code=500, detail=str(e))
@@ -84,22 +156,68 @@ async def list_papers(notebook_id: str):
     return {"papers": papers}
 
 
+@router.get("/notebooks/{notebook_id}/chunks")
+async def list_chunks(notebook_id: str, limit: int = 20, offset: int = 0, type: str = None):
+    """
+    Debug endpoint: browse indexed chunks/tables stored in Qdrant.
+    ?type=text  — show only text chunks
+    ?type=table — show only table chunks
+    ?limit=20&offset=0 — pagination
+    """
+    client = qdrant_service.get_client()
+    name = qdrant_service.collection_name(notebook_id)
+    try:
+        scroll_result, _ = client.scroll(
+            collection_name=name,
+            limit=limit,
+            offset=offset,
+            with_payload=True,
+            with_vectors=False,
+        )
+    except Exception as e:
+        return {"error": str(e), "chunks": []}
+
+    chunks = []
+    for point in scroll_result:
+        p = point.payload or {}
+        if type and p.get("type") != type:
+            continue
+        entry = {
+            "id": point.id,
+            "type": p.get("type"),
+            "paper_title": p.get("paper_title"),
+            "page_num": p.get("page_num"),
+        }
+        if p.get("type") == "table":
+            entry["table_index"] = p.get("table_index")
+            entry["summary"] = p.get("summary")
+            entry["markdown_table"] = p.get("markdown_table")
+        else:
+            entry["content"] = p.get("content")          # small search chunk
+            entry["pair_text_len"] = len(p.get("pair_text", ""))  # full context length
+        chunks.append(entry)
+
+    info = client.get_collection(name)
+    return {
+        "total_points": info.points_count,
+        "returned": len(chunks),
+        "offset": offset,
+        "chunks": chunks,
+    }
+
+
 @router.delete("/notebooks/{notebook_id}/papers/{paper_id}")
 async def delete_paper(notebook_id: str, paper_id: str):
     paper = memory_store.get_paper(notebook_id, paper_id)
     if not paper:
         raise HTTPException(status_code=404, detail="Paper not found.")
 
-    # Remove vectors from Qdrant
     qdrant_service.delete_paper_points(notebook_id, paper_id)
 
-    # Remove uploaded PDF
     file_path = os.path.join(settings.UPLOAD_DIR, paper["filename"])
     if os.path.exists(file_path):
         os.remove(file_path)
 
-    # Remove saved page images
-    import shutil
     image_dir = os.path.join(settings.IMAGE_DIR, paper_id)
     if os.path.exists(image_dir):
         shutil.rmtree(image_dir)

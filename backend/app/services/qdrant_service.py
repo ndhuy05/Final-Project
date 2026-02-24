@@ -1,5 +1,6 @@
 """
-Qdrant service: local on-disk client, multi-vector collection for ColQwen2.
+Qdrant service: local on-disk client, dense single-vector collection.
+Vectors are 384-dim text embeddings from fastembed (BAAI/bge-small-en-v1.5).
 No Docker required — uses QdrantClient(path=...).
 """
 import os
@@ -9,8 +10,6 @@ from qdrant_client.models import (
     VectorParams,
     Distance,
     PointStruct,
-    MultiVectorConfig,
-    MultiVectorComparator,
     Filter,
     FieldCondition,
     MatchValue,
@@ -19,8 +18,7 @@ from app.config import settings
 
 _client: QdrantClient = None
 
-VECTOR_NAME = "colqwen2"
-VECTOR_DIM = 128  # ColQwen2 patch embedding dimension
+VECTOR_DIM = 384  # BAAI/bge-small-en-v1.5 output dimension
 
 
 def get_client() -> QdrantClient:
@@ -36,65 +34,83 @@ def collection_name(notebook_id: str) -> str:
 
 
 def ensure_collection(notebook_id: str):
-    """Create multi-vector collection for a notebook if it doesn't exist."""
+    """Create dense vector collection for a notebook if it doesn't exist.
+    If an existing collection has an incompatible schema (e.g. old ColQwen2
+    multi-vector format), it is deleted and recreated automatically.
+    """
     client = get_client()
     name = collection_name(notebook_id)
     existing = [c.name for c in client.get_collections().collections]
+    if name in existing:
+        # Validate the collection has the expected dense vector config
+        info = client.get_collection(name)
+        config = info.config.params.vectors
+        # Dense config is a VectorParams object (not a dict of named vectors)
+        compatible = (
+            hasattr(config, "size")
+            and config.size == VECTOR_DIM
+        )
+        if not compatible:
+            client.delete_collection(name)
+            existing = []  # force recreation below
+
     if name not in existing:
         client.create_collection(
             collection_name=name,
-            vectors_config={
-                VECTOR_NAME: VectorParams(
-                    size=VECTOR_DIM,
-                    distance=Distance.COSINE,
-                    multivector_config=MultiVectorConfig(
-                        comparator=MultiVectorComparator.MAX_SIM
-                    ),
-                )
-            },
+            vectors_config=VectorParams(size=VECTOR_DIM, distance=Distance.COSINE),
         )
 
 
-def upsert_page(
+def upsert_table(
     notebook_id: str,
     point_id: int,
-    multi_vector: List[List[float]],
+    vector: List[float],
     payload: Dict[str, Any],
 ):
-    """Upsert a single page's multi-vector into the collection."""
+    """Upsert a single table's embedding into the collection."""
     client = get_client()
     client.upsert(
         collection_name=collection_name(notebook_id),
-        points=[
-            PointStruct(
-                id=point_id,
-                vector={VECTOR_NAME: multi_vector},
-                payload=payload,
-            )
-        ],
+        points=[PointStruct(id=point_id, vector=vector, payload=payload)],
     )
 
 
 def search(
     notebook_id: str,
-    query_multi_vector: List[List[float]],
-    top_k: int = 3,
+    query_vector: List[float],
+    top_k: int = 5,
 ) -> List[Dict[str, Any]]:
-    """
-    MaxSim search: find top-k most relevant pages for a query.
-    Returns list of payload dicts with score.
-    """
+    """Find top-k most relevant tables for a query vector."""
     client = get_client()
     results = client.query_points(
         collection_name=collection_name(notebook_id),
-        query=query_multi_vector,
-        using=VECTOR_NAME,
+        query=query_vector,
         limit=top_k,
     )
-    return [
-        {**point.payload, "score": point.score}
-        for point in results.points
-    ]
+    return [{**point.payload, "score": point.score} for point in results.points]
+
+
+def get_page_text(notebook_id: str, paper_id: str, page_num: int) -> str:
+    """
+    Return the full extracted text of a specific page (1-based page_num).
+    Finds the first text chunk for this page and returns its page_text payload.
+    Returns empty string if not found.
+    """
+    client = get_client()
+    results, _ = client.scroll(
+        collection_name=collection_name(notebook_id),
+        scroll_filter=Filter(must=[
+            FieldCondition(key="paper_id", match=MatchValue(value=paper_id)),
+            FieldCondition(key="page_num", match=MatchValue(value=page_num)),
+            FieldCondition(key="type", match=MatchValue(value="text")),
+        ]),
+        limit=1,
+        with_payload=True,
+        with_vectors=False,
+    )
+    if results:
+        return results[0].payload.get("page_text", "")
+    return ""
 
 
 def delete_paper_points(notebook_id: str, paper_id: str):
