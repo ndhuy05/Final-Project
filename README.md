@@ -1,12 +1,12 @@
 # VibeProject - NotebookLM-Inspired Research Paper Q&A System
 
-A modern web application for managing, querying, and analyzing research papers. Features a clean NotebookLM-inspired UI with notebook management, paper organization, AI-powered chat, and paper generation tools (Code, Poster, Web).
+A modern web application for managing, querying, and analyzing research papers. Features a clean NotebookLM-inspired UI with notebook management, paper organization, and AI-powered chat backed by a full RAG pipeline.
 
 ## 🎯 Project Status
 
-**Frontend: ✅ Fully Functional** | **Backend: 🚧 In Progress**
+**Frontend: ✅ Fully Functional** | **Backend: ✅ Functional (RAG Pipeline Active)**
 
-The frontend is complete with a production-ready UI, mock data, and all interactive features. The backend integration (FastAPI, PostgreSQL, Qdrant) is planned for future implementation.
+The frontend is complete with a production-ready UI. The backend is live with a full vision-based RAG pipeline: upload a PDF → pages are extracted by a VLM → chunks are embedded and stored in Qdrant → questions are answered by a VLM reading the relevant page images directly.
 
 ## ✨ Implemented Features
 
@@ -14,307 +14,220 @@ The frontend is complete with a production-ready UI, mock data, and all interact
 - **Multiple Notebooks**: Create, rename, delete notebooks (ChatGPT-style sidebar)
 - **Isolated Data**: Each notebook has its own sources, chat history, and notes
 - **Smart Navigation**: Toggle between "Your Notebooks" and "Sources" views
-- **Default View**: Opens to notebooks list on startup
 
 ### 📄 Document Management
-- **Sources Tab**: View, organize, and manage papers per notebook
+- **PDF Upload**: Drag-and-drop upload with real backend processing
 - **Paper Actions**: Rename and delete papers via 3-dot menu
-- **Upload Zone**: Drag-and-drop interface (UI ready, upload logic pending)
-- **Paper Preview**: Click citations or sources to view excerpts
+- **Upload Feedback**: Shows chunks indexed after successful upload
 
-### 💬 Chat Interface
-- **AI Q&A**: Chat interface for asking questions about papers
+### 💬 AI Chat (RAG Pipeline)
+- **VLM-Powered Q&A**: Questions answered by a vision model reading page images
+- **Semantic Search**: fastembed (BAAI/bge-small-en-v1.5) + Qdrant vector search
+- **3-Page Context Window**: VLM receives pages N-1, N, N+1 around the best match
 - **Markdown Support**: Rich text rendering with `marked.js`
-- **Citation Badges**: Clickable [1], [2] badges linked to sources
+- **Citation Badges**: Clickable [1], [2] badges linked to source pages
 - **Message History**: Persistent per-notebook chat history
-- **Welcome Cards**: Feature highlights on empty state
 
-### 🧪 Lab (Generation Features)
-- **Paper to Code**: Generate code from paper algorithms
-- **Paper to Poster**: Create conference posters
-- **Paper to Web**: Generate web pages
-- **Paper Selection Modal**: Choose source papers from notebook
-- **Confirmation Flow**: Yes/No dialog before generation
+### 🧪 Lab (Generation Features — UI Only)
+- **Paper to Code**, **Paper to Poster**, **Paper to Web** — UI complete, generation logic TBD
 
-### 🎨 UI/UX
-- **Three-Column Layout**: Left sidebar (notebooks/sources) | Center (chat) | Right sidebar (Lab)
-- **Collapsible Sidebars**: Smooth animations (64px collapsed, full width expanded)
-- **User Profile**: Avatar with initials, dropdown menu (Settings/Logout)
-- **Google-Style Aesthetic**: Clean whites, soft grays, subtle shadows
-- **Inter Font**: Professional typography (Google Sans alternative)
-- **Responsive Design**: Adapts to sidebar states
+---
+
+## 🏗️ Architecture
+
+### RAG Pipeline
+
+```
+── INGESTION (Upload) ──────────────────────────────────────────────────
+PDF
+  └─ PyMuPDF → page PNGs saved to disk
+
+  For each page (concurrently):
+    VLM (OPENROUTER_VISION_MODEL)
+      ← page image
+      → plain text  (tables described in prose, not Markdown)
+
+    RecursiveCharacterTextSplitter (chunk_size=500, overlap=75)
+      → N chunks
+
+    fastembed (BAAI/bge-small-en-v1.5, 384-dim, local CPU)
+      → dense vector per chunk
+
+    Qdrant (local on-disk)
+      ← upsert {type, paper_id, page_num, content, page_text, vector}
+
+── RETRIEVAL (Chat) ─────────────────────────────────────────────────────
+Question
+  └─ fastembed → 384-dim query vector
+  └─ Qdrant cosine search → top-5 chunks
+  └─ deduplicate by (paper_id, page_num)
+  └─ top result at page N
+       → load images: page N-1, page N, page N+1 from disk
+
+  VLM (OPENROUTER_ANSWER_MODEL)
+    ← 3 page images + question
+    → answer with page citations
+```
+
+### Key Design Decisions
+| Decision | Reason |
+|---|---|
+| VLM reads images for answering | Avoids lossy text extraction for final answer; model sees original layout |
+| Tables described in prose during extraction | Avoids Markdown table embedding issues; description embeds better |
+| 3-page window (N-1, N, N+1) | Catches content that spans across a page boundary |
+| fastembed local embeddings | No API cost/latency for embeddings; 384-dim fast on CPU |
+| Qdrant local on-disk | No Docker needed; resets cleanly on re-upload |
+| In-memory metadata store | No PostgreSQL dependency; resets on server restart (acceptable for demo) |
+
+---
 
 ## 🛠️ Tech Stack
 
-### Frontend (Production Ready)
+### Frontend
 - **Vue 3** (Composition API with `<script setup>`)
-- **Vite 7.3.1** - Lightning-fast dev server
-- **Pinia** - Centralized state management
-- **Vue Router** - SPA routing
-- **Tailwind CSS v3** - Utility-first styling
-- **Lucide Vue Next** - Icon system
-- **Marked.js** - Markdown rendering
-- **Inter Font** - Typography (via Google Fonts)
+- **Vite** · **Pinia** · **Vue Router** · **Tailwind CSS v3**
+- **Lucide Vue Next** · **Marked.js**
 
-### Backend (Planned)
-- **FastAPI** - Python web framework
-- **Uvicorn** - ASGI server
-- **SQLAlchemy** - ORM for PostgreSQL
-- **Alembic** - Database migrations
-- **Pydantic** - Data validation
+### Backend
+- **FastAPI** + **Uvicorn** (ASGI)
+- **Pydantic / pydantic-settings**
+- **PyMuPDF** — PDF → page images
+- **fastembed** — local text embeddings (BAAI/bge-small-en-v1.5, 384-dim)
+- **Qdrant Client** — local on-disk vector store
+- **OpenAI SDK** — OpenRouter-compatible client
+- **LangChain Text Splitters** — RecursiveCharacterTextSplitter
+- **aiofiles** · **python-multipart**
 
-### Databases (Planned)
-- **PostgreSQL** - Relational data (users, notebooks, papers)
-- **Qdrant** - Vector database for semantic search
-- **ColPali (HuggingFace)** - Document embeddings
+### AI / Models (via OpenRouter)
+| Role | Default Model | Config Key |
+|---|---|---|
+| Page extraction (VLM) | `google/gemini-flash-1.5` | `OPENROUTER_VISION_MODEL` |
+| Answer generation (VLM) | `google/gemini-flash-1.5` | `OPENROUTER_ANSWER_MODEL` |
+
+---
 
 ## 📁 Project Structure
 
 ```
 VibeProject/
-├── frontend/                      # Vue 3 Application
-│   ├── src/
-│   │   ├── views/
-│   │   │   └── Home.vue          # Main UI (3-column layout, ~640 lines)
-│   │   ├── stores/
-│   │   │   └── app.js            # Pinia store (state + actions, ~260 lines)
-│   │   ├── router/
-│   │   │   └── index.js          # Vue Router config
-│   │   ├── App.vue               # Root component
-│   │   ├── main.js               # App entry point
-│   │   └── style.css             # Tailwind + custom styles
-│   ├── index.html                # HTML entry + Inter font
-│   ├── tailwind.config.js        # Tailwind config (custom colors)
-│   ├── package.json              # Dependencies
-│   └── vite.config.js            # Vite configuration
-├── backend/                       # FastAPI Application (structure ready)
+├── frontend/
+│   └── src/
+│       ├── views/Home.vue          # Main UI (3-column layout)
+│       ├── stores/app.js           # Pinia store + API calls
+│       └── router/index.js
+├── backend/
 │   ├── app/
-│   │   ├── main.py               # FastAPI app + health endpoint
-│   │   └── __init__.py
-│   ├── requirements.txt          # Python dependencies
-│   └── venv/                     # Python virtual environment
-├── .gitignore                    # Comprehensive ignore rules
-└── README.md                     # This file
+│   │   ├── main.py                 # FastAPI app, CORS, logging
+│   │   ├── config.py               # Settings (env vars + defaults)
+│   │   ├── routers/
+│   │   │   ├── papers.py           # Upload, list, delete, /chunks debug
+│   │   │   └── chat.py             # RAG chat endpoint
+│   │   └── services/
+│   │       ├── openrouter_service.py  # VLM extraction + answer generation
+│   │       ├── embedding_service.py   # fastembed local embeddings
+│   │       ├── qdrant_service.py      # Qdrant local client + search
+│   │       ├── memory_store.py        # In-memory notebook/paper metadata
+│   │       └── pdf_service.py         # PDF → PIL page images
+│   ├── requirements.txt
+│   ├── .env                        # API keys (gitignored)
+│   └── .env.example                # Template for .env
+└── README.md
 ```
 
-## 🗂️ Key Files Explained
-
-### Frontend Core Files
-
-#### **`frontend/src/stores/app.js`** (Pinia Store)
-Central state management for the entire application:
-- **Notebooks Array**: Mock data with 3 notebooks (ML Research, Thesis Review, Computer Vision)
-- **Active Notebook**: Currently selected notebook reference
-- **Sidebar States**: `leftSidebarCollapsed`, `rightPanelVisible`, `sidebarView` (notebooks/sources)
-- **Paper Generation**: Modal states for Lab features
-- **User State**: Profile info with initials-based avatar
-- **Actions**: CRUD for notebooks/papers, UI toggles, generation workflows
-
-**Key State Variables:**
-```javascript
-notebooks: [{ id, name, createdAt, papers[], messages[], notes[] }]
-activeNotebook: ref(notebooks[0])
-sidebarView: 'notebooks' | 'sources'
-paperMenuOpen, notebookMenuOpen: Track dropdown states
-showPaperSelector, showConfirmation: Modal visibility
-```
-
-#### **`frontend/src/views/Home.vue`** (Main Component)
-The entire UI in one component (~640 lines):
-- **Lines 1-237**: Left sidebar (notebooks list, sources, user profile, collapsed view)
-- **Lines 260-374**: Center chat interface (messages, input bar, welcome cards)
-- **Lines 376-467**: Right sidebar "Lab" (generation features, collapsed icons)
-- **Lines 470-545**: Modals (paper selector, confirmation dialog)
-- **Lines 588-665**: Script setup (handlers, icons, markdown rendering)
-
-**Key Sections:**
-- Collapsible sidebars with transition animations
-- Notebook/paper 3-dot menus with rename/delete
-- Tab switching with directional slide animations
-- Feature cards (Code, Poster, Web) in grid layout
-
-#### **`frontend/tailwind.config.js`**
-Custom Tailwind configuration:
-- **Font Family**: Inter as default sans-serif
-- **Custom Colors**: `notebook-50` through `notebook-900` (gray palette)
-- **Content Paths**: Configured for Vue files
-
-#### **`frontend/src/style.css`**
-Global styles:
-- Tailwind directives
-- Custom scrollbar utilities (`.scrollbar-thin`)
-- Base styles for HTML/body
-
-## 🎨 Design System
-
-### Color Palette
-```javascript
-notebook-50:  '#f9fafb'  // Lightest background
-notebook-100: '#f3f4f6'  // Hover states
-notebook-200: '#e5e7eb'  // Borders
-notebook-300: '#d1d5db'  // Disabled text
-notebook-600: '#4b5563'  // Secondary text
-notebook-900: '#111827'  // Primary text
-```
-
-### Feature Colors
-- **Code Generation**: Blue (`text-blue-500`)
-- **Poster Generation**: Purple (`text-purple-500`)
-- **Web Generation**: Green (`text-green-500`)
-
-### Typography (Inter Font)
-- **Headings**: `text-xl font-semibold` (20px, 600 weight)
-- **Body**: `text-sm` (14px, 400 weight)
-- **Labels**: `text-xs` (12px, 400 weight)
-- **Buttons**: `text-sm font-medium` (14px, 500 weight)
-
-### Component Patterns
-- **Active Tab**: `bg-white shadow-sm text-notebook-900`
-- **Inactive Tab**: `text-notebook-600 hover:bg-notebook-100`
-- **Cards**: `border border-notebook-200 rounded-lg hover:shadow-md`
-- **Modals**: `rounded-2xl shadow-2xl` with backdrop `bg-black/50`
+---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- **Node.js 20.19+ or 22.12+** (v22.3.0 currently used)
-- **npm** (comes with Node.js)
-- Python 3.9+ (for backend, when implemented)
+- **Node.js 20+**
+- **Python 3.11+**
+- **OpenRouter API key** — get one at https://openrouter.ai/keys
+
+### Backend Setup
+
+```bash
+cd backend
+
+# Create and activate virtual environment
+python -m venv venv
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # macOS/Linux
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment
+copy .env.example .env
+# Edit .env and set OPENROUTER_API_KEY=your_key_here
+
+# Start server
+uvicorn app.main:app --reload
+# API available at http://localhost:8000
+# Docs at http://localhost:8000/docs
+```
 
 ### Frontend Setup
 
 ```bash
-# Navigate to frontend directory
 cd frontend
-
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
-
-# App will run at http://localhost:5173 or 5174/5175 if port is in use
+# App at http://localhost:5173
 ```
 
-### Current Development URLs
-- **Frontend**: http://localhost:5173 (or next available port)
-- **Backend**: Not yet running (planned: http://localhost:8000)
-- **API Docs**: Planned at http://localhost:8000/docs
+### Environment Variables
 
-### Mock Data
-The app runs entirely with mock data defined in `frontend/src/stores/app.js`:
-- 3 pre-populated notebooks
-- Sample papers with metadata
-- Demo chat messages
-- Example notes
-
-## 🏗️ Architecture Decisions
-
-### State Management
-- **Centralized Pinia Store**: All state in `app.js` for simplicity
-- **Notebook-Centric**: Each notebook is self-contained with its own data
-- **No Persistence**: Currently in-memory (localStorage/backend planned)
-
-### Component Structure
-- **Single-File Component**: Entire UI in `Home.vue` (could be split later)
-- **Composition API**: Modern Vue 3 with `<script setup>`
-- **Template-Driven**: Minimal logic in templates, handlers in script
-
-### Styling Approach
-- **Tailwind Utility Classes**: No CSS modules or scoped styles
-- **Custom Color System**: `notebook-*` prefix for brand colors
-- **No Component Library**: Pure Tailwind + Lucide icons
-
-### Animation Strategy
-- **Vue Transitions**: For modals and tab switching
-- **Tailwind Transitions**: For hovers and sidebar collapse
-- **Duration**: 300ms for sidebars, 100-200ms for modals
-
-### Data Flow
+```env
+OPENROUTER_API_KEY=sk-or-...
+OPENROUTER_VISION_MODEL=google/gemini-flash-1.5   # for page extraction
+OPENROUTER_ANSWER_MODEL=google/gemini-flash-1.5   # for answer generation
 ```
-User Action → Event Handler → Pinia Action → State Update → Reactive UI Update
-```
-
-Example: Click notebook → `selectNotebook()` → `activeNotebook.value = notebook` → UI re-renders
-
-## 🔧 Development Notes
-
-### Known Issues
-- **Node Version Warning**: App works but recommends Node 20.19+ or 22.12+
-- **Port Conflicts**: Vite auto-increments if 5173 is taken
-- **No Persistence**: Refresh loses all changes (by design for now)
-
-### Technical Debt
-- Home.vue is large (~640 lines) - could split into components
-- Mock data in store - needs backend API integration
-- No error handling for API calls (no API yet)
-- No tests written yet
-
-### Future Backend Integration Points
-1. **Notebooks API**: CRUD endpoints replacing mock data
-2. **Papers API**: Upload, process, embed documents
-3. **Chat API**: LLM integration for Q&A
-4. **Generation API**: Code/Poster/Web generation logic
-5. **Auth API**: User authentication and sessions
-
-## 📝 Key Patterns & Conventions
-
-### Naming Conventions
-- **Components**: PascalCase (`Home.vue`)
-- **State Variables**: camelCase (`activeNotebook`)
-- **Actions**: camelCase verbs (`selectNotebook`, `toggleSidebar`)
-- **CSS Classes**: kebab-case (Tailwind standard)
-
-### Icon Usage
-All icons from Lucide Vue Next:
-```javascript
-import { Code, Image, Globe, FileText, ... } from 'lucide-vue-next'
-```
-
-### Event Handling
-- Use `@click.stop` to prevent event bubbling (e.g., 3-dot menus)
-- Use `@click.self` for modal backdrop close
-
-### Conditional Rendering
-- `v-if` for modals and major DOM changes
-- `v-show` avoided (prefer `v-if` for cleaner code)
-- `:class` for dynamic styling
-
-## 🎯 Next Steps (Backend Implementation)
-
-1. **Database Models**: Define SQLAlchemy models for notebooks, papers, messages
-2. **API Endpoints**: Implement FastAPI routes matching frontend expectations
-3. **Vector Search**: Set up Qdrant for semantic paper search
-4. **LLM Integration**: Connect to GPT/Claude for chat functionality
-5. **File Processing**: PDF parsing and text extraction
-6. **Authentication**: User accounts and sessions
-7. **Generation Logic**: Implement actual Code/Poster/Web generation
-
-## 🧪 Testing Strategy (Future)
-
-- **Frontend**: Vitest for component tests
-- **Backend**: Pytest for API tests
-- **E2E**: Playwright for full user flows
-- **Load Testing**: Locust for performance testing
-
-## 📚 Learning Resources
-
-- [Vue 3 Docs](https://vuejs.org/)
-- [Pinia Docs](https://pinia.vuejs.org/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Lucide Icons](https://lucide.dev/)
-- [FastAPI Docs](https://fastapi.tiangolo.com/)
-
-## 🤝 Contributing
-
-Currently in active development. Contribution guidelines TBD.
-
-## 📄 License
-
-TBD
 
 ---
 
-**Last Updated**: February 2026  
-**Status**: Frontend complete, backend pending  
-**Contact**: TBD
+## 🔌 API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/v1/health` | Health check |
+| `GET` | `/api/v1/notebooks/{id}/papers` | List papers in notebook |
+| `POST` | `/api/v1/notebooks/{id}/papers/upload` | Upload PDF (triggers ingestion) |
+| `DELETE` | `/api/v1/notebooks/{id}/papers/{pid}` | Delete paper + Qdrant points |
+| `POST` | `/api/v1/notebooks/{id}/chat` | Ask a question (RAG) |
+| `GET` | `/api/v1/notebooks/{id}/chunks` | Debug: browse indexed chunks |
+
+---
+
+## 🔧 Development Notes
+
+### Known Limitations
+- **In-memory metadata**: Notebooks and paper metadata reset on server restart (no database)
+- **No auth**: Notebook IDs passed directly in URL
+- **GPU embeddings**: fastembed-gpu installed but falls back to CPU if no CUDA device detected
+
+### Debug Endpoint
+Browse stored chunks at:
+```
+GET /api/v1/notebooks/{id}/chunks?type=text&limit=20
+```
+
+### Logging
+Per-request debug logs show which pages are sent to the answer VLM:
+```
+DEBUG app.services.openrouter_service: images sent: ['page_2.png', 'page_3.png', 'page_4.png']
+```
+
+---
+
+## 📝 Conventions
+
+- **Naming**: camelCase for JS/Vue state, snake_case for Python
+- **Icons**: Lucide Vue Next throughout
+- **Event handling**: `@click.stop` to prevent bubbling on 3-dot menus
+- **Async**: All OpenRouter calls are `async/await`; page processing uses `asyncio.gather`
+
+---
+
+**Last Updated**: February 2026
+**Status**: Frontend complete · Backend RAG pipeline active
+
