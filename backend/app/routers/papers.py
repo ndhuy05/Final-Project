@@ -32,46 +32,16 @@ def _chunk_text(text: str) -> List[str]:
     return [c for c in chunks if len(c) > 20]
 
 
-async def _process_page(image_path: str, page_num: int, paper: dict, notebook_id: str) -> tuple[int, int]:
+async def _process_page(image_path: str, page_num: int, paper: dict, notebook_id: str) -> int:
     """
-    Extract text + tables from a single page image in one vision call.
+    Extract page content as plain text (tables described in prose) via one vision call.
     page_num: 0-based page index.
-    Returns (table_count, chunk_count).
+    Returns chunk_count.
     """
-    result = await openrouter_service.extract_page_content([image_path])
+    text = await openrouter_service.extract_page_content([image_path])
     page_label = page_num + 1  # 1-based for display/lookup
 
-    table_count = 0
     chunk_count = 0
-
-    # --- Tables ---
-    tables = result.get("tables", [])
-    if tables:
-        summaries = await asyncio.gather(*[openrouter_service.summarize_table(t) for t in tables])
-        for table_idx, (markdown_table, summary) in enumerate(zip(tables, summaries)):
-            vector = embedding_service.embed_text(summary)
-            point_id = abs(hash(f"{paper['id']}_{page_num}_table_{table_idx}")) % (2**53)
-            qdrant_service.upsert_table(
-                notebook_id=notebook_id,
-                point_id=point_id,
-                vector=vector,
-                payload={
-                    "type": "table",
-                    "paper_id": paper["id"],
-                    "paper_title": paper["title"],
-                    "page_num": page_label,
-                    "table_index": table_idx + 1,
-                    "markdown_table": markdown_table,
-                    "summary": summary,
-                },
-            )
-            table_count += 1
-
-    # --- Text chunks ---
-    # Store full page text in every chunk payload.
-    # Small chunks drive precise vector search; page_text gives the LLM the full page.
-    # The surrounding pages (N-1, N+1) are fetched at query time for wider context.
-    text = result.get("text", "")
     if text:
         chunks = _chunk_text(text)
         for chunk_idx, chunk in enumerate(chunks):
@@ -87,12 +57,12 @@ async def _process_page(image_path: str, page_num: int, paper: dict, notebook_id
                     "paper_title": paper["title"],
                     "page_num": page_label,
                     "content": chunk,
-                    "page_text": text,  # full single-page text for context window lookup
+                    "page_text": text,
                 },
             )
             chunk_count += 1
 
-    return table_count, chunk_count
+    return chunk_count
 
 
 @router.post("/notebooks/{notebook_id}/papers/upload")
@@ -139,10 +109,9 @@ async def upload_paper(notebook_id: str, file: UploadFile = File(...)):
             for i in range(len(image_paths))
         ]
         results = await asyncio.gather(*tasks)
-        table_count = sum(r[0] for r in results)
-        chunk_count = sum(r[1] for r in results)
+        chunk_count = sum(results)
 
-        return JSONResponse(content={"paper": paper, "tables_indexed": table_count, "chunks_indexed": chunk_count})
+        return JSONResponse(content={"paper": paper, "chunks_indexed": chunk_count})
 
     except Exception as e:
         if os.path.exists(file_path):

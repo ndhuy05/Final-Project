@@ -1,11 +1,13 @@
 """
 Chat router: embed query with fastembed, retrieve relevant chunks
-from Qdrant, build 3-page context windows, generate answer via OpenRouter.
+from Qdrant, collect page images (N-1, N, N+1), generate answer via VLM.
 """
+import os
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
 
+from app.config import settings
 from app.services import qdrant_service, memory_store, embedding_service, openrouter_service
 
 router = APIRouter()
@@ -74,20 +76,18 @@ async def chat(notebook_id: str, request: ChatRequest):
             seen[key] = r
     results = list(seen.values())
 
-    # For each text chunk, build a 3-page context window: page N-1, N, N+1
-    for r in results:
-        if r.get("type") != "text":
+    # Use only the top (highest score) result to determine the 3 pages to send
+    top = results[0]
+    paper_id = top.get("paper_id")
+    page = top.get("page_num")  # 1-based
+
+    image_paths = []
+    for p in [page - 1, page, page + 1]:
+        if p < 1:
             continue
-        paper_id = r.get("paper_id")
-        page = r.get("page_num")  # 1-based
-        window_parts = []
-        for p in [page - 1, page, page + 1]:
-            if p < 1:
-                continue
-            text = qdrant_service.get_page_text(notebook_id, paper_id, p)
-            if text:
-                window_parts.append(f"[Page {p}]\n{text}")
-        r["context_window"] = "\n\n".join(window_parts)
+        img_path = os.path.join(settings.IMAGE_DIR, paper_id, f"page_{p}.png")
+        if os.path.exists(img_path):
+            image_paths.append(img_path)
 
     # Build citations (type-aware)
     citations = []
@@ -107,9 +107,14 @@ async def chat(notebook_id: str, request: ChatRequest):
             score=round(result.get("score", 0), 4),
         ))
 
-    # Generate answer
+    # Generate answer: VLM reads page images directly
     try:
-        content = await openrouter_service.generate_answer(request.question, results)
+        if image_paths:
+            content = await openrouter_service.generate_answer_with_images(
+                request.question, image_paths, results
+            )
+        else:
+            content = "No page images found for the matched content. Please re-upload the paper."
     except Exception as e:
         listing = "\n\n".join(f"**[{c.id}] {c.excerpt}**" for c in citations)
         content = (

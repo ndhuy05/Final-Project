@@ -12,8 +12,8 @@ class Settings(BaseSettings):
 
     # OpenRouter API
     OPENROUTER_API_KEY: str = ""
-    OPENROUTER_VISION_MODEL: str = "google/gemini-flash-1.5"
-    OPENROUTER_TEXT_MODEL: str = "openai/gpt-4o-mini"
+    OPENROUTER_VISION_MODEL: str = "google/gemini-flash-1.5"   # extraction
+    OPENROUTER_ANSWER_MODEL: str = "google/gemini-flash-1.5"   # answer generation
 
     # Upload storage
     UPLOAD_DIR: str = "./uploads"

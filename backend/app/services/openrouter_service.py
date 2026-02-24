@@ -1,47 +1,82 @@
 """
-OpenRouter service: vision extraction (text + tables) and answer generation.
+OpenRouter service: vision-based page extraction and answer generation.
 """
 import base64
-import re
+import logging
 from typing import List, Dict, Any
 
 from openai import AsyncOpenAI
 
 from app.config import settings
 
+logger = logging.getLogger(__name__)
+
 # ---------------------------------------------------------------------------
 # Prompts
 # ---------------------------------------------------------------------------
 
-EXTRACTION_PROMPT = """You are a document extraction assistant. Extract ALL content from the provided page image(s).
-
-Output your response in exactly this format:
-
-===TEXT===
-<all prose, headings, captions, footnotes, and any non-table text verbatim>
-
-===TABLES===
-<each table as GitHub-flavored Markdown, separated by a blank line; if no tables write NONE>
-
-Rules:
-- Preserve the reading order of the text.
-- Do not summarize or paraphrase — extract verbatim.
-- For tables: include header rows and alignment markers.
-- If content spans two pages, treat them as continuous."""
-
-TABLE_SUMMARY_PROMPT = (
-    "Summarize the following table in 2-3 sentences. "
-    "Describe what the table is about and highlight key values or trends.\n\n"
-    "{markdown_table}"
+EXTRACTION_PROMPT = (
+    "You are an expert document extraction assistant. Your task is to extract ALL content from the provided page image with maximum accuracy and completeness.\n\n"
+    
+    "## General Rules\n"
+    "- Extract content in natural reading order (top-to-bottom, left-to-right, multi-column aware)\n"
+    "- Preserve ALL text verbatim: headings, subheadings, body text, captions, footnotes, headers, footers\n"
+    "- Do NOT summarize, paraphrase, or omit any content — even if it seems repetitive\n"
+    "- If text is partially cut off at page edges, extract what is visible and mark with [TRUNCATED]\n"
+    "- If any content is unclear or illegible, mark with [ILLEGIBLE]\n\n"
+    
+    "## Tables\n"
+    "When you encounter a table, output the following in order:\n"
+    "1. **[TABLE DESCRIPTION]**: A detailed prose description covering:\n"
+    "   - The table's purpose and what it represents\n"
+    "   - Column headers and their meaning\n"
+    "   - Row structure and groupings (if any)\n"
+    "   - Any units, footnotes, or special notations used\n"
+    "2. **[TABLE DATA]**: The complete table in Markdown format\n"
+    "   - Include ALL rows and columns without exception\n"
+    "   - Preserve exact numbers, variables, symbols, and units\n"
+    "   - For merged cells, repeat the value in each affected cell and note the merge\n"
+    "   - For multi-level headers, flatten them clearly\n\n"
+    
+    "## Formulas & Special Content\n"
+    "- Mathematical formulas: render in LaTeX inline notation (e.g. $E = mc^2$)\n"
+    "- Lists and bullet points: preserve hierarchy and indentation using Markdown\n"
+    "- Images/charts/diagrams: mark with [FIGURE: <brief description of what it shows>]\n\n"
+    
+    "## Output Format\n"
+    "Output raw extracted content only. Do not add commentary, explanations, or any text that does not appear in the original document."
 )
 
-ANSWER_SYSTEM_PROMPT = (
-    "You are a helpful research assistant. Answer the user's question based solely on "
-    "the provided context from research papers. Cite sources using [1], [2], etc. "
-    "If the context does not contain enough information, say so honestly."
-)
+ANSWER_WITH_IMAGES_PROMPT = (
+    "You are an expert research assistant specialized in analyzing academic and technical documents.\n\n"
 
-ANSWER_USER_PROMPT = "Context:\n\n{context_block}\n\nQuestion: {question}"
+    "## Your Task\n"
+    "Answer the user's question using ONLY the information visible in the provided page image(s). "
+    "Do not use prior knowledge to fill in gaps — if the pages lack sufficient information, say so explicitly.\n\n"
+
+    "## Answer Guidelines\n"
+    "- Be precise and thorough: extract exact numbers, statistics, variable names, and technical terms as they appear\n"
+    "- For questions involving tables or figures, describe the relevant data specifically rather than generally\n"
+    "- If multiple pages contribute to the answer, synthesize them coherently\n"
+    "- If the question has multiple sub-parts, address each one separately\n"
+    "- Do not speculate or infer beyond what is explicitly stated in the pages\n\n"
+
+    "## Citation Format\n"
+    "Always cite your sources inline using the format (Page X). Example:\n"
+    "  'The model achieves 94.2% accuracy on the test set (Page 5), "
+    "which the authors attribute to the attention mechanism described in the methodology (Page 3).'\n\n"
+
+    "## When Information Is Insufficient\n"
+    "If the provided pages do not contain enough information:\n"
+    "- State clearly what IS available and what is missing\n"
+    "- Indicate whether the answer might be found elsewhere in the document (e.g. 'This may be defined in an earlier section not provided')\n"
+    "- Never fabricate or guess data\n\n"
+
+    "## Output Format\n"
+    "- Use clear, structured prose\n"
+    "- For complex answers, use headers or bullet points to organize information\n"
+    "- Keep your answer focused and avoid restating the question"
+)
 
 # ---------------------------------------------------------------------------
 # Client
@@ -69,33 +104,15 @@ def _encode_image(path: str) -> str:
         return base64.b64encode(f.read()).decode("utf-8")
 
 
-def _parse_extraction(raw: str) -> Dict[str, Any]:
-    """Parse ===TEXT=== / ===TABLES=== delimited output."""
-    text_match = re.search(r"===TEXT===(.*?)(?===TABLES===|$)", raw, re.DOTALL)
-    tables_match = re.search(r"===TABLES===(.*?)$", raw, re.DOTALL)
-
-    text = text_match.group(1).strip() if text_match else raw.strip()
-
-    tables = []
-    if tables_match:
-        raw_tables = tables_match.group(1).strip()
-        if raw_tables.upper() != "NONE":
-            for block in re.split(r"\n{2,}", raw_tables):
-                block = block.strip()
-                if block and "|" in block:
-                    tables.append(block)
-
-    return {"text": text, "tables": tables}
-
-
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
-async def extract_page_content(image_paths: List[str]) -> Dict[str, Any]:
+async def extract_page_content(image_paths: List[str]) -> str:
     """
-    Single vision call to extract text + tables from 1 or 2 page images.
-    Returns {"text": str, "tables": [markdown_str, ...]}.
+    Single vision call to extract page content as plain text.
+    Tables are described in prose rather than rendered as Markdown.
+    Returns the extracted text string.
     """
     client = _get_client()
 
@@ -105,7 +122,7 @@ async def extract_page_content(image_paths: List[str]) -> Dict[str, Any]:
         content.append({
             "type": "image_url",
             "image_url": {"url": f"data:image/png;base64,{b64}",
-                        "detail": "high"},
+            "detail": "high"},
         })
 
     response = await client.chat.completions.create(
@@ -113,64 +130,46 @@ async def extract_page_content(image_paths: List[str]) -> Dict[str, Any]:
         messages=[{"role": "user", "content": content}],
         max_tokens=4096,
     )
-    raw = response.choices[0].message.content or ""
-    return _parse_extraction(raw)
-
-
-async def summarize_table(markdown_table: str) -> str:
-    """Summarize a Markdown table into a descriptive sentence for embedding."""
-    client = _get_client()
-    response = await client.chat.completions.create(
-        model=settings.OPENROUTER_TEXT_MODEL,
-        messages=[{
-            "role": "user",
-            "content": TABLE_SUMMARY_PROMPT.format(markdown_table=markdown_table),
-        }],
-        max_tokens=256,
-    )
     return (response.choices[0].message.content or "").strip()
 
 
-async def generate_answer(question: str, results: List[Dict[str, Any]]) -> str:
-    """Generate an answer using retrieved text chunks and/or tables as context."""
+async def generate_answer_with_images(
+    question: str,
+    image_paths: List[str],
+    results: List[Dict[str, Any]],
+) -> str:
+    """
+    Generate an answer by passing page images directly to a VLM.
+    image_paths: ordered list of page image files (deduplicated, sorted by page).
+    results: used only for debug logging.
+    """
     client = _get_client()
 
-    context_parts = []
-    for i, r in enumerate(results, 1):
-        source = f"[{i}] {r.get('paper_title', 'Unknown')} (page {r.get('page_num', '?')})"
-        if r.get("type") == "table":
-            context_parts.append(f"{source} — Table:\n{r.get('markdown_table', '')}")
-        else:
-            # context_window = pages N-1, N, N+1 fetched at query time
-            context = r.get("context_window") or r.get("page_text") or r.get("content", "")
-            context_parts.append(f"{source}:\n{context}")
-
-    context_block = "\n\n---\n\n".join(context_parts)
-
-    # Debug: log each source passed to the LLM
-    import logging
-    logger = logging.getLogger(__name__)
-    logger.debug("=== generate_answer sources ===")
+    logger.debug("=== generate_answer_with_images ===")
     for i, r in enumerate(results, 1):
         rtype = r.get("type", "?")
         page = r.get("page_num", "?")
         title = r.get("paper_title", "Unknown")
         score = round(r.get("score", 0), 4)
-        if rtype == "table":
-            chars = len(r.get("markdown_table", ""))
-        else:
-            chars = len(r.get("context_window") or r.get("page_text") or r.get("content", ""))
-        logger.debug(f"  [{i}] {rtype:5s} | page {page} | score {score} | {chars} chars | {title}")
-    logger.debug("================================")
+        logger.debug(f"  [{i}] {rtype:5s} | page {page} | score {score} | {title}")
+    logger.debug(f"  images sent: {[p.replace('\\', '/').split('/')[-1] for p in image_paths]}")
+    logger.debug("===================================")
+
+    user_content: List[Dict] = []
+    for path in image_paths:
+        b64 = _encode_image(path)
+        user_content.append({
+            "type": "image_url",
+            "image_url": {"url": f"data:image/png;base64,{b64}"},
+            "detail": "high"
+        })
+    user_content.append({"type": "text", "text": f"Question: {question}"})
 
     response = await client.chat.completions.create(
-        model=settings.OPENROUTER_TEXT_MODEL,
+        model=settings.OPENROUTER_ANSWER_MODEL,
         messages=[
-            {"role": "system", "content": ANSWER_SYSTEM_PROMPT},
-            {"role": "user", "content": ANSWER_USER_PROMPT.format(
-                context_block=context_block,
-                question=question,
-            )},
+            {"role": "system", "content": ANSWER_WITH_IMAGES_PROMPT},
+            {"role": "user", "content": user_content},
         ],
         max_tokens=1024,
     )
