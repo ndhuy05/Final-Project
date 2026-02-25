@@ -450,19 +450,86 @@
           <!-- Row 1: Paper to Code | Paper to Poster -->
           <div class="grid grid-cols-2 gap-4">
             <!-- Paper to Code -->
-            <button
-              @click="store.openPaperSelector('code')"
-              class="p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-all cursor-pointer bg-white text-left"
-            >
-              <component :is="icons.Code" :size="24" class="text-blue-500 mb-2" />
-              <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Code</h3>
-              <p class="text-xs text-notebook-600">Generate code from paper</p>
-            </button>
+            <div class="relative min-h-[140px] flex items-stretch">
+              <!-- Idle state -->
+              <button
+                v-if="store.paper2codeJob.status === 'idle'"
+                @click="store.openPaperSelector('code')"
+                class="w-full p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-all cursor-pointer bg-white text-left flex flex-col"
+              >
+                <component :is="icons.Code" :size="24" class="text-blue-500 mb-2" />
+                <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Code</h3>
+                <p class="text-xs text-notebook-600">Generate code from paper</p>
+              </button>
+
+              <!-- Running state -->
+              <div
+                v-else-if="store.paper2codeJob.status === 'running'"
+                class="w-full p-4 border border-blue-300 rounded-xl bg-blue-50 text-left flex flex-col relative"
+              >
+                <div class="flex items-start justify-between mb-2">
+                  <component :is="icons.Code" :size="24" class="text-blue-400" />
+                  <button
+                    @click="store.cancelCodeJob()"
+                    class="p-1 bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+                    title="Cancel generation"
+                  >
+                    <component :is="icons.X" :size="16" class="text-white" />
+                  </button>
+                </div>
+                <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Code</h3>
+                <div class="w-full bg-blue-100 rounded-full h-1.5 mt-auto mb-1.5">
+                  <div
+                    class="bg-blue-500 h-1.5 rounded-full transition-all duration-500"
+                    :style="{ width: (store.paper2codeJob.progress * 100) + '%' }"
+                  ></div>
+                </div>
+                <p class="text-xs text-blue-600 truncate">{{ store.paper2codeJob.step }}</p>
+              </div>
+
+              <!-- Done state -->
+              <div
+                v-else-if="store.paper2codeJob.status === 'done'"
+                class="w-full p-4 border border-green-300 rounded-xl bg-green-50 text-left flex flex-col"
+              >
+                <component :is="icons.Code" :size="24" class="text-green-500 mb-2" />
+                <h3 class="font-semibold text-notebook-900 text-sm mb-2">Paper to Code</h3>
+                <div class="flex gap-1.5 mt-auto">
+                  <button
+                    @click="store.downloadCodeResult()"
+                    class="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-green-500 text-white text-xs rounded-lg hover:bg-green-600 transition-colors"
+                  >
+                    <component :is="icons.Download" :size="13" />
+                    <span class="truncate">Download</span>
+                  </button>
+                  <button
+                    @click="store.resetCodeJob()"
+                    class="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 border border-notebook-300 text-notebook-600 text-xs rounded-lg hover:bg-notebook-100 transition-colors"
+                  >
+                    <span class="truncate">New</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Error state -->
+              <div
+                v-else-if="store.paper2codeJob.status === 'error'"
+                class="w-full p-4 border border-red-300 rounded-xl bg-red-50 text-left flex flex-col"
+              >
+                <component :is="icons.AlertCircle" :size="24" class="text-red-500 mb-2" />
+                <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Code</h3>
+                <p class="text-xs text-red-600 mb-2 truncate">{{ store.paper2codeJob.error || 'Generation failed' }}</p>
+                <button
+                  @click="store.resetCodeJob()"
+                  class="text-xs text-red-600 underline hover:text-red-700 mt-auto"
+                >Retry</button>
+              </div>
+            </div>
 
             <!-- Paper to Poster -->
             <button
               @click="store.openPaperSelector('poster')"
-              class="p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-all cursor-pointer bg-white text-left"
+              class="min-h-[140px] p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-all cursor-pointer bg-white text-left flex flex-col"
             >
               <component :is="icons.Image" :size="24" class="text-purple-500 mb-2" />
               <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Poster</h3>
@@ -474,7 +541,7 @@
           <div class="grid grid-cols-2 gap-4">
             <button
               @click="store.openPaperSelector('web')"
-              class="p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-all cursor-pointer bg-white text-left"
+              class="min-h-[140px] p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-all cursor-pointer bg-white text-left flex flex-col"
             >
               <component :is="icons.Globe" :size="24" class="text-green-500 mb-2" />
               <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Web</h3>
@@ -499,11 +566,27 @@
         <div class="flex-1 flex flex-col items-center gap-3 px-2">
           <!-- Code Icon -->
           <button
-            @click="store.openPaperSelector('code')"
+            v-if="store.paper2codeJob.status === 'idle' || store.paper2codeJob.status === 'error'"
+            @click="store.paper2codeJob.status === 'error' ? store.resetCodeJob() : store.openPaperSelector('code')"
             class="p-2 hover:bg-blue-100 rounded-lg transition-colors group"
             title="Paper to Code"
           >
             <component :is="icons.Code" :size="20" class="text-blue-500 group-hover:text-blue-600" />
+          </button>
+          <button
+            v-else-if="store.paper2codeJob.status === 'running'"
+            class="p-2 rounded-lg cursor-default"
+            title="Generating code…"
+          >
+            <component :is="icons.Code" :size="20" class="text-blue-300 animate-pulse" />
+          </button>
+          <button
+            v-else-if="store.paper2codeJob.status === 'done'"
+            @click="store.downloadCodeResult()"
+            class="p-2 hover:bg-green-100 rounded-lg transition-colors group"
+            title="Download generated code"
+          >
+            <component :is="icons.Download" :size="20" class="text-green-500 group-hover:text-green-600" />
           </button>
 
           <!-- Poster Icon -->
@@ -615,7 +698,7 @@ import { marked } from 'marked'
 import {
   Upload, FileText, Settings, PanelRight, Brain, Quote, Layers, Sparkles,
   Send, X, ChevronUp, ChevronLeft, ChevronRight, LogOut,
-  Plus, BookOpen, MoreVertical, Edit, Trash2, Code, Image, Globe
+  Plus, BookOpen, MoreVertical, Edit, Trash2, Code, Image, Globe, Download, AlertCircle
 } from 'lucide-vue-next'
 
 const store = useAppStore()
@@ -624,7 +707,7 @@ const store = useAppStore()
 const icons = {
   Upload, FileText, Settings, PanelRight, Brain, Quote, Layers, Sparkles,
   Send, X, ChevronUp, ChevronLeft, ChevronRight, LogOut,
-  Plus, BookOpen, MoreVertical, Edit, Trash2, Code, Image, Globe
+  Plus, BookOpen, MoreVertical, Edit, Trash2, Code, Image, Globe, Download, AlertCircle
 }
 
 // Chat state

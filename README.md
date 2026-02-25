@@ -4,9 +4,9 @@ A modern web application for managing, querying, and analyzing research papers. 
 
 ## 🎯 Project Status
 
-**Frontend: ✅ Fully Functional** | **Backend: ✅ Functional (RAG Pipeline Active)**
+**Frontend: ✅ Fully Functional** | **Backend: ✅ Functional (RAG Pipeline + Paper to Code Active)**
 
-The frontend is complete with a production-ready UI. The backend is live with a full vision-based RAG pipeline: upload a PDF → pages are extracted by a VLM → chunks are embedded and stored in Qdrant → questions are answered by a VLM reading the relevant page images directly.
+The frontend is complete with a production-ready UI. The backend is live with a full vision-based RAG pipeline: upload a PDF → pages are extracted by a VLM → chunks are embedded and stored in Qdrant → questions are answered by a VLM reading the relevant page images directly. The **Paper to Code** Lab feature is also fully implemented — a 3-stage LLM pipeline generates a runnable code repository from any uploaded paper, downloadable as a ZIP.
 
 ## ✨ Implemented Features
 
@@ -28,8 +28,9 @@ The frontend is complete with a production-ready UI. The backend is live with a 
 - **Citation Badges**: Clickable [1], [2] badges linked to source pages
 - **Message History**: Persistent per-notebook chat history
 
-### 🧪 Lab (Generation Features — UI Only)
-- **Paper to Code**, **Paper to Poster**, **Paper to Web** — UI complete, generation logic TBD
+### 🧪 Lab (Generation Features)
+- **Paper to Code** ✅ — 3-stage LLM pipeline (Planning → Analyzing → Coding) generates a runnable code repository from a paper; progress bar during generation; download result as ZIP; cancel support
+- **Paper to Poster**, **Paper to Web** — UI complete, generation logic TBD
 
 ---
 
@@ -103,6 +104,7 @@ Question
 |---|---|---|
 | Page extraction (VLM) | `google/gemini-flash-1.5` | `OPENROUTER_VISION_MODEL` |
 | Answer generation (VLM) | `google/gemini-flash-1.5` | `OPENROUTER_ANSWER_MODEL` |
+| Paper to Code generation | `anthropic/claude-3.5-sonnet` | `OPENROUTER_CODE_MODEL` |
 
 ---
 
@@ -121,16 +123,19 @@ VibeProject/
 │   │   ├── config.py               # Settings (env vars + defaults)
 │   │   ├── routers/
 │   │   │   ├── papers.py           # Upload, list, delete, /chunks debug
-│   │   │   └── chat.py             # RAG chat endpoint
+│   │   │   ├── chat.py             # RAG chat endpoint
+│   │   │   └── generate.py         # Paper to Code: start/status/cancel/download
 │   │   └── services/
-│   │       ├── openrouter_service.py  # VLM extraction + answer generation
-│   │       ├── embedding_service.py   # fastembed local embeddings
-│   │       ├── qdrant_service.py      # Qdrant local client + search
-│   │       ├── memory_store.py        # In-memory notebook/paper metadata
-│   │       └── pdf_service.py         # PDF → PIL page images
+│   │       ├── openrouter_service.py     # VLM extraction + answer generation
+│   │       ├── paper2code_service.py     # 3-stage Paper2Code pipeline
+│   │       ├── embedding_service.py      # fastembed local embeddings
+│   │       ├── qdrant_service.py         # Qdrant local client + search
+│   │       ├── memory_store.py           # In-memory notebook/paper metadata
+│   │       └── pdf_service.py            # PDF → PIL page images
 │   ├── requirements.txt
 │   ├── .env                        # API keys (gitignored)
 │   └── .env.example                # Template for .env
+├── paper2code_outputs/             # Generated repos + ZIPs (outside backend/ to avoid reload)
 └── README.md
 ```
 
@@ -179,8 +184,9 @@ npm run dev
 
 ```env
 OPENROUTER_API_KEY=sk-or-...
-OPENROUTER_VISION_MODEL=google/gemini-flash-1.5   # for page extraction
-OPENROUTER_ANSWER_MODEL=google/gemini-flash-1.5   # for answer generation
+OPENROUTER_VISION_MODEL=google/gemini-flash-1.5    # for page extraction
+OPENROUTER_ANSWER_MODEL=google/gemini-flash-1.5    # for answer generation
+OPENROUTER_CODE_MODEL=anthropic/claude-3.5-sonnet  # for Paper to Code generation
 ```
 
 ---
@@ -195,6 +201,10 @@ OPENROUTER_ANSWER_MODEL=google/gemini-flash-1.5   # for answer generation
 | `DELETE` | `/api/v1/notebooks/{id}/papers/{pid}` | Delete paper + Qdrant points |
 | `POST` | `/api/v1/notebooks/{id}/chat` | Ask a question (RAG) |
 | `GET` | `/api/v1/notebooks/{id}/chunks` | Debug: browse indexed chunks |
+| `POST` | `/api/v1/notebooks/{id}/papers/{pid}/generate/code` | Start Paper to Code job → returns `job_id` |
+| `GET` | `/api/v1/generate/code/{job_id}/status` | Poll job progress (`running`/`done`/`error`/`cancelled`) |
+| `POST` | `/api/v1/generate/code/{job_id}/cancel` | Cancel a running job |
+| `GET` | `/api/v1/generate/code/{job_id}/download` | Download generated repo as ZIP |
 
 ---
 
@@ -229,5 +239,5 @@ DEBUG app.services.openrouter_service: images sent: ['page_2.png', 'page_3.png',
 ---
 
 **Last Updated**: February 2026
-**Status**: Frontend complete · Backend RAG pipeline active
+**Status**: Frontend complete · Backend RAG pipeline active · Paper to Code active
 

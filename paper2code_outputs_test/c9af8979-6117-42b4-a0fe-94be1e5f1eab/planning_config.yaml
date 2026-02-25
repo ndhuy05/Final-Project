@@ -1,0 +1,93 @@
+## config.yaml
+# ============================================================
+# Conveyor Belt Speed Detection Configuration
+# Based on paper: "Conveyor Belt Speed Detection via the 
+# Synergistic Fusion of Optical Flow and Feature Matching"
+# ============================================================
+
+# ------------------------- Dataset -------------------------
+dataset:
+  resolution:
+    width: 1920
+    height: 1080
+  frame_rate: 25  # fps
+  # Laboratory scenario settings
+  lab_illumination: [50, 1000]  # lux
+  lab_belt_speeds: [0.5, 1.0, 1.5, 2.0, 3.0, 3.5, 4.5]  # m/s
+  # Coal mine scenario settings
+  mine_illumination: [10, 500]  # lux
+  mine_belt_speeds: [1.0, 5.0]  # m/s
+
+# ---------------------- Training --------------------------
+training:
+  # Environment (from paper Section 4.2)
+  os: WIN10
+  gpu: RTX3090
+  cpu: i9-14900k
+  
+  # Optimizer settings
+  optimizer: Adam
+  learning_rate: 0.0001
+  weight_decay: 0.0001  # 1e-4
+  momentum: 0.9
+  
+  # Training parameters
+  batch_size: 4
+  num_epochs: 500
+  
+  # Loss weights
+  luminosity_loss_weight: 1.0
+  smoothing_loss_weight: 0.01
+
+# -------------------- Model ----------------------
+model:
+  # Optical flow (RAFT-SEnet)
+  optical_flow:
+    input_height: 448  # typical RAFT input size
+    input_width: 256
+    use_senet: true
+    senet_reduction: 16  # SENet reduction ratio
+    
+  # Feature matching
+  feature_matching:
+    harris_block_size: 2
+    harris_ksize: 3
+    harris_k: 0.04
+    harris_threshold_ratio: 0.01
+    brief_patch_size: 31
+    ransac_threshold: 5.0  # pixels
+    ransac_max_iters: 2000
+
+# --------------------- Fusion -------------------------
+fusion:
+  # Bayesian weight calculation (from paper Section 3.3)
+  # Note: Parameters a and b are "adjusted according to the actual field situation"
+  # Default placeholder values - requires tuning
+  weight_a: 0.5
+  weight_b: 0.5
+
+# --------------------- Evaluation ---------------------
+evaluation:
+  metrics:
+    - MAE  # Mean Absolute Error
+    - RMSE # Root Mean Square Error
+    - error_percentage
+  
+  # Baseline comparisons
+  optical_flow_baselines:
+    - TV-L1
+    - FlowNet2
+    - RAFT
+  
+  feature_matching_baselines:
+    - SIFT
+    - FAST
+    - ORB
+
+# ---------------------- Paths -------------------------
+paths:
+  data_dir: "./data"
+  video_dir: "./data/videos"
+  output_dir: "./output"
+  model_checkpoint_dir: "./checkpoints"
+  calibration_file: "./calibration.yaml"

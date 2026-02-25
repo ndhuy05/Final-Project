@@ -58,6 +58,17 @@ export const useAppStore = defineStore('app', () => {
   const showConfirmation = ref(false)
   const selectedPaperForGeneration = ref(null)
 
+  // Paper2Code job state
+  const paper2codeJob = ref({
+    status: 'idle',   // 'idle' | 'running' | 'done' | 'error'
+    progress: 0,
+    step: '',
+    jobId: null,
+    paperId: null,
+    error: null,
+  })
+  let _pollInterval = null
+
   // Chat state (now from activeNotebook)
   const messages = ref([])
   const notes = ref([])
@@ -271,8 +282,56 @@ export const useAppStore = defineStore('app', () => {
   }
 
   function confirmGeneration() {
-    // Placeholder for future generation logic
-    console.log(`Generating ${selectedFeature.value} for paper: ${selectedPaperForGeneration.value.title}`)
+    if (selectedFeature.value === 'code' && selectedPaperForGeneration.value) {
+      const paper = selectedPaperForGeneration.value
+      showConfirmation.value = false
+      selectedPaperForGeneration.value = null
+      selectedFeature.value = null
+
+      paper2codeJob.value = {
+        status: 'running',
+        progress: 0,
+        step: 'Starting…',
+        jobId: null,
+        paperId: paper.id,
+        error: null,
+      }
+
+      apiClient.post(`/notebooks/${activeNotebook.value.id}/papers/${paper.id}/generate/code`)
+        .then(res => {
+          const jobId = res.data.job_id
+          paper2codeJob.value.jobId = jobId
+
+          _pollInterval = setInterval(() => {
+            apiClient.get(`/generate/code/${jobId}/status`)
+              .then(r => {
+                const { status, progress, step, error } = r.data
+                paper2codeJob.value.progress = progress
+                paper2codeJob.value.step = step
+                if (status === 'done' || status === 'error' || status === 'cancelled') {
+                  paper2codeJob.value.status = status
+                  paper2codeJob.value.error = error
+                  clearInterval(_pollInterval)
+                  _pollInterval = null
+                }
+              })
+              .catch(() => {
+                paper2codeJob.value.status = 'error'
+                paper2codeJob.value.error = 'Failed to poll status.'
+                clearInterval(_pollInterval)
+                _pollInterval = null
+              })
+          }, 2000)
+        })
+        .catch(err => {
+          paper2codeJob.value.status = 'error'
+          paper2codeJob.value.error = err?.response?.data?.detail || 'Failed to start generation.'
+        })
+      return
+    }
+
+    // Placeholder for other features (poster, web)
+    console.log(`Generating ${selectedFeature.value} for paper: ${selectedPaperForGeneration.value?.title}`)
     showConfirmation.value = false
     selectedPaperForGeneration.value = null
     selectedFeature.value = null
@@ -281,6 +340,37 @@ export const useAppStore = defineStore('app', () => {
   function cancelGeneration() {
     showConfirmation.value = false
     showPaperSelector.value = true
+  }
+
+  function cancelCodeJob() {
+    const jobId = paper2codeJob.value.jobId
+    if (!jobId) {
+      resetCodeJob()
+      return
+    }
+    apiClient.post(`/generate/code/${jobId}/cancel`)
+      .catch(() => {}) // best-effort
+      .finally(() => resetCodeJob())
+  }
+
+  function downloadCodeResult() {
+    const jobId = paper2codeJob.value.jobId
+    if (!jobId) return
+    const url = `${apiClient.defaults.baseURL}/generate/code/${jobId}/download`
+    const a = document.createElement('a')
+    a.href = url
+    a.download = ''
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
+  function resetCodeJob() {
+    if (_pollInterval) {
+      clearInterval(_pollInterval)
+      _pollInterval = null
+    }
+    paper2codeJob.value = { status: 'idle', progress: 0, step: '', jobId: null, paperId: null, error: null }
   }
 
   // Paper Management Actions
@@ -339,6 +429,7 @@ export const useAppStore = defineStore('app', () => {
     selectedFeature,
     showConfirmation,
     selectedPaperForGeneration,
+    paper2codeJob,
     // Actions
     checkHealth,
     toggleLeftSidebar,
@@ -363,6 +454,9 @@ export const useAppStore = defineStore('app', () => {
     confirmGeneration,
     cancelGeneration,
     sendMessage,
-    uploadPaper
+    uploadPaper,
+    downloadCodeResult,
+    resetCodeJob,
+    cancelCodeJob,
   }
 })
