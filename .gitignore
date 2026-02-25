@@ -91,4 +91,5 @@ frontend/dist-ssr/
 backend/uploads/
 backend/qdrant_storage
 backend/outputs
-Paper2Code
+Paper2Code/
+paper2code_outputs_test/
