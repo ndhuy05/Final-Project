@@ -20,14 +20,14 @@
         </div>
 
         <!-- View Toggle Buttons -->
-        <div class="p-4 b">
-          <div class="flex items-center gap-2">
+        <div class="">
+          <div class="flex items-center">
             <button
               @click="store.setSidebarView('notebooks')"
               :class="[
-                'flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+                'flex-1 px-3 py-2 text-sm font-medium transition-colors relative',
                 store.sidebarView === 'notebooks' 
-                  ? 'bg-white shadow-sm text-notebook-900' 
+                  ? 'bg-white text-notebook-900 rounded-t-lg border-l border-t border-r border-notebook-200 z-10' 
                   : 'text-notebook-600 hover:bg-notebook-100'
               ]"
             >
@@ -37,9 +37,9 @@
             <button
               @click="store.setSidebarView('sources')"
               :class="[
-                'flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+                'flex-1 px-3 py-2 text-sm font-medium transition-colors relative',
                 store.sidebarView === 'sources' 
-                  ? 'bg-white shadow-sm text-notebook-900' 
+                  ? 'bg-white text-notebook-900 rounded-t-lg border-t  border-l border-notebook-200 z-10' 
                   : 'text-notebook-600 hover:bg-notebook-100'
               ]"
             >
@@ -50,6 +50,7 @@
         </div>
 
         <!-- Transition Wrapper for View Content -->
+        <div class="flex-1 overflow-hidden flex flex-col border-t border-notebook-200 bg-white mt-[-1px]">
         <transition
           mode="out-in"
           :enter-active-class="store.sidebarView === 'notebooks' ? 'transition-all duration-200 ease-out' : 'transition-all duration-200 ease-out'"
@@ -60,9 +61,9 @@
           :leave-to-class="store.sidebarView === 'notebooks' ? 'opacity-0 translate-x-4' : 'opacity-0 -translate-x-4'"
         >
           <!-- Notebooks View -->
-          <div v-if="store.sidebarView === 'notebooks'" key="notebooks" class="flex-1 flex flex-col overflow-hidden">
+          <div v-if="store.sidebarView === 'notebooks'" key="notebooks" class="flex-1 flex flex-col overflow-hidden bg-white">
             <!-- Create Notebook Button -->
-            <div class="p-4 border-b border-notebook-200">
+            <div class="p-4 border-b border-notebook-200 bg-white">
               <button
                 @click="store.createNotebook"
                 class="w-full flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
@@ -73,7 +74,7 @@
           </div>
 
           <!-- Notebooks List -->
-          <div class="flex-1 overflow-y-auto scrollbar-thin p-4">
+          <div class="flex-1 overflow-y-auto scrollbar-thin p-4 bg-white">
             <div v-if="store.notebooks.length === 0" class="text-center py-12">
               <component :is="icons.BookOpen" :size="48" class="mx-auto mb-3 text-notebook-300" />
               <p class="text-sm text-notebook-500">No notebooks yet</p>
@@ -139,9 +140,9 @@
           </div>
 
           <!-- Sources View -->
-          <div v-else key="sources" class="flex-1 flex flex-col overflow-hidden">
+          <div v-else key="sources" class="flex-1 flex flex-col overflow-hidden bg-white">
           <!-- Upload Zone -->
-          <div class="p-4 border-b border-notebook-200">
+          <div class="p-4 border-b border-notebook-200 bg-white">
             <label
               :class="[
                 'border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer block',
@@ -161,7 +162,7 @@
           </div>
 
           <!-- Sources List -->
-          <div class="flex-1 overflow-y-auto scrollbar-thin p-4">
+          <div class="flex-1 overflow-y-auto scrollbar-thin p-4 bg-white">
             <div v-if="store.activeNotebook.papers.length === 0" class="text-center py-12">
               <component :is="icons.FileText" :size="48" class="mx-auto mb-3 text-notebook-300" />
               <p class="text-sm text-notebook-500">No sources yet</p>
@@ -228,6 +229,7 @@
           </div>
           </div>
         </transition>
+        </div>
 
         <!-- User Profile Section -->
         <div class="border-t border-notebook-200 bg-white relative">
@@ -446,7 +448,7 @@
         </div>
 
         <!-- Feature Cards Grid -->
-        <div class="flex-1 p-4 space-y-4">
+        <div class="flex-1 pb-4 pr-4 pl-4 space-y-4">
           <!-- Row 1: Paper to Code | Paper to Poster -->
           <div class="grid grid-cols-2 gap-4">
             <!-- Paper to Code -->
