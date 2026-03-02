@@ -144,7 +144,7 @@ export const useAppStore = defineStore('app', () => {
     )
     const paper = res.data.paper
     activeNotebook.value.papers.push(paper)
-    return res.data  // includes paper + tables_indexed
+    return res.data
   }
 
   // User state

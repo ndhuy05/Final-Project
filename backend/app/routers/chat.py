@@ -2,20 +2,22 @@
 Chat router: embed query with fastembed, retrieve relevant chunks
 from Qdrant, collect page images (N-1, N, N+1), generate answer via VLM.
 """
+import logging
 import os
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
 
 from app.config import settings
-from app.services import qdrant_service, memory_store, embedding_service, openrouter_service
+from app.services import qdrant_service, memory_store, embedding_service, openrouter_service, reranker_service
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
 class ChatRequest(BaseModel):
     question: str
-    top_k: int = 5
+    top_k: int = 50
 
 
 class Citation(BaseModel):
@@ -64,6 +66,12 @@ async def chat(notebook_id: str, request: ChatRequest):
             content="I couldn't find relevant content for your question in the uploaded papers.",
             citations=[],
         )
+
+    # Rerank results with cross-encoder before dedup
+    try:
+        results = reranker_service.rerank(request.question, results, top_k=5)
+    except Exception as e:
+        logger.warning("Reranking failed, using Qdrant scores: %s", e)
 
     # Filter out empty/broken points and deduplicate by (paper_id, page_num, type)
     seen: dict = {}

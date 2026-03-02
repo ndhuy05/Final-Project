@@ -17,6 +17,9 @@ openai>=1.30.0
 # Local text embeddings (GPU via ONNX Runtime CUDA)
 fastembed-gpu
 
+# Reranking (ONNX via fastembed — BAAI/bge-reranker-base)
+# TextCrossEncoder is bundled with fastembed-gpu; no extra package needed
+
 # Text chunking
 langchain
 langchain-text-splitters

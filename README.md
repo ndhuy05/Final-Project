@@ -6,7 +6,7 @@ A modern web application for managing, querying, and analyzing research papers. 
 
 **Frontend: ✅ Fully Functional** | **Backend: ✅ Functional (RAG Pipeline + Paper to Code Active)**
 
-The frontend is complete with a production-ready UI. The backend is live with a full vision-based RAG pipeline: upload a PDF → pages are extracted by a VLM → chunks are embedded and stored in Qdrant → questions are answered by a VLM reading the relevant page images directly. The **Paper to Code** Lab feature is also fully implemented — a 3-stage LLM pipeline generates a runnable code repository from any uploaded paper, downloadable as a ZIP.
+The frontend is complete with a production-ready UI. The backend is live with a full vision-based RAG pipeline: upload a PDF → pages are extracted by a VLM → chunks are embedded and stored in Qdrant → at query time results are **reranked by a cross-encoder** before the top match's surrounding pages are passed as images to a VLM for answering. The **Paper to Code** Lab feature is also fully implemented — a 3-stage LLM pipeline generates a runnable code repository from any uploaded paper, downloadable as a ZIP.
 
 ## ✨ Implemented Features
 
@@ -23,6 +23,7 @@ The frontend is complete with a production-ready UI. The backend is live with a 
 ### 💬 AI Chat (RAG Pipeline)
 - **VLM-Powered Q&A**: Questions answered by a vision model reading page images
 - **Semantic Search**: fastembed (BAAI/bge-small-en-v1.5) + Qdrant vector search
+- **Cross-Encoder Reranking**: Retrieved chunks reranked by BAAI/bge-reranker-base before answer generation
 - **3-Page Context Window**: VLM receives pages N-1, N, N+1 around the best match
 - **Markdown Support**: Rich text rendering with `marked.js`
 - **Citation Badges**: Clickable [1], [2] badges linked to source pages
@@ -61,7 +62,8 @@ PDF
 Question
   └─ fastembed → 384-dim query vector
   └─ Qdrant cosine search → top-5 chunks
-  └─ deduplicate by (paper_id, page_num)
+  └─ Cross-encoder reranker (BAAI/bge-reranker-base, ONNX)
+       → rescores and reorders all chunks
   └─ top result at page N
        → load images: page N-1, page N, page N+1 from disk
 
@@ -75,6 +77,7 @@ Question
 |---|---|
 | VLM reads images for answering | Avoids lossy text extraction for final answer; model sees original layout |
 | Tables described in prose during extraction | Avoids Markdown table embedding issues; description embeds better |
+| Cross-encoder reranking after Qdrant | Cosine similarity on small chunks can mis-rank; reranker scores full query-passage relevance |
 | 3-page window (N-1, N, N+1) | Catches content that spans across a page boundary |
 | fastembed local embeddings | No API cost/latency for embeddings; 384-dim fast on CPU |
 | Qdrant local on-disk | No Docker needed; resets cleanly on re-upload |
@@ -94,6 +97,7 @@ Question
 - **Pydantic / pydantic-settings**
 - **PyMuPDF** — PDF → page images
 - **fastembed** — local text embeddings (BAAI/bge-small-en-v1.5, 384-dim)
+- **fastembed TextCrossEncoder** — reranking (BAAI/bge-reranker-base, ONNX)
 - **Qdrant Client** — local on-disk vector store
 - **OpenAI SDK** — OpenRouter-compatible client
 - **LangChain Text Splitters** — RecursiveCharacterTextSplitter
@@ -129,6 +133,7 @@ VibeProject/
 │   │       ├── openrouter_service.py     # VLM extraction + answer generation
 │   │       ├── paper2code_service.py     # 3-stage Paper2Code pipeline
 │   │       ├── embedding_service.py      # fastembed local embeddings
+│   │       ├── reranker_service.py       # Cross-encoder reranking (bge-reranker-base)
 │   │       ├── qdrant_service.py         # Qdrant local client + search
 │   │       ├── memory_store.py           # In-memory notebook/paper metadata
 │   │       └── pdf_service.py            # PDF → PIL page images
@@ -238,6 +243,6 @@ DEBUG app.services.openrouter_service: images sent: ['page_2.png', 'page_3.png',
 
 ---
 
-**Last Updated**: February 2026
-**Status**: Frontend complete · Backend RAG pipeline active · Paper to Code active
+**Last Updated**: March 2026  
+**Status**: Frontend complete · Backend RAG pipeline active · Reranking active · Paper to Code active
 
