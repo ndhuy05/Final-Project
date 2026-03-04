@@ -79,13 +79,22 @@ def search(
     notebook_id: str,
     query_vector: List[float],
     top_k: int = 5,
+    paper_id: str = None,
 ) -> List[Dict[str, Any]]:
-    """Find top-k most relevant tables for a query vector."""
+    """Find top-k most relevant chunks for a query vector.
+    If paper_id is provided, restricts search to that paper only.
+    """
     client = get_client()
+    search_filter = None
+    if paper_id:
+        search_filter = Filter(
+            must=[FieldCondition(key="paper_id", match=MatchValue(value=paper_id))]
+        )
     results = client.query_points(
         collection_name=collection_name(notebook_id),
         query=query_vector,
         limit=top_k,
+        query_filter=search_filter,
     )
     return [{**point.payload, "score": point.score} for point in results.points]
 

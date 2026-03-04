@@ -1,0 +1,25 @@
+{
+  "4": {
+    "papers": [
+      {
+        "id": "cdeac6c4-c03c-4880-b619-f1bd206f2d48",
+        "notebook_id": "4",
+        "title": "ECL-YOLOv11",
+        "filename": "281502ec-14fe-4ec8-8e7e-453759bde907_ECL-YOLOv11.pdf",
+        "page_count": 24,
+        "metadata": {
+          "title": "Robust Object Detection in Adverse Weather Conditions: ECL-YOLOv11 for Automotive Vision Systems",
+          "authors": [
+            "Zhaohui Liu",
+            "Jiaxu Zhang",
+            "Xiaojun Zhang",
+            "Hongle Song"
+          ],
+          "publish_date": "2026-01-02",
+          "venue": "Sensors",
+          "description": "This paper addresses the challenge of degraded object detection performance in adverse weather conditions such as fog, rain, and snow, which compromise safety in autonomous driving systems. It proposes ECL-YOLOv11, an enhanced detection framework integrating three modules: edge-enhancement for boundary retention, context-guided multi-scale fusion for improved small-object perception, and a lightweight detection head for real-time inference. The model achieves state-of-the-art accuracy (mAP@50: 62.7%, mAP@50–95: 40.5%) and real-time speed (237.8 FPS), outperforming baseline YOLOv11. Ablation studies and visualizations confirm robustness across weather and motion conditions, offering a reliable foundation for all-weather autonomous perception."
+        }
+      }
+    ]
+  }
+}

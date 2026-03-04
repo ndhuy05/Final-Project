@@ -1,13 +1,13 @@
 """
-Papers router: upload PDF, extract tables with OpenRouter vision model,
-embed table summaries with fastembed, store in Qdrant.
-Original Markdown tables are stored in the Qdrant payload for later retrieval.
+Papers router: upload PDF, extract content with OpenRouter vision model,
+chunk with LangChain, embed with fastembed, store in Qdrant.
+Extracts structured metadata + description from the first batch (contains page 0).
 """
+import logging
 import os
 import uuid
-import shutil
 import asyncio
-from typing import List
+from typing import List, Tuple
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 import aiofiles
@@ -16,11 +16,14 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from app.config import settings
 from app.services import memory_store, pdf_service, qdrant_service, embedding_service, openrouter_service
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
+
+BATCH_SIZE = 1  # pages per VLM call (increase only if vision model reliably follows [PAGE N] delimiters)
 
 _text_splitter = RecursiveCharacterTextSplitter(
     chunk_size=500,
-    chunk_overlap=75,        # 15% of 500
+    chunk_overlap=75,
     separators=["\n\n", "\n", ". ", " ", ""],
     strip_whitespace=True,
 )
@@ -32,43 +35,69 @@ def _chunk_text(text: str) -> List[str]:
     return [c for c in chunks if len(c) > 20]
 
 
-async def _process_page(image_path: str, page_num: int, paper: dict, notebook_id: str) -> int:
+async def _process_batch(
+    pages: List[Tuple[int, str]],  # [(0-based page_num, image_path), ...]
+    paper: dict,
+    notebook_id: str,
+) -> List[dict]:
     """
-    Extract page content as plain text (tables described in prose) via one vision call.
-    page_num: 0-based page index.
-    Returns chunk_count.
+    Extract and index a batch of pages in one VLM call.
+    extract_metadata=True when page 0 is in the batch (first batch only).
+    Returns list of {"chunks": int, "metadata": dict} per page.
     """
-    text = await openrouter_service.extract_page_content([image_path])
-    page_label = page_num + 1  # 1-based for display/lookup
+    has_page0 = any(pn == 0 for pn, _ in pages)
+    page_results = await openrouter_service.extract_page_content(
+        pages,
+        extract_metadata=has_page0,
+    )
 
-    chunk_count = 0
-    if text:
-        chunks = _chunk_text(text)
-        for chunk_idx, chunk in enumerate(chunks):
-            vector = embedding_service.embed_text(chunk)
-            point_id = abs(hash(f"{paper['id']}_{page_num}_text_{chunk_idx}")) % (2**53)
-            qdrant_service.upsert_table(
-                notebook_id=notebook_id,
-                point_id=point_id,
-                vector=vector,
-                payload={
-                    "type": "text",
-                    "paper_id": paper["id"],
-                    "paper_title": paper["title"],
-                    "page_num": page_label,
-                    "content": chunk,
-                    "page_text": text,
-                },
-            )
-            chunk_count += 1
+    output = []
+    for r in page_results:
+        page_num = r["page_num"]
+        text = r["text"]
+        metadata = r["metadata"]
+        page_label = page_num + 1  # 1-based for display
 
-    return chunk_count
+        chunk_count = 0
+        if text:
+            chunks = _chunk_text(text)
+            for chunk_idx, chunk in enumerate(chunks):
+                vector = embedding_service.embed_text(chunk)
+                point_id = abs(hash(f"{paper['id']}_{page_num}_text_{chunk_idx}")) % (2**53)
+                qdrant_service.upsert_table(
+                    notebook_id=notebook_id,
+                    point_id=point_id,
+                    vector=vector,
+                    payload={
+                        "type": "text",
+                        "paper_id": paper["id"],
+                        "paper_title": paper["title"],
+                        "page_num": page_label,
+                        "content": chunk,
+                        "page_text": text,
+                    },
+                )
+                chunk_count += 1
+
+        output.append({"chunks": chunk_count, "metadata": metadata})
+
+    return output
 
 
 @router.post("/notebooks/{notebook_id}/papers/upload")
 async def upload_paper(notebook_id: str, file: UploadFile = File(...)):
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+
+    # Reject duplicate: same original filename already in this notebook
+    existing = memory_store.get_papers(notebook_id)
+    for p in existing:
+        original_name = p.get("filename", "").split("_", 1)[-1]  # strip UUID prefix
+        if original_name == file.filename:
+            raise HTTPException(
+                status_code=409,
+                detail=f"A paper named '{file.filename}' already exists in this notebook.",
+            )
 
     # Save uploaded PDF
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
@@ -103,13 +132,29 @@ async def upload_paper(notebook_id: str, file: UploadFile = File(...)):
         # Ensure Qdrant collection exists
         qdrant_service.ensure_collection(notebook_id)
 
-        # Process each page independently — one vision call per page
-        tasks = [
-            _process_page(image_paths[i], i, paper, notebook_id)
-            for i in range(len(image_paths))
+        # Group pages into batches of BATCH_SIZE, fire one VLM call per batch
+        batches: List[List[Tuple[int, str]]] = [
+            [(i, image_paths[i]) for i in range(start, min(start + BATCH_SIZE, len(image_paths)))]
+            for start in range(0, len(image_paths), BATCH_SIZE)
         ]
-        results = await asyncio.gather(*tasks)
-        chunk_count = sum(results)
+        batch_tasks = [_process_batch(batch, paper, notebook_id) for batch in batches]
+        batch_results = await asyncio.gather(*batch_tasks, return_exceptions=True)
+
+        chunk_count = 0
+        metadata: dict = {}
+        for batch_result in batch_results:
+            if isinstance(batch_result, Exception):
+                logger.error("Batch processing error: %s", batch_result)
+                continue
+            for r in batch_result:
+                chunk_count += r.get("chunks", 0)
+                if r.get("metadata"):  # take metadata from first page that has it
+                    metadata = r["metadata"]
+
+        # Store metadata extracted inline from page 1
+        if metadata:
+            memory_store.update_paper_metadata(notebook_id, paper["id"], metadata)
+            logger.debug("Metadata stored for %s: %s", paper["title"], list(metadata.keys()))
 
         return JSONResponse(content={"paper": paper, "chunks_indexed": chunk_count})
 
