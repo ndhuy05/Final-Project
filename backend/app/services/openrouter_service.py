@@ -76,7 +76,7 @@ _METADATA_SUFFIX = (
     "Output the JSON on exactly one line. Do NOT wrap in code fences. Do NOT add any text after the JSON."
 )
 
-ANSWER_WITH_IMAGES_PROMPT = (
+ANSWER_PROMPT = (
     "You are an expert research assistant specializing in academic and technical papers. "
     "You answer questions using two sources of evidence that may be provided:\n"
     "1. **Pre-extracted bibliographic metadata** — structured fields (authors, year, venue, abstract, etc.) "
@@ -113,7 +113,7 @@ ANSWER_WITH_IMAGES_PROMPT = (
     "- Do not restate or paraphrase the question"
 )
 
-METADATA_ANSWER_SYSTEM = (
+METADATA_ANSWER_PROMPT = (
     "You are a precise research librarian. You answer questions about academic papers "
     "using ONLY the structured bibliographic metadata provided — never your training knowledge.\n\n"
     "Rules:\n"
@@ -125,16 +125,7 @@ METADATA_ANSWER_SYSTEM = (
     "- Never fabricate author names, dates, or publication details"
 )
 
-METADATA_ANSWER_USER = """\
-## Paper Metadata
-{metadata_context}
-
-## Question
-{question}
-
-Answer using only the metadata above."""
-
-PLANNER_SYSTEM = (
+PLANNER_PROMPT = (
     "You are a retrieval planner for an academic paper Q&A system. "
     "Given a user question and a list of available papers, you decide exactly which actions to execute "
     "to gather the information needed. You output ONLY a JSON array of actions — no explanation, no prose.\n\n"
@@ -348,15 +339,20 @@ async def extract_page_content(
 
 async def generate_answer(
     question: str,
-    image_paths: List[str],
-    results: List[Dict[str, Any]],
+    image_paths: List[str] = None,
+    results: List[Dict[str, Any]] = None,
 ) -> str:
     """
-    Generate an answer by passing page images directly to a VLM.
-    image_paths: ordered list of page image files (deduplicated, sorted by page).
+    Generate an answer using OPENROUTER_ANSWER_MODEL.
+    - With images: vision call; model reads page images alongside the question.
+    - Without images: text-only call; question already contains any metadata context.
     results: used only for debug logging.
     """
     client = _get_client()
+    if image_paths is None:
+        image_paths = []
+    if results is None:
+        results = []
 
     logger.debug("=== generate_answer ===")
     for i, r in enumerate(results, 1):
@@ -368,76 +364,31 @@ async def generate_answer(
     logger.debug(f"  images sent: {['/'.join(p.replace('\\', '/').split('/')[-2:]) for p in image_paths]}")
     logger.debug("===================================")
 
-    user_content: List[Dict] = []
-    # Put question/metadata text BEFORE images so the model reads context first
-    user_content.append({"type": "text", "text": question})
-    for path in image_paths:
-        b64 = _encode_image(path)
-        user_content.append({
-            "type": "image_url",
-            "image_url": {"url": f"data:image/png;base64,{b64}"},
-            "detail": "high"
-        })
+    if image_paths:
+        user_content: List[Dict] = []
+        user_content.append({"type": "text", "text": question})
+        for path in image_paths:
+            b64 = _encode_image(path)
+            user_content.append({
+                "type": "image_url",
+                "image_url": {"url": f"data:image/png;base64,{b64}"},
+                "detail": "high"
+            })
+        system = ANSWER_PROMPT
+        user_msg: Any = user_content
+    else:
+        system = METADATA_ANSWER_PROMPT
+        user_msg = question
 
     response = await client.chat.completions.create(
         model=settings.OPENROUTER_ANSWER_MODEL,
         messages=[
-            {"role": "system", "content": ANSWER_WITH_IMAGES_PROMPT},
-            {"role": "user", "content": user_content},
+            {"role": "system", "content": system},
+            {"role": "user", "content": user_msg},
         ],
-        max_tokens=1024,
+        max_tokens=4096,
     )
     return (response.choices[0].message.content or "").strip()
-
-
-async def generate_metadata_answer(question: str, papers: List[Dict[str, Any]]) -> str:
-    """
-    Answer a metadata question using only the structured metadata already
-    extracted from the papers. Uses the router model (text-only, no images).
-    Falls back to a plain formatted dump if the LLM call fails.
-    """
-    client = _get_client()
-
-    # Build a readable metadata context block for each paper
-    sections = []
-    for paper in papers:
-        meta = paper.get("metadata") or {}
-        title = meta.get("title") or paper.get("title", "Unknown")
-        lines = [f"Title: {title}"]
-        authors = meta.get("authors")
-        if authors:
-            lines.append(f"Authors: {', '.join(authors)}")
-        if meta.get("year"):
-            lines.append(f"Year: {meta['year']}")
-        if meta.get("venue"):
-            lines.append(f"Venue: {meta['venue']}")
-        if meta.get("abstract"):
-            lines.append(f"Abstract: {meta['abstract']}")
-        if meta.get("keywords"):
-            lines.append(f"Keywords: {', '.join(meta['keywords'])}")
-        if meta.get("description"):
-            lines.append(f"Description: {meta['description']}")
-        sections.append("\n".join(lines))
-
-    metadata_context = "\n\n---\n\n".join(sections) if sections else "(no metadata available)"
-    user_msg = METADATA_ANSWER_USER.format(
-        metadata_context=metadata_context,
-        question=question,
-    )
-
-    try:
-        response = await client.chat.completions.create(
-            model=settings.OPENROUTER_ROUTER_MODEL,
-            messages=[
-                {"role": "system", "content": METADATA_ANSWER_SYSTEM},
-                {"role": "user", "content": user_msg},
-            ],
-            max_tokens=512,
-        )
-        return (response.choices[0].message.content or "").strip()
-    except Exception as e:
-        logger.warning("Metadata answer generation failed: %s", e)
-        return metadata_context  # fallback: return raw metadata text
 
 
 async def plan_actions(question: str, papers: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -466,9 +417,9 @@ async def plan_actions(question: str, papers: List[Dict[str, Any]]) -> List[Dict
     try:
         user_msg = PLANNER_USER.format(papers_context=papers_context, question=question)
         response = await client.chat.completions.create(
-            model=settings.OPENROUTER_ROUTER_MODEL,
+            model=settings.OPENROUTER_PLANNER_MODEL,
             messages=[
-                {"role": "system", "content": PLANNER_SYSTEM},
+                {"role": "system", "content": PLANNER_PROMPT},
                 {"role": "user", "content": user_msg},
             ],
             max_tokens=512,

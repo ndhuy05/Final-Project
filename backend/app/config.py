@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     # OpenRouter API
     OPENROUTER_API_KEY: str = ""
     OPENROUTER_VISION_MODEL: str = "google/gemini-flash-1.5"   # extraction
-    OPENROUTER_ROUTER_MODEL: str = "openai/gpt-4o-mini"        # routing + decomposition
+    OPENROUTER_PLANNER_MODEL: str = "openai/gpt-4o-mini"        # routing + decomposition
     OPENROUTER_ANSWER_MODEL: str = "google/gemini-flash-1.5"   # answer generation
     OPENROUTER_CODE_MODEL: str = "anthropic/claude-3.5-sonnet"  # paper2code generation
 

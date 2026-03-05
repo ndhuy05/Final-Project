@@ -67,7 +67,7 @@ PDF
 
 ── RETRIEVAL (Chat) ─────────────────────────────────────────────────────
 Question
-  └─ Planner LLM (OPENROUTER_ROUTER_MODEL)
+  └─ Planner LLM (OPENROUTER_PLANNER_MODEL)
        → list of actions: read_metadata / retrieve (with paper_id scope)
        (actions run in parallel via asyncio.gather)
 
@@ -126,7 +126,7 @@ Question
 |---|---|---|
 | Page extraction (VLM) | `google/gemini-flash-1.5` | `OPENROUTER_VISION_MODEL` |
 | Answer generation (VLM) | `google/gemini-flash-1.5` | `OPENROUTER_ANSWER_MODEL` |
-| Planner + metadata answers (text-only) | `google/gemini-flash-1.5` | `OPENROUTER_ROUTER_MODEL` |
+| Planner + metadata answers (text-only) | `google/gemini-flash-1.5` | `OPENROUTER_PLANNER_MODEL` |
 | Paper to Code generation | `anthropic/claude-3.5-sonnet` | `OPENROUTER_CODE_MODEL` |
 
 ---
@@ -210,7 +210,7 @@ npm run dev
 OPENROUTER_API_KEY=sk-or-...
 OPENROUTER_VISION_MODEL=google/gemini-flash-1.5    # for page extraction
 OPENROUTER_ANSWER_MODEL=google/gemini-flash-1.5    # for VLM answer generation
-OPENROUTER_ROUTER_MODEL=google/gemini-flash-1.5    # for planner + metadata answers
+OPENROUTER_PLANNER_MODEL=google/gemini-flash-1.5    # for planner + metadata answers
 OPENROUTER_CODE_MODEL=anthropic/claude-3.5-sonnet  # for Paper to Code generation
 ```
 

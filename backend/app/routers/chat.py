@@ -241,18 +241,10 @@ async def chat(notebook_id: str, request: ChatRequest):
                 f"[Question]\n{request.question}"
             )
 
-        # Generate answer
-        if image_paths:
-            content = await openrouter_service.generate_answer(
-                question_with_context, image_paths, top_results
-            )
-        elif metadata_papers:
-            # Metadata-only answer (no retrieved chunks)
-            content = await openrouter_service.generate_metadata_answer(
-                request.question, metadata_papers
-            )
-        else:
-            content = "I couldn't find relevant content for your question in the uploaded papers."
+        # Generate answer (single path for all cases)
+        content = await openrouter_service.generate_answer(
+            question_with_context, image_paths, top_results
+        ) if (image_paths or metadata_papers) else "I couldn't find relevant content for your question in the uploaded papers."
 
     except Exception as e:
         logger.exception("Chat handler failed")
