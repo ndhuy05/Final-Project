@@ -19,111 +19,167 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 EXTRACTION_PROMPT = (
-    "You are an expert document extraction assistant. Extract ALL content from the provided page image with maximum accuracy and completeness.\n\n"
+    "You are a precise document digitization engine specialized in academic and technical papers. "
+    "Your sole task is to reproduce the exact content of the provided page image — nothing more, nothing less.\n\n"
 
-    "## Extraction Rules\n"
-    "- Extract content in natural reading order (top-to-bottom, left-to-right, multi-column aware)\n"
-    "- Preserve ALL text verbatim: headings, subheadings, body text, captions, footnotes, headers, footers\n"
-    "- Do NOT summarize, paraphrase, or omit any content — even if it seems repetitive\n"
-    "- If text is partially cut off at page edges, extract what is visible and mark with [TRUNCATED]\n"
-    "- If any content is unclear or illegible, mark with [ILLEGIBLE]\n\n"
+    "## Content Extraction\n"
+    "- Read in natural order: top-to-bottom, left-to-right; handle multi-column layouts correctly\n"
+    "- Copy ALL text verbatim: section headings, body paragraphs, captions, footnotes, headers, footers, page numbers\n"
+    "- Preserve original capitalization, hyphenation, and punctuation exactly\n"
+    "- Mark partially visible text at page edges as [TRUNCATED: <visible portion>]\n"
+    "- Mark unreadable text as [ILLEGIBLE]\n"
+    "- Never summarize, paraphrase, merge, or skip any content — even if it appears redundant\n\n"
 
     "## Tables\n"
-    "When you encounter a table, output the following in order:\n"
-    "1. **[TABLE DESCRIPTION]**: A detailed prose description covering:\n"
-    "   - The table's purpose and what it represents\n"
-    "   - Column headers and their meaning\n"
-    "   - Row structure and groupings (if any)\n"
-    "   - Any units, footnotes, or special notations used\n"
-    "2. **[TABLE DATA]**: The complete table in Markdown format\n"
-    "   - Include ALL rows and columns without exception\n"
-    "   - Preserve exact numbers, variables, symbols, and units\n"
-    "   - For merged cells, repeat the value in each affected cell and note the merge\n"
-    "   - For multi-level headers, flatten them clearly\n\n"
+    "For every table, output both parts in this exact order:\n"
+    "**[TABLE DESCRIPTION]**\n"
+    "Write a prose description explaining: the table's purpose, what each column represents, "
+    "row groupings or categories, units used, and any footnotes or special symbols.\n"
+    "**[TABLE DATA]**\n"
+    "Reproduce the full table in GitHub-flavored Markdown. Rules:\n"
+    "- Every row and column must appear — no exceptions\n"
+    "- Preserve exact values: numbers, variable names, symbols, ± signs, percentages\n"
+    "- For merged/spanned cells, repeat the value in each affected cell with a note (e.g. [merged])\n"
+    "- Flatten multi-level headers into a single header row, keeping all information\n\n"
 
-    "## Formulas & Special Content\n"
-    "- Mathematical formulas: render in LaTeX inline notation (e.g. $E = mc^2$)\n"
-    "- Lists and bullet points: preserve hierarchy and indentation using Markdown\n"
-    "- Images/charts/diagrams: mark with [FIGURE: <brief description of what it shows>]\n\n"
+    "## Special Content\n"
+    "- Inline math / formulas → LaTeX notation wrapped in $ signs (e.g. $\\alpha = 0.01$, $F_1 = \\frac{2PR}{P+R}$)\n"
+    "- Block equations → $$ ... $$ on its own line\n"
+    "- Bulleted / numbered lists → preserve nesting using Markdown indentation\n"
+    "- Figures, diagrams, charts, photos → [FIGURE: <one-sentence description of what it depicts>]\n\n"
 
-    "## Output Format\n"
-    "Output raw extracted content only. Do not add commentary or any text not in the original document."
+    "## Strict Output Rules\n"
+    "Output ONLY the extracted page content. "
+    "Do NOT add headers like 'Page Content:', explanations, apologies, or any framing text. "
+    "Do NOT omit content because it seems unimportant."
 )
 
 # Appended to EXTRACTION_PROMPT only when processing the first page of a paper
 _METADATA_SUFFIX = (
-    "\n\n## Additional Task (First Page Only)\n"
-    "After ALL extracted page content, append exactly:\n"
+    "\n\n## Mandatory Additional Task — Bibliographic Metadata\n"
+    "After ALL extracted page content above, you MUST append the following separator on its own line:\n"
     "---METADATA---\n"
-    "Then on the next line output a single-line JSON object with these keys (use null for missing):\n"
-    '{"title":"...","authors":[...],"publish_date":"...","venue":"...","description":"..."}\n'
-    "description: 4-5 sentences covering (1) what problem the paper addresses, "
-    "(2) what approach or system it proposes, (3) its key result or contribution.\n"
-    "Output the JSON on one line only. Do not wrap in code fences."
+    "Immediately after, output a SINGLE LINE of minified JSON with exactly these keys "
+    "(use null for any field that is not present on this page):\n"
+    '{"title":"full paper title","authors":["First Last","First Last"],"year":"YYYY",'
+    '"venue":"journal or conference name","abstract":"full abstract text",'
+    '"keywords":["kw1","kw2"],'
+    '"description":"2-3 sentences: (1) problem the paper addresses, (2) proposed approach or system, (3) key result or contribution."}\n'
+    "Field rules:\n"
+    "- title: exact title as printed, including subtitle after colon if present\n"
+    "- authors: list every author in the order they appear; do not abbreviate\n"
+    "- year: 4-digit publication year; use null if not found\n"
+    "- venue: full name of journal, conference, or workshop; do not abbreviate\n"
+    "- abstract: copy the abstract verbatim; use null if this page has no abstract\n"
+    "- keywords: list as provided; use [] if none\n"
+    "- description: write in your own words, 2-3 complete sentences\n"
+    "Output the JSON on exactly one line. Do NOT wrap in code fences. Do NOT add any text after the JSON."
 )
 
 ANSWER_WITH_IMAGES_PROMPT = (
-    "You are an expert research assistant specialized in analyzing academic and technical documents.\n\n"
+    "You are an expert research assistant specializing in academic and technical papers. "
+    "You answer questions using two sources of evidence that may be provided:\n"
+    "1. **Pre-extracted bibliographic metadata** — structured fields (authors, year, venue, abstract, etc.) "
+    "provided as text in the [Paper Metadata] block\n"
+    "2. **Page images** — scanned pages from the paper for detailed content questions\n\n"
 
-    "## Your Task\n"
-    "Answer the user's question using ONLY the information visible in the provided page image(s). "
-    "Do not use prior knowledge to fill in gaps — if the pages lack sufficient information, say so explicitly.\n\n"
+    "## Source Priority\n"
+    "- If a [Paper Metadata] block is present, use it directly for bibliographic facts "
+    "(authors, year, venue, abstract, keywords). Do NOT look for these in the images.\n"
+    "- Use the page images for content questions: methods, results, tables, figures, equations, experiments.\n"
+    "- When both sources contribute to the answer, synthesize them naturally in a single response.\n\n"
+
+    "## Before You Write\n"
+    "Read the [Paper Metadata] block (if present), then examine every image carefully. "
+    "Locate the specific passages, tables, figures, or equations relevant to the question. "
+    "Note which page each piece of evidence comes from.\n\n"
 
     "## Answer Guidelines\n"
-    "- Be precise and thorough: extract exact numbers, statistics, variable names, and technical terms as they appear\n"
-    "- For questions involving tables or figures, describe the relevant data specifically rather than generally\n"
-    "- If multiple pages contribute to the answer, synthesize them coherently\n"
-    "- If the question has multiple sub-parts, address each one separately\n"
-    "- Do not speculate or infer beyond what is explicitly stated in the pages\n\n"
+    "- Facts from metadata: state them directly (no page citation needed — cite as '(metadata)')\n"
+    "- Facts from images: every sentence MUST end with an inline citation: (Page X)\n"
+    "- Extract exact values: reproduce numbers, variable names, units, and technical terms precisely as written\n"
+    "- For tables and figures, refer to specific rows, columns, or data points — not vague summaries\n"
+    "- For multi-part questions, address each part in order with a clear label (e.g. **(1)**, **(2)**)\n"
+    "- Never fabricate data, fill gaps with plausible values, or hedge with 'probably'\n\n"
 
-    "## Citation Format\n"
-    "Always cite your sources inline using the format (Page X). Example:\n"
-    "  'The model achieves 94.2% accuracy on the test set (Page 5), "
-    "which the authors attribute to the attention mechanism described in the methodology (Page 3).'\n\n"
-
-    "## When Information Is Insufficient\n"
-    "If the provided pages do not contain enough information:\n"
-    "- State clearly what IS available and what is missing\n"
-    "- Indicate whether the answer might be found elsewhere in the document (e.g. 'This may be defined in an earlier section not provided')\n"
-    "- Never fabricate or guess data\n\n"
+    "## When Evidence Is Insufficient\n"
+    "- State exactly what information IS present and what is missing\n"
+    "- If the answer likely exists elsewhere in the document, say so: "
+    "'This detail may appear in Section X, which was not provided.'\n\n"
 
     "## Output Format\n"
-    "- Use clear, structured prose\n"
-    "- For complex answers, use headers or bullet points to organize information\n"
-    "- Keep your answer focused and avoid restating the question"
+    "- Write in clear, direct prose; use headers or bullet points only for genuinely complex multi-part answers\n"
+    "- Lead with the most important finding\n"
+    "- Do not restate or paraphrase the question"
 )
 
-METADATA_ANSWER_PROMPT = """\
-You are a research assistant. Answer the user's question using ONLY the bibliographic metadata provided below.
-Be concise and direct. If the metadata does not contain the answer, say so explicitly — do not guess.
+METADATA_ANSWER_SYSTEM = (
+    "You are a precise research librarian. You answer questions about academic papers "
+    "using ONLY the structured bibliographic metadata provided — never your training knowledge.\n\n"
+    "Rules:\n"
+    "- If the answer is present in the metadata, state it directly and concisely\n"
+    "- If the answer spans multiple papers, address each paper in order\n"
+    "- If the metadata does not contain enough information to answer, say exactly: "
+    "'The provided metadata does not include [specific field].'\n"
+    "- Never guess, infer, or fill in missing fields from general knowledge\n"
+    "- Never fabricate author names, dates, or publication details"
+)
 
+METADATA_ANSWER_USER = """\
 ## Paper Metadata
 {metadata_context}
 
 ## Question
-{question}"""
+{question}
 
-PLANNER_PROMPT = """\
-You are a research assistant planning how to answer a question about academic papers.
+Answer using only the metadata above."""
 
-## Available Actions
-- read_metadata: retrieve stored bibliographic info for a paper (title, authors, publish_date, venue, description)
-- retrieve: run semantic search over a paper's content for a specific sub-query
+PLANNER_SYSTEM = (
+    "You are a retrieval planner for an academic paper Q&A system. "
+    "Given a user question and a list of available papers, you decide exactly which actions to execute "
+    "to gather the information needed. You output ONLY a JSON array of actions — no explanation, no prose.\n\n"
 
+    "## Action Types\n"
+    "1. read_metadata — fetches stored bibliographic fields for a paper: "
+    "title, authors, year, venue, abstract, keywords, description\n"
+    "2. retrieve — runs semantic search over a paper's full text for a focused sub-query\n\n"
+
+    "## Decision Rules\n"
+    "- Question asks about authors, year, venue, publication, keywords, abstract → read_metadata\n"
+    "- Question asks about methods, results, experiments, figures, tables, equations → retrieve\n"
+    "- Question asks to compare two papers → one retrieve per paper, each with its paper_id\n"
+    "- Question asks to summarize or describe a paper → retrieve with paper_id\n"
+    "- Unsure which paper → retrieve with paper_id: null (searches all)\n"
+    "- Questions that need both bibliographic info AND content → combine both action types\n"
+    "- Maximum 4 actions total\n\n"
+
+    "## paper_id Rule\n"
+    "paper_id must be one of the exact UUIDs listed in the papers context, or null. "
+    "Never invent or shorten a UUID.\n\n"
+
+    "## Output Contract\n"
+    "Output a single JSON array. No markdown fences. No text before or after the array.\n"
+    "Schema: [{\"action\": \"read_metadata\"|\"retrieve\", \"paper_id\": \"<uuid>|null\", \"query\": \"<string, retrieve only>\"}]\n\n"
+
+    "## Examples\n"
+    "Q: 'Who are the authors of ECL-YOLOv11?'\n"
+    "[{\"action\": \"read_metadata\", \"paper_id\": \"60a91cb6-...\"}]\n\n"
+
+    "Q: 'What is the mAP@50 of ECL-YOLOv11?'\n"
+    "[{\"action\": \"retrieve\", \"paper_id\": \"60a91cb6-...\", \"query\": \"ECL-YOLOv11 mAP@50 detection accuracy results\"}]\n\n"
+
+    "Q: 'Compare the methods of paper A and paper B'\n"
+    "[{\"action\": \"retrieve\", \"paper_id\": \"uuid-A\", \"query\": \"paper A proposed method and approach\"}, "
+    "{\"action\": \"retrieve\", \"paper_id\": \"uuid-B\", \"query\": \"paper B proposed method and approach\"}]\n\n"
+
+    "Q: 'When was this paper published and what accuracy did it achieve?'\n"
+    "[{\"action\": \"read_metadata\", \"paper_id\": \"uuid\"}, "
+    "{\"action\": \"retrieve\", \"paper_id\": \"uuid\", \"query\": \"accuracy results performance metrics\"}]"
+)
+
+PLANNER_USER = """\
 ## Papers Available
 {papers_context}
-
-## Rules
-- For questions about authors, publish_date, venue, or paper description → use read_metadata
-- For questions about paper content, methods, results, experiments → use retrieve with a focused sub-query
-- For comparison questions → use retrieve for each relevant paper separately with its paper_id
-- paper_id: null in retrieve = search across all papers (use when unsure which paper)
-- Combine actions freely (e.g. read_metadata + retrieve together)
-- Maximum 4 actions total
-- paper_id must exactly match an ID from the list above, or null
-
-## Output (JSON array only, no explanation)
-[{{"action": "read_metadata", "paper_id": "uuid-or-null"}}, {{"action": "retrieve", "paper_id": "uuid-or-null", "query": "focused sub-query"}}]
 
 ## User Question
 {question}"""
@@ -309,10 +365,12 @@ async def generate_answer(
         title = r.get("paper_title", "Unknown")
         score = round(r.get("score", 0), 4)
         logger.debug(f"  [{i}] {rtype:5s} | page {page} | score {score} | {title}")
-    logger.debug(f"  images sent: {[p.replace('\\', '/').split('/')[-1] for p in image_paths]}")
+    logger.debug(f"  images sent: {['/'.join(p.replace('\\', '/').split('/')[-2:]) for p in image_paths]}")
     logger.debug("===================================")
 
     user_content: List[Dict] = []
+    # Put question/metadata text BEFORE images so the model reads context first
+    user_content.append({"type": "text", "text": question})
     for path in image_paths:
         b64 = _encode_image(path)
         user_content.append({
@@ -320,7 +378,6 @@ async def generate_answer(
             "image_url": {"url": f"data:image/png;base64,{b64}"},
             "detail": "high"
         })
-    user_content.append({"type": "text", "text": f"Question: {question}"})
 
     response = await client.chat.completions.create(
         model=settings.OPENROUTER_ANSWER_MODEL,
@@ -363,7 +420,7 @@ async def generate_metadata_answer(question: str, papers: List[Dict[str, Any]]) 
         sections.append("\n".join(lines))
 
     metadata_context = "\n\n---\n\n".join(sections) if sections else "(no metadata available)"
-    prompt = METADATA_ANSWER_PROMPT.format(
+    user_msg = METADATA_ANSWER_USER.format(
         metadata_context=metadata_context,
         question=question,
     )
@@ -371,7 +428,10 @@ async def generate_metadata_answer(question: str, papers: List[Dict[str, Any]]) 
     try:
         response = await client.chat.completions.create(
             model=settings.OPENROUTER_ROUTER_MODEL,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[
+                {"role": "system", "content": METADATA_ANSWER_SYSTEM},
+                {"role": "user", "content": user_msg},
+            ],
             max_tokens=512,
         )
         return (response.choices[0].message.content or "").strip()
@@ -404,10 +464,13 @@ async def plan_actions(question: str, papers: List[Dict[str, Any]]) -> List[Dict
     papers_context = "\n\n".join(lines) or "(no papers available)"
 
     try:
-        prompt = PLANNER_PROMPT.format(papers_context=papers_context, question=question)
+        user_msg = PLANNER_USER.format(papers_context=papers_context, question=question)
         response = await client.chat.completions.create(
             model=settings.OPENROUTER_ROUTER_MODEL,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[
+                {"role": "system", "content": PLANNER_SYSTEM},
+                {"role": "user", "content": user_msg},
+            ],
             max_tokens=512,
         )
         raw = (response.choices[0].message.content or "").strip()

@@ -2,10 +2,10 @@
   "4": {
     "papers": [
       {
-        "id": "cdeac6c4-c03c-4880-b619-f1bd206f2d48",
+        "id": "327dcba8-d5ed-43fb-958c-a2f0a245d101",
         "notebook_id": "4",
         "title": "ECL-YOLOv11",
-        "filename": "281502ec-14fe-4ec8-8e7e-453759bde907_ECL-YOLOv11.pdf",
+        "filename": "afa48481-1ad2-4610-940c-32c05d2038ec_ECL-YOLOv11.pdf",
         "page_count": 24,
         "metadata": {
           "title": "Robust Object Detection in Adverse Weather Conditions: ECL-YOLOv11 for Automotive Vision Systems",
@@ -15,9 +15,39 @@
             "Xiaojun Zhang",
             "Hongle Song"
           ],
-          "publish_date": "2026-01-02",
+          "year": "2026",
           "venue": "Sensors",
-          "description": "This paper addresses the challenge of degraded object detection performance in adverse weather conditions such as fog, rain, and snow, which compromise safety in autonomous driving systems. It proposes ECL-YOLOv11, an enhanced detection framework integrating three modules: edge-enhancement for boundary retention, context-guided multi-scale fusion for improved small-object perception, and a lightweight detection head for real-time inference. The model achieves state-of-the-art accuracy (mAP@50: 62.7%, mAP@50–95: 40.5%) and real-time speed (237.8 FPS), outperforming baseline YOLOv11. Ablation studies and visualizations confirm robustness across weather and motion conditions, offering a reliable foundation for all-weather autonomous perception."
+          "abstract": "The rapid development of intelligent transportation systems and autonomous driving technologies has made visual perception a key component in ensuring safety and improving efficiency in complex traffic environments. As a core task in visual perception, object detection directly affects the reliability of downstream modules such as path planning and decision control. However, adverse weather conditions (e.g., fog, rain, and snow) significantly degrade image quality—causing texture blurring, reduced contrast, and increased noise—which in turn weakens the robustness of traditional detection models and raises potential traffic safety risks. To address this challenge, this paper proposes an enhanced object detection framework, ECL-YOLOv11 (Edge-enhanced, Context-guided, and Lightweight YOLOv11), designed to improve detection accuracy and real-time performance under adverse weather conditions, thereby providing a reliable solution for in-vehicle perception systems. The ECL-YOLOv11 architecture integrates three key modules: (1) a Convolutional Edge-enhancement (CE) module that fuses edge features extracted by Sobel operators with convolutional features to explicitly retain boundary and contour information, thereby alleviating feature degradation and improving localization accuracy under low-visibility conditions; (2) a Context-guided Multi-scale Fusion Network (AENet) that enhances perception of small and distant objects through multi-scale feature integration and context modeling, improving semantic consistency and detection stability in complex scenes; and (3) a Lightweight Shared Convolutional Detection Head (LDHead) that adopts shared convolutions and GroupNorm normalization to optimize computational efficiency, reduce inference latency, and satisfy the real-time requirements of on-board systems. Experimental results show that ECL-YOLOv11 achieves mAP@50 and mAP@50–95 values of 62.7% and 40.5%, respectively, representing improvements of 1.3% and 0.8% over the baseline YOLOv11, while the Precision reaches 73.1%. The model achieves a balanced trade-off between accuracy and inference speed, operating at 237.8 FPS on standard hardware. Ablation studies confirm the independent effectiveness of each proposed module in feature enhancement, multi-scale fusion, and lightweight detection, while their integration further improves overall performance. Qualitative visualizations demonstrate that ECL-YOLOv11 maintains high-confidence detections across varying motion states and adverse weather conditions, avoiding category confusion and missed detections. These results indicate that the proposed framework provides a reliable and adaptable foundation for all-weather perception in autonomous driving systems, ensuring both operational safety and real-time responsiveness.",
+          "keywords": [
+            "adverse weather",
+            "automotive vision",
+            "edge-enhancement",
+            "multi-scale fusion",
+            "lightweight detection"
+          ],
+          "description": "This paper addresses the challenge of object detection degradation under adverse weather conditions such as fog, rain, and snow, which impair image quality and threaten autonomous driving safety. The authors propose ECL-YOLOv11, an enhanced detection framework integrating edge-enhancement, context-guided multi-scale fusion, and a lightweight detection head to improve accuracy and real-time performance. Experimental results show improved mAP and precision over baseline YOLOv11, with efficient inference speed, validating its suitability for robust in-vehicle perception systems."
+        }
+      },
+      {
+        "id": "326633b7-b5c0-4846-9689-4ee57da73c9a",
+        "notebook_id": "4",
+        "title": "Conveyor_belt_speed_detection_via_the_synergistic_",
+        "filename": "65c85a8c-a167-42be-8894-bb4f0bf23599_Conveyor_belt_speed_detection_via_the_synergistic_.pdf",
+        "page_count": 19,
+        "metadata": {
+          "title": "Conveyor belt speed detection via the synergistic fusion of optical flow and feature matching",
+          "authors": [
+            "Di Miao",
+            "Yimin Wang",
+            "Yuming Bai",
+            "Guoliang Fu",
+            "Jingyu Wang"
+          ],
+          "year": "2025",
+          "venue": "Scientific Reports",
+          "abstract": null,
+          "keywords": [],
+          "description": "This paper addresses the challenge of accurately detecting conveyor belt speed in industrial settings where traditional methods may fail due to environmental noise or lack of markers. The proposed approach synergistically fuses optical flow analysis with feature matching techniques to robustly estimate belt velocity from video sequences. The key contribution is a novel fusion framework that improves detection accuracy and stability over individual methods, particularly under varying lighting and texture conditions."
         }
       }
     ]

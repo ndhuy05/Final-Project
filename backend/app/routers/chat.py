@@ -187,11 +187,27 @@ async def chat(notebook_id: str, request: ChatRequest):
                 seen_pages[key] = r
         top_results = list(seen_pages.values())
 
-        # Collect images only for the top-scored result (N-1, N, N+1)
+        # Collect images: best result per retrieve-target paper (N-1, N, N+1 each)
         image_paths: List[str] = []
         if top_results:
-            best = max(top_results, key=lambda r: r.get("score", 0))
-            image_paths = _collect_images(best.get("paper_id"), best.get("page_num"))
+            retrieve_paper_ids = [
+                a.get("paper_id") for a in actions
+                if a.get("action") == "retrieve" and a.get("paper_id")
+            ]
+            if len(retrieve_paper_ids) > 1:
+                # Multi-paper comparison: pick best result from each targeted paper
+                best_per_paper: dict = {}
+                for r in top_results:
+                    pid = r.get("paper_id")
+                    if pid not in best_per_paper or r.get("score", 0) > best_per_paper[pid].get("score", 0):
+                        best_per_paper[pid] = r
+                for r in best_per_paper.values():
+                    for p in _collect_images(r.get("paper_id"), r.get("page_num")):
+                        if p not in image_paths:
+                            image_paths.append(p)
+            else:
+                best = max(top_results, key=lambda r: r.get("score", 0))
+                image_paths = _collect_images(best.get("paper_id"), best.get("page_num"))
 
         citations = _make_citations(top_results)
 
@@ -218,7 +234,10 @@ async def chat(notebook_id: str, request: ChatRequest):
                 meta_lines.append("\n".join(parts))
             metadata_block = "\n\n---\n\n".join(meta_lines)
             question_with_context = (
-                f"[Paper Metadata]\n{metadata_block}\n\n"
+                f"[Paper Metadata]\n"
+                f"The following bibliographic information was pre-extracted from the paper(s). "
+                f"Use it directly to answer metadata-related parts of the question.\n\n"
+                f"{metadata_block}\n\n"
                 f"[Question]\n{request.question}"
             )
 
