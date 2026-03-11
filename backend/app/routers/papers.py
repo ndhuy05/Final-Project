@@ -62,7 +62,7 @@ async def _process_batch(
         if text:
             chunks = _chunk_text(text)
             for chunk_idx, chunk in enumerate(chunks):
-                vector = embedding_service.embed_text(chunk)
+                vector = await embedding_service.embed_text(chunk)
                 point_id = abs(hash(f"{paper['id']}_{page_num}_text_{chunk_idx}")) % (2**53)
                 qdrant_service.upsert_table(
                     notebook_id=notebook_id,

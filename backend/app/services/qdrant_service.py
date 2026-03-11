@@ -1,6 +1,6 @@
 """
 Qdrant service: local on-disk client, dense single-vector collection.
-Vectors are 384-dim text embeddings from fastembed (BAAI/bge-small-en-v1.5).
+Vectors are 1536-dim text embeddings from OpenRouter (openai/text-embedding-3-small).
 No Docker required — uses QdrantClient(path=...).
 """
 import os
@@ -18,7 +18,7 @@ from app.config import settings
 
 _client: QdrantClient = None
 
-VECTOR_DIM = 384  # BAAI/bge-small-en-v1.5 output dimension
+VECTOR_DIM = 4096 
 
 
 def get_client() -> QdrantClient:

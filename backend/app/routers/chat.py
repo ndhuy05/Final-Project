@@ -74,7 +74,7 @@ async def _qdrant_rerank(
     question: str, notebook_id: str, top_k: int, paper_id: str = None
 ) -> List[dict]:
     """Embed → Qdrant search (optionally scoped to paper_id) → rerank → dedup."""
-    query_vector = embedding_service.embed_text(question)
+    query_vector = await embedding_service.embed_text(question)
     results = qdrant_service.search(
         notebook_id=notebook_id,
         query_vector=query_vector,

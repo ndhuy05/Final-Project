@@ -1,47 +1,36 @@
 """
-Embedding service: GPU-accelerated text embeddings via fastembed-gpu.
-Model: BAAI/bge-small-en-v1.5 (384-dim, ~22MB).
-Uses CUDAExecutionProvider via ONNX Runtime; falls back to CPU if unavailable.
+Embedding service: text embeddings via OpenRouter API.
+Model: openai/text-embedding-3-small (1536-dim) by default.
+Both embed_text and embed_texts are async — callers must await them.
 """
-import os
-import sys
 from typing import List
-from fastembed import TextEmbedding
-
-_model: TextEmbedding | None = None
-
-
-def _add_cuda_dll_path():
-    """Add PyTorch's CUDA DLL directory to the search path (Windows only)."""
-    if sys.platform != "win32":
-        return
-    try:
-        import torch
-        torch_lib = os.path.join(os.path.dirname(torch.__file__), "lib")
-        if os.path.isdir(torch_lib):
-            os.add_dll_directory(torch_lib)
-    except Exception:
-        pass
+import openai
+from app.config import settings
 
 
-def _get_model() -> TextEmbedding:
-    global _model
-    if _model is None:
-        _add_cuda_dll_path()
-        _model = TextEmbedding(
-            model_name="BAAI/bge-small-en-v1.5",
-            providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
-        )
-    return _model
+def _get_client() -> openai.AsyncOpenAI:
+    return openai.AsyncOpenAI(
+        api_key=settings.OPENROUTER_API_KEY,
+        base_url="https://openrouter.ai/api/v1",
+    )
 
 
-def embed_text(text: str) -> List[float]:
-    """Embed a single string. Returns a flat 384-dim vector."""
-    model = _get_model()
-    return next(model.embed([text])).tolist()
+async def embed_text(text: str) -> List[float]:
+    """Embed a single string. Returns a flat 1536-dim vector."""
+    client = _get_client()
+    response = await client.embeddings.create(
+        model=settings.OPENROUTER_EMBEDDING_MODEL,
+        input=text,
+    )
+    return response.data[0].embedding
 
 
-def embed_texts(texts: List[str]) -> List[List[float]]:
-    """Embed a list of strings. Returns one vector per text."""
-    model = _get_model()
-    return [v.tolist() for v in model.embed(texts)]
+async def embed_texts(texts: List[str]) -> List[List[float]]:
+    """Embed a list of strings in one batched API call. Returns one vector per text."""
+    client = _get_client()
+    response = await client.embeddings.create(
+        model=settings.OPENROUTER_EMBEDDING_MODEL,
+        input=texts,
+    )
+    # API returns items sorted by index
+    return [item.embedding for item in sorted(response.data, key=lambda x: x.index)]

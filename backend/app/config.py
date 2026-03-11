@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     OPENROUTER_PLANNER_MODEL: str = "openai/gpt-4o-mini"        # routing + decomposition
     OPENROUTER_ANSWER_MODEL: str = "google/gemini-flash-1.5"   # answer generation
     OPENROUTER_CODE_MODEL: str = "anthropic/claude-3.5-sonnet"  # paper2code generation
+    OPENROUTER_EMBEDDING_MODEL: str = "openai/text-embedding-3-small"  # 1536-dim
 
     # Paper2Code output (kept outside backend/ so uvicorn --reload doesn't watch it)
     PAPER2CODE_OUTPUT_DIR: str = "../paper2code_outputs"
