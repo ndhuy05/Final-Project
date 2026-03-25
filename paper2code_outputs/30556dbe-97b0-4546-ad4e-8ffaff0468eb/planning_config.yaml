@@ -1,0 +1,66 @@
+## config.yaml
+
+# Experimental Environment
+hardware:
+  cpu: "Intel Core i5-12400F"
+  gpu: "NVIDIA GeForce RTX 3060"
+  gpu_memory_gb: 12
+  os: "Windows 11"
+
+# Software Environment
+software:
+  python: "3.10.15"
+  pytorch: "2.5.0"
+  cuda: "12.1"
+  framework: "Ultralytics 8.3.9"
+
+# Training Configuration
+training:
+  epochs: 600
+  batch_size: 16
+  image_size: 640
+  early_stopping:
+    patience: 20
+    monitor: "val_mAP50"
+    mode: "max"
+  learning_rate_schedule:
+    type: "cosine_annealing"
+  regularization:
+    label_smoothing: true
+  device: "cuda"
+
+# Model Configuration
+model:
+  name: "ECL-YOLOv11"
+  num_classes: 7
+  classes: ["car", "person", "bus", "bicycle", "truck", "train", "motorcycle"]
+  input_channels: 3
+  reg_max: 16
+
+# Data Configuration
+data:
+  format: "yolo"
+  train_split: 0.8
+  val_split: 0.1
+  test_split: 0.1
+  augmentation:
+    weather: ["fog", "rain", "snow"]
+
+# Evaluation Metrics
+evaluation:
+  metrics:
+    - "mAP@50"
+    - "mAP@50-95"
+    - "Precision"
+    - "Recall"
+    - "FPS"
+  iou_thresholds:
+    map50: 0.50
+    map50_95_start: 0.50
+    map50_95_end: 0.95
+
+# Inference Configuration
+inference:
+  confidence_threshold: 0.25
+  iou_threshold: 0.45
+  max_detections: 300

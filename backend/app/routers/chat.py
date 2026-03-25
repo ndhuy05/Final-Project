@@ -13,7 +13,7 @@ from typing import List, Tuple
 from app.config import settings
 from app.services import (
     qdrant_service, memory_store, embedding_service,
-    openrouter_service, reranker_service,
+    planning_service, answering_service, reranker_service,
 )
 
 logger = logging.getLogger(__name__)
@@ -170,7 +170,7 @@ async def chat(notebook_id: str, request: ChatRequest):
         )
 
     # Plan actions
-    actions = await openrouter_service.plan_actions(request.question, papers)
+    actions = await planning_service.plan_actions(request.question, papers)
     action_types = list({a.get("action", "retrieve") for a in actions})
     logger.debug("Actions planned: %s", actions)
 
@@ -242,7 +242,7 @@ async def chat(notebook_id: str, request: ChatRequest):
             )
 
         # Generate answer (single path for all cases)
-        content = await openrouter_service.generate_answer(
+        content = await answering_service.generate_answer(
             question_with_context, image_paths, top_results
         ) if (image_paths or metadata_papers) else "I couldn't find relevant content for your question in the uploaded papers."
 

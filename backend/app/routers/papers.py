@@ -14,7 +14,7 @@ import aiofiles
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.config import settings
-from app.services import memory_store, pdf_service, qdrant_service, embedding_service, openrouter_service
+from app.services import memory_store, pdf_service, qdrant_service, embedding_service, extracting_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -46,7 +46,7 @@ async def _process_batch(
     Returns list of {"chunks": int, "metadata": dict} per page.
     """
     has_page0 = any(pn == 0 for pn, _ in pages)
-    page_results = await openrouter_service.extract_page_content(
+    page_results = await extracting_service.extract_page_content(
         pages,
         extract_metadata=has_page0,
     )
