@@ -89,7 +89,7 @@
               >
                 <div
                   class="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-notebook-100 transition-colors cursor-pointer"
-                  :class="{ 'bg-blue-50 border border-blue-300': store.activeNotebook.id === notebook.id }"
+                  :class="{ 'bg-blue-50 border border-blue-300': store.activeNotebook?.id === notebook.id }"
                   @click="store.selectNotebook(notebook.id)"
                 >
                   <component :is="icons.BookOpen" :size="18" class="text-notebook-500 mt-0.5 flex-shrink-0" />
@@ -163,7 +163,7 @@
 
           <!-- Sources List -->
           <div class="flex-1 overflow-y-auto scrollbar-thin p-4 bg-white">
-            <div v-if="store.activeNotebook.papers.length === 0" class="text-center py-12">
+            <div v-if="(store.activeNotebook?.papers?.length ?? 0) === 0" class="text-center py-12">
               <component :is="icons.FileText" :size="48" class="mx-auto mb-3 text-notebook-300" />
               <p class="text-sm text-notebook-500">No sources yet</p>
               <p class="text-xs text-notebook-400 mt-1">Upload papers to get started</p>
@@ -171,7 +171,7 @@
             
             <div v-else class="space-y-2">
               <div 
-                v-for="paper in store.activeNotebook.papers" 
+              v-for="paper in store.activeNotebook?.papers ?? []" 
                 :key="paper.id"
                 class="relative group"
               >
@@ -313,7 +313,7 @@
     <main class="flex-1 flex flex-col bg-white">
       <!-- Header -->
       <header class="h-14 flex items-center justify-between px-6">
-        <h1 class="text-xl font-semibold text-notebook-900 truncate">{{ store.activeNotebook.name }}</h1>
+        <h1 class="text-xl font-semibold text-notebook-900 truncate">{{ store.activeNotebook?.name ?? '' }}</h1>
       </header>
 
       <!-- Chat Messages Area -->
@@ -529,14 +529,83 @@
             </div>
 
             <!-- Paper to Poster -->
-            <button
-              @click="store.openPaperSelector('poster')"
-              class="min-h-[140px] p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-all cursor-pointer bg-white text-left flex flex-col"
-            >
-              <component :is="icons.Image" :size="24" class="text-purple-500 mb-2" />
-              <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Poster</h3>
-              <p class="text-xs text-notebook-600">Convert paper in to conference poster</p>
-            </button>
+            <div class="relative min-h-[140px] flex items-stretch">
+
+              <!-- Idle -->
+              <button
+                v-if="store.paper2posterJob.status === 'idle'"
+                @click="store.openPaperSelector('poster')"
+                class="w-full p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-all cursor-pointer bg-white text-left flex flex-col"
+              >
+                <component :is="icons.Image" :size="24" class="text-purple-500 mb-2" />
+                <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Poster</h3>
+                <p class="text-xs text-notebook-600">Convert paper into conference poster</p>
+              </button>
+
+              <!-- Running -->
+              <div
+                v-else-if="store.paper2posterJob.status === 'running'"
+                class="w-full p-4 border border-purple-300 rounded-xl bg-purple-50 transition-all flex flex-col relative"
+              >
+                <div class="flex items-start justify-between mb-2">
+                  <component :is="icons.Image" :size="24" class="text-purple-400" />
+                  <button
+                    @click="store.cancelPosterJob()"
+                    class="p-1 bg-red-500 hover:bg-red-600 rounded-lg transition-colors flex-shrink-0"
+                    title="Cancel"
+                  >
+                    <component :is="icons.X" :size="16" class="text-white" />
+                  </button>
+                </div>
+                <h3 class="font-semibold text-purple-900 text-sm mb-1">Paper to Poster</h3>
+                <div class="w-full bg-purple-100 rounded-full h-1.5 mt-auto mb-1.5">
+                  <div
+                    class="bg-purple-500 h-1.5 rounded-full transition-all duration-500"
+                    :style="{ width: (store.paper2posterJob.progress * 100) + '%' }"
+                  ></div>
+                </div>
+                <p class="text-xs text-purple-600 truncate">{{ store.paper2posterJob.step }}</p>
+              </div>
+
+              <!-- Done -->
+              <div
+                v-else-if="store.paper2posterJob.status === 'done'"
+                class="w-full p-4 border border-green-300 rounded-xl bg-green-50 transition-all flex flex-col"
+              >
+                <component :is="icons.Image" :size="24" class="text-green-500 mb-2" />
+                <h3 class="font-semibold text-notebook-900 text-sm mb-2">Paper to Poster</h3>
+                <div class="flex gap-1.5 mt-auto">
+                  <button
+                    @click="store.downloadPosterResult()"
+                    class="flex items-center gap-1 px-2 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded-lg transition-colors"
+                  >
+                    <component :is="icons.Download" :size="13" />
+                    <span>Download</span>
+                  </button>
+                  <button
+                    @click="store.resetPosterJob()"
+                    class="flex items-center gap-1 px-2 py-1 text-xs rounded-lg border border-notebook-300 hover:bg-notebook-100 transition-colors"
+                  >
+                    <span>New</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Error -->
+              <div
+                v-else-if="store.paper2posterJob.status === 'error'"
+                class="w-full p-4 border border-red-300 rounded-xl bg-red-50 transition-all flex flex-col"
+              >
+                <component :is="icons.AlertCircle" :size="24" class="text-red-500 mb-2" />
+                <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Poster</h3>
+                <p class="text-xs text-red-600 mb-2 truncate">{{ store.paper2posterJob.error || 'Generation failed' }}</p>
+                <button
+                  @click="store.resetPosterJob()"
+                  class="text-xs text-red-600 underline hover:text-red-700 mt-auto"
+                >Retry</button>
+              </div>
+
+            </div>
           </div>
 
           <!-- Row 2: Paper to Web -->
@@ -593,11 +662,27 @@
 
           <!-- Poster Icon -->
           <button
-            @click="store.openPaperSelector('poster')"
+            v-if="store.paper2posterJob.status === 'idle' || store.paper2posterJob.status === 'error'"
+            @click="store.paper2posterJob.status === 'error' ? store.resetPosterJob() : store.openPaperSelector('poster')"
             class="p-2 hover:bg-purple-100 rounded-lg transition-colors group"
             title="Paper to Poster"
           >
             <component :is="icons.Image" :size="20" class="text-purple-500 group-hover:text-purple-600" />
+          </button>
+          <button
+            v-else-if="store.paper2posterJob.status === 'running'"
+            class="p-2 rounded-lg cursor-default"
+            title="Generating poster\u2026"
+          >
+            <component :is="icons.Image" :size="20" class="text-purple-300 animate-pulse" />
+          </button>
+          <button
+            v-else-if="store.paper2posterJob.status === 'done'"
+            @click="store.downloadPosterResult()"
+            class="p-2 hover:bg-green-100 rounded-lg transition-colors group"
+            title="Download generated poster"
+          >
+            <component :is="icons.Download" :size="20" class="text-green-500 group-hover:text-green-600" />
           </button>
 
           <!-- Web Icon -->
@@ -632,7 +717,7 @@
 
         <!-- Papers List -->
         <div class="flex-1 overflow-y-auto p-6">
-          <div v-if="store.activeNotebook.papers.length === 0" class="text-center py-12">
+          <div v-if="(store.activeNotebook?.papers?.length ?? 0) === 0" class="text-center py-12">
             <component :is="icons.FileText" :size="48" class="mx-auto mb-3 text-notebook-300" />
             <p class="text-sm text-notebook-500">No papers in this notebook</p>
             <p class="text-xs text-notebook-400 mt-1">Upload papers to get started</p>
@@ -640,7 +725,7 @@
 
           <div v-else class="space-y-3">
             <button
-              v-for="paper in store.activeNotebook.papers"
+              v-for="paper in store.activeNotebook?.papers ?? []"
               :key="paper.id"
               @click="store.selectPaperForGeneration(paper)"
               class="w-full p-4 border border-notebook-200 rounded-lg hover:bg-notebook-50 hover:border-blue-300 transition-all text-left"

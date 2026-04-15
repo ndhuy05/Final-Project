@@ -5,5 +5,15 @@
 </template>
 
 <script setup>
-// Clean app wrapper - all layout is in Home.vue
+import { onMounted } from 'vue'
+import { useAppStore } from './stores/app'
+
+const store = useAppStore()
+
+// Fallback initializer — router guard is the primary path, this handles direct page loads
+onMounted(async () => {
+  if (localStorage.getItem('token') && !store.user) {
+    await store.initApp()
+  }
+})
 </script>

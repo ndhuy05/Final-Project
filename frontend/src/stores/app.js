@@ -4,44 +4,13 @@ import apiClient from '../api/client'
 
 export const useAppStore = defineStore('app', () => {
   // Notebooks and active notebook
-  const notebooks = ref([
-    {
-      id: 1,
-      name: 'ML Research Papers',
-      createdAt: '2026-02-01',
-      papers: [
-        { id: 1, title: 'Attention Is All You Need', authors: 'Vaswani et al.', abstract: 'We propose a new simple network architecture...' },
-        { id: 2, title: 'BERT: Pre-training of Deep Bidirectional Transformers', authors: 'Devlin et al.', abstract: 'We introduce a new language representation model...' }
-      ],
-      messages: [],
-      notes: [
-        { id: 1, title: 'Transformer Architecture', content: 'Key innovation: self-attention mechanism that processes entire sequences in parallel...', date: '2 days ago' },
-        { id: 2, title: 'BERT Training', content: 'Uses masked language modeling and next sentence prediction for pre-training...', date: '1 week ago' }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Thesis Literature Review',
-      createdAt: '2026-02-05',
-      papers: [],
-      messages: [],
-      notes: []
-    },
-    {
-      id: 3,
-      name: 'Computer Vision Papers',
-      createdAt: '2026-02-07',
-      papers: [],
-      messages: [],
-      notes: []
-    }
-  ])
-  const activeNotebook = ref(notebooks.value[0])
+  const notebooks = ref([])
+  const activeNotebook = ref(null)
   const sidebarView = ref('notebooks') // 'notebooks' or 'sources'
   const notebookMenuOpen = ref(null)
   const paperMenuOpen = ref(null)
 
-  // Legacy state (now computed from activeNotebook)
+  // Legacy state
   const papers = ref([])
   const loading = ref(false)
   const error = ref(null)
@@ -69,47 +38,92 @@ export const useAppStore = defineStore('app', () => {
   })
   let _pollInterval = null
 
-  // Chat state (now from activeNotebook)
+  // Paper2Poster job state
+  const paper2posterJob = ref({
+    status: 'idle',   // 'idle' | 'running' | 'done' | 'error'
+    progress: 0,
+    step: '',
+    jobId: null,
+    paperId: null,
+    error: null,
+  })
+  let _posterPollInterval = null
+
+  // Chat state (from activeNotebook)
   const messages = ref([])
   const notes = ref([])
   const isTyping = ref(false)
 
-  // Mock AI response bank
-  const mockResponses = [
-    {
-      keywords: ['transformer', 'attention', 'self-attention'],
-      content: `The **Transformer architecture** introduced in "Attention Is All You Need" (Vaswani et al., 2017) is a sequence-to-sequence model built entirely on attention mechanisms.\n\nKey components:\n- **Multi-Head Self-Attention**: Allows the model to attend to different parts of the input simultaneously\n- **Positional Encodings**: Inject sequence order since there's no recurrence\n- **Feed-Forward Layers**: Applied identically to each position\n\nThis design enables full parallelization during training, which was a major breakthrough over RNNs.`
-    },
-    {
-      keywords: ['bert', 'pre-training', 'bidirectional'],
-      content: `**BERT** (Bidirectional Encoder Representations from Transformers) by Devlin et al. is a landmark pre-training approach.\n\nBERT is trained with two objectives:\n1. **Masked Language Modeling (MLM)**: Randomly masks 15% of tokens and predicts them\n2. **Next Sentence Prediction (NSP)**: Classifies whether two sentences are consecutive\n\nThe bidirectional nature allows BERT to capture context from both left and right, making it far more powerful than unidirectional models like GPT-1.`
-    },
-    {
-      keywords: ['vision', 'image', 'cnn', 'convolutional', 'resnet', 'vit'],
-      content: `Computer vision has seen dramatic progress through deep learning.\n\n**Key milestones:**\n- **AlexNet (2012)**: First deep CNN to win ImageNet, using ReLU and dropout\n- **ResNet (2015)**: Introduced skip connections to train very deep networks (up to 152 layers)\n- **Vision Transformer (ViT, 2020)**: Applied the Transformer architecture directly to image patches\n\nModern vision models increasingly borrow from NLP, with ViT and its variants now outperforming CNNs on many benchmarks.`
-    },
-    {
-      keywords: ['train', 'training', 'optimize', 'loss', 'gradient'],
-      content: `Training deep neural networks involves several key considerations:\n\n- **Loss Function**: Measures prediction error (e.g., cross-entropy for classification)\n- **Optimizer**: SGD, Adam, and AdamW are most common. Adam uses adaptive learning rates per parameter\n- **Regularization**: Dropout, weight decay, and batch normalization prevent overfitting\n- **Learning Rate Scheduling**: Warmup followed by decay is standard in Transformer training\n\nPaper-specific training details are usually found in the "Experiments" section.`
-    },
-    {
-      keywords: [],
-      content: `Based on the papers in this notebook, here is a summary of what I found:\n\nThe research covers advanced topics in machine learning and AI. The authors present empirical results demonstrating significant improvements over prior baselines.\n\n**Common themes across papers:**\n- Architecture innovations that improve efficiency or accuracy\n- Large-scale pre-training followed by fine-tuning on downstream tasks\n- Ablation studies validating each component's contribution\n\nWould you like me to dive deeper into a specific aspect?`
-    }
-  ]
+  // User state — null until authenticated
+  const user = ref(null)
+  const showUserMenu = ref(false)
 
-  function getMockResponse(question) {
-    const q = question.toLowerCase()
-    const match = mockResponses.find(r => r.keywords.some(k => q.includes(k)))
-    const response = match || mockResponses[mockResponses.length - 1]
-    const papers = activeNotebook.value?.papers ?? []
-    const citations = papers.slice(0, 2).map((p, i) => ({
-      id: i + 1,
-      title: p.title,
-      excerpt: p.abstract || 'See paper for details.'
-    }))
-    return { content: response.content, citations }
+  // --- Auth Helpers ---
+
+  function _computeInitials(name) {
+    if (!name) return '?'
+    const parts = name.trim().split(/\s+/)
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
   }
+
+  // --- Auth Actions ---
+
+  async function initApp() {
+    // Phase 1: authenticate — failure wipes user and aborts
+    try {
+      const meRes = await apiClient.get('/auth/me')
+      const u = meRes.data
+      user.value = {
+        name: u.full_name || u.username,
+        email: u.email,
+        initials: _computeInitials(u.full_name || u.username),
+        avatarColor: 'bg-gradient-to-br from-blue-500 to-purple-600'
+      }
+    } catch {
+      user.value = null
+      return
+    }
+    // Phase 2: load notebooks — failure is non-fatal (user stays logged in)
+    try {
+      await loadNotebooks()
+    } catch {
+      notebooks.value = []
+      activeNotebook.value = null
+    }
+  }
+
+  async function login(email, password) {
+    const res = await apiClient.post('/auth/login', { email, password })
+    localStorage.setItem('token', res.data.access_token)
+    await initApp()
+  }
+
+  async function register(username, email, password) {
+    const res = await apiClient.post('/auth/register', { username, email, password })
+    localStorage.setItem('token', res.data.access_token)
+    await initApp()
+  }
+
+  function logout() {
+    localStorage.removeItem('token')
+    user.value = null
+    notebooks.value = []
+    activeNotebook.value = null
+    showUserMenu.value = false
+    window.location.replace('/login')
+  }
+
+  // --- Notebook Loading ---
+
+  async function loadNotebooks() {
+    const res = await apiClient.get('/notebooks')
+    // Backend returns { "notebooks": [...] }, not a bare array
+    notebooks.value = res.data.notebooks ?? res.data
+    activeNotebook.value = notebooks.value.length > 0 ? notebooks.value[0] : null
+  }
+
+  // --- Legacy / Misc Actions ---
 
   function sendMessage(question) {
     if (!activeNotebook.value || !question.trim()) return
@@ -147,15 +161,6 @@ export const useAppStore = defineStore('app', () => {
     return res.data
   }
 
-  // User state
-  const user = ref({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    initials: 'JD',
-    avatarColor: 'bg-gradient-to-br from-blue-500 to-purple-600'
-  })
-  const showUserMenu = ref(false)
-
   async function checkHealth() {
     try {
       loading.value = true
@@ -177,22 +182,13 @@ export const useAppStore = defineStore('app', () => {
     rightPanelVisible.value = !rightPanelVisible.value
   }
 
-  function setRightPanelMode(mode) {
-    rightPanelMode.value = mode
-    if (!rightPanelVisible.value) {
-      rightPanelVisible.value = true
-    }
-  }
-
   function selectCitation(citation) {
     selectedCitation.value = citation
-    rightPanelMode.value = 'preview'
     rightPanelVisible.value = true
   }
 
   function selectSource(source) {
     selectedSource.value = source
-    rightPanelMode.value = 'preview'
     rightPanelVisible.value = true
   }
 
@@ -200,19 +196,13 @@ export const useAppStore = defineStore('app', () => {
     showUserMenu.value = !showUserMenu.value
   }
 
-  function logout() {
-    console.log('Logout clicked')
-    showUserMenu.value = false
-    // TODO: Implement actual logout logic
-  }
-
   function openSettings() {
-    console.log('Settings clicked')
     showUserMenu.value = false
     // TODO: Navigate to settings page
   }
 
-  // Notebook management
+  // --- Notebook Management ---
+
   function setSidebarView(view) {
     sidebarView.value = view
   }
@@ -226,21 +216,14 @@ export const useAppStore = defineStore('app', () => {
     }
   }
 
-  function createNotebook() {
-    const newId = Math.max(...notebooks.value.map(n => n.id)) + 1
-    const newNotebook = {
-      id: newId,
-      name: 'Untitled Notebook',
-      createdAt: new Date().toISOString().split('T')[0],
-      papers: [],
-      messages: [],
-      notes: []
-    }
-    notebooks.value.unshift(newNotebook)
-    selectNotebook(newId)
+  async function createNotebook() {
+    const res = await apiClient.post('/notebooks', { name: 'Untitled Notebook' })
+    notebooks.value.unshift(res.data)
+    selectNotebook(res.data.id)
   }
 
-  function renameNotebook(id, newName) {
+  async function renameNotebook(id, newName) {
+    await apiClient.patch(`/notebooks/${id}`, { name: newName })
     const notebook = notebooks.value.find(n => n.id === id)
     if (notebook) {
       notebook.name = newName
@@ -248,13 +231,13 @@ export const useAppStore = defineStore('app', () => {
     }
   }
 
-  function deleteNotebook(id) {
+  async function deleteNotebook(id) {
+    await apiClient.delete(`/notebooks/${id}`)
     const index = notebooks.value.findIndex(n => n.id === id)
     if (index !== -1) {
       notebooks.value.splice(index, 1)
-      // If deleting active notebook, switch to first available
-      if (activeNotebook.value.id === id && notebooks.value.length > 0) {
-        activeNotebook.value = notebooks.value[0]
+      if (activeNotebook.value?.id === id) {
+        activeNotebook.value = notebooks.value.length > 0 ? notebooks.value[0] : null
       }
       notebookMenuOpen.value = null
     }
@@ -264,7 +247,8 @@ export const useAppStore = defineStore('app', () => {
     notebookMenuOpen.value = notebookMenuOpen.value === id ? null : id
   }
 
-  // Paper Generation Actions
+  // --- Paper Generation Actions ---
+
   function openPaperSelector(feature) {
     selectedFeature.value = feature
     showPaperSelector.value = true
@@ -330,7 +314,55 @@ export const useAppStore = defineStore('app', () => {
       return
     }
 
-    // Placeholder for other features (poster, web)
+    if (selectedFeature.value === 'poster' && selectedPaperForGeneration.value) {
+      const paper = selectedPaperForGeneration.value
+      showConfirmation.value = false
+      selectedPaperForGeneration.value = null
+      selectedFeature.value = null
+
+      paper2posterJob.value = {
+        status: 'running',
+        progress: 0,
+        step: 'Starting…',
+        jobId: null,
+        paperId: paper.id,
+        error: null,
+      }
+
+      apiClient.post(`/notebooks/${activeNotebook.value.id}/papers/${paper.id}/generate/poster`)
+        .then(res => {
+          const jobId = res.data.job_id
+          paper2posterJob.value.jobId = jobId
+
+          _posterPollInterval = setInterval(() => {
+            apiClient.get(`/generate/poster/${jobId}/status`)
+              .then(r => {
+                const { status, progress, step, error } = r.data
+                paper2posterJob.value.progress = progress
+                paper2posterJob.value.step = step
+                if (status === 'done' || status === 'error' || status === 'cancelled') {
+                  paper2posterJob.value.status = status
+                  paper2posterJob.value.error = error
+                  clearInterval(_posterPollInterval)
+                  _posterPollInterval = null
+                }
+              })
+              .catch(() => {
+                paper2posterJob.value.status = 'error'
+                paper2posterJob.value.error = 'Failed to poll status.'
+                clearInterval(_posterPollInterval)
+                _posterPollInterval = null
+              })
+          }, 2000)
+        })
+        .catch(err => {
+          paper2posterJob.value.status = 'error'
+          paper2posterJob.value.error = err?.response?.data?.detail || 'Failed to start generation.'
+        })
+      return
+    }
+
+    // Placeholder for other features (web)
     console.log(`Generating ${selectedFeature.value} for paper: ${selectedPaperForGeneration.value?.title}`)
     showConfirmation.value = false
     selectedPaperForGeneration.value = null
@@ -353,16 +385,18 @@ export const useAppStore = defineStore('app', () => {
       .finally(() => resetCodeJob())
   }
 
-  function downloadCodeResult() {
+  async function downloadCodeResult() {
     const jobId = paper2codeJob.value.jobId
     if (!jobId) return
-    const url = `${apiClient.defaults.baseURL}/generate/code/${jobId}/download`
+    const res = await apiClient.get(`/generate/code/${jobId}/download`, { responseType: 'blob' })
+    const url = URL.createObjectURL(res.data)
     const a = document.createElement('a')
     a.href = url
-    a.download = ''
+    a.download = `paper2code_${jobId}.zip`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   function resetCodeJob() {
@@ -373,7 +407,41 @@ export const useAppStore = defineStore('app', () => {
     paper2codeJob.value = { status: 'idle', progress: 0, step: '', jobId: null, paperId: null, error: null }
   }
 
-  // Paper Management Actions
+  function cancelPosterJob() {
+    const jobId = paper2posterJob.value.jobId
+    if (!jobId) {
+      resetPosterJob()
+      return
+    }
+    apiClient.post(`/generate/poster/${jobId}/cancel`)
+      .catch(() => {}) // best-effort
+      .finally(() => resetPosterJob())
+  }
+
+  async function downloadPosterResult() {
+    const jobId = paper2posterJob.value.jobId
+    if (!jobId) return
+    const res = await apiClient.get(`/generate/poster/${jobId}/download`, { responseType: 'blob' })
+    const url = URL.createObjectURL(res.data)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `paper2poster_${jobId}.pdf`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  function resetPosterJob() {
+    if (_posterPollInterval) {
+      clearInterval(_posterPollInterval)
+      _posterPollInterval = null
+    }
+    paper2posterJob.value = { status: 'idle', progress: 0, step: '', jobId: null, paperId: null, error: null }
+  }
+
+  // --- Paper Management Actions ---
+
   function togglePaperMenu(paperId) {
     paperMenuOpen.value = paperMenuOpen.value === paperId ? null : paperId
   }
@@ -430,7 +498,12 @@ export const useAppStore = defineStore('app', () => {
     showConfirmation,
     selectedPaperForGeneration,
     paper2codeJob,
+    paper2posterJob,
     // Actions
+    initApp,
+    login,
+    register,
+    loadNotebooks,
     checkHealth,
     toggleLeftSidebar,
     toggleRightPanel,
@@ -458,5 +531,8 @@ export const useAppStore = defineStore('app', () => {
     downloadCodeResult,
     resetCodeJob,
     cancelCodeJob,
+    cancelPosterJob,
+    downloadPosterResult,
+    resetPosterJob,
   }
 })

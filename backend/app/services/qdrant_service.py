@@ -122,6 +122,43 @@ def get_page_text(notebook_id: str, paper_id: str, page_num: int) -> str:
     return ""
 
 
+def get_all_page_texts(notebook_id: str, paper_id: str) -> dict[int, str]:
+    """
+    Return a dict mapping page_num (1-based int) → full page text for every
+    page of a paper whose text was stored during upload.
+
+    Scrolls through all text-type points for the paper and collects the
+    page_text payload field.  Pages with no stored text are omitted.
+    """
+    client = get_client()
+    page_texts: dict[int, str] = {}
+    offset = None
+
+    while True:
+        results, next_offset = client.scroll(
+            collection_name=collection_name(notebook_id),
+            scroll_filter=Filter(must=[
+                FieldCondition(key="paper_id", match=MatchValue(value=paper_id)),
+                FieldCondition(key="type",     match=MatchValue(value="text")),
+            ]),
+            limit=100,
+            offset=offset,
+            with_payload=True,
+            with_vectors=False,
+        )
+        for point in results:
+            pnum = point.payload.get("page_num")
+            text = point.payload.get("page_text", "")
+            if pnum is not None and text and pnum not in page_texts:
+                page_texts[pnum] = text
+
+        if next_offset is None:
+            break
+        offset = next_offset
+
+    return page_texts
+
+
 def delete_paper_points(notebook_id: str, paper_id: str):
     """Delete all Qdrant points belonging to a paper."""
     client = get_client()

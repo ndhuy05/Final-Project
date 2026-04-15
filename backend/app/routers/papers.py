@@ -8,18 +8,27 @@ import os
 import uuid
 import asyncio
 from typing import List, Tuple
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
+import shutil
 import aiofiles
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.services import memory_store, pdf_service, qdrant_service, embedding_service, extracting_service
+from app.database import get_db
+from app.models.notebook import Notebook
+from app.models.user import User
+from app.services import memory_store, pdf_service, qdrant_service, embedding_service
+from app.services.auth_service import get_current_user
+from app.models import ExtractionAgent
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 BATCH_SIZE = 1  # pages per VLM call (increase only if vision model reliably follows [PAGE N] delimiters)
+
+_extraction_agent = ExtractionAgent()
 
 _text_splitter = RecursiveCharacterTextSplitter(
     chunk_size=500,
@@ -27,6 +36,22 @@ _text_splitter = RecursiveCharacterTextSplitter(
     separators=["\n\n", "\n", ". ", " ", ""],
     strip_whitespace=True,
 )
+
+
+def _require_notebook(notebook_id: str, current_user: User, db: Session) -> Notebook:
+    """Return the Notebook owned by current_user or raise HTTP 404."""
+    notebook = (
+        db.query(Notebook)
+        .filter(
+            Notebook.id == notebook_id,
+            Notebook.user_id == current_user.id,
+            Notebook.deleted_at.is_(None),
+        )
+        .first()
+    )
+    if not notebook:
+        raise HTTPException(status_code=404, detail="Notebook not found.")
+    return notebook
 
 
 def _chunk_text(text: str) -> List[str]:
@@ -46,7 +71,7 @@ async def _process_batch(
     Returns list of {"chunks": int, "metadata": dict} per page.
     """
     has_page0 = any(pn == 0 for pn, _ in pages)
-    page_results = await extracting_service.extract_page_content(
+    page_results = await _extraction_agent.extract_pages(
         pages,
         extract_metadata=has_page0,
     )
@@ -85,7 +110,13 @@ async def _process_batch(
 
 
 @router.post("/notebooks/{notebook_id}/papers/upload")
-async def upload_paper(notebook_id: str, file: UploadFile = File(...)):
+async def upload_paper(
+    notebook_id: str,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    _require_notebook(notebook_id, current_user, db)
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
 
@@ -165,19 +196,32 @@ async def upload_paper(notebook_id: str, file: UploadFile = File(...)):
 
 
 @router.get("/notebooks/{notebook_id}/papers")
-async def list_papers(notebook_id: str):
+async def list_papers(
+    notebook_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    _require_notebook(notebook_id, current_user, db)
     papers = memory_store.get_papers(notebook_id)
     return {"papers": papers}
 
 
 @router.get("/notebooks/{notebook_id}/chunks")
-async def list_chunks(notebook_id: str, limit: int = 20, offset: int = 0, type: str = None):
+async def list_chunks(
+    notebook_id: str,
+    limit: int = 20,
+    offset: int = 0,
+    type: str = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """
     Debug endpoint: browse indexed chunks/tables stored in Qdrant.
     ?type=text  — show only text chunks
     ?type=table — show only table chunks
     ?limit=20&offset=0 — pagination
     """
+    _require_notebook(notebook_id, current_user, db)
     client = qdrant_service.get_client()
     name = qdrant_service.collection_name(notebook_id)
     try:
@@ -221,7 +265,13 @@ async def list_chunks(notebook_id: str, limit: int = 20, offset: int = 0, type: 
 
 
 @router.delete("/notebooks/{notebook_id}/papers/{paper_id}")
-async def delete_paper(notebook_id: str, paper_id: str):
+async def delete_paper(
+    notebook_id: str,
+    paper_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    _require_notebook(notebook_id, current_user, db)
     paper = memory_store.get_paper(notebook_id, paper_id)
     if not paper:
         raise HTTPException(status_code=404, detail="Paper not found.")

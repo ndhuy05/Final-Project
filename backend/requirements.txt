@@ -1,5 +1,12 @@
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
+sqlalchemy>=2.0
+alembic
+
+# Authentication
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt<4.0.0  # passlib 1.7.4 is incompatible with bcrypt 4+
 pydantic==2.5.3
 pydantic-settings==2.1.0
 python-dotenv==1.0.0
@@ -23,3 +30,31 @@ fastembed-gpu
 # Text chunking
 langchain
 langchain-text-splitters
+
+# --- Paper2Poster pipeline dependencies ---
+# Custom python-pptx fork required by PosterAgent (stock PyPI version is incompatible)
+python-pptx @ git+https://github.com/Force1ess/python-pptx@dc356685d4d210a10abe1ffab3c21315cdfae63d
+
+# PDF parsing (Docling, heavy — downloads ~2 GB of IBM models on first run)
+docling>=2.0.0
+docling-core>=2.0.0
+
+# Fallback PDF parser used by parse_raw.py (marker is imported at module level)
+marker-pdf
+
+# ML libs required by Docling / marker
+torch
+torchvision
+transformers
+FlagEmbedding
+
+# Utilities used by PosterAgent
+tenacity
+omegaconf
+scikit-learn
+duckduckgo-search
+json-repair
+
+# Playwright (imported at top-level in wei_utils.py; must be installed even if not used)
+playwright
+# After pip install, also run: playwright install chromium

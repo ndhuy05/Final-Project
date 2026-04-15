@@ -91,7 +91,13 @@ frontend/dist-ssr/
 backend/uploads/
 backend/qdrant_storage
 backend/outputs
+backend/test_poster_output
+backend/vibeproject.db
+backend/poster_pipeline/assets
 Paper2Code/
-Paper2All/
+Paper2Poster/
+TODO.md
+DESIGN.md
+paper2poster_outputs/
 paper2code_outputs_test/
-backend/memory_store.json
+# backend/memory_store.json

@@ -6,18 +6,43 @@ actions execute in parallel, then a VLM generates the final answer.
 import asyncio
 import logging
 import os
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import List, Tuple
+from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.database import get_db
+from app.models.notebook import Notebook
+from app.models.user import User
 from app.services import (
     qdrant_service, memory_store, embedding_service,
-    planning_service, answering_service, reranker_service,
+    reranker_service,
 )
+from app.models import PlannerAgent, AnsweringAgent
+from app.services.auth_service import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+_planner = PlannerAgent()
+_answering = AnsweringAgent()
+
+
+def _require_notebook(notebook_id: str, current_user: User, db: Session) -> Notebook:
+    """Return the Notebook owned by current_user or raise HTTP 404."""
+    notebook = (
+        db.query(Notebook)
+        .filter(
+            Notebook.id == notebook_id,
+            Notebook.user_id == current_user.id,
+            Notebook.deleted_at.is_(None),
+        )
+        .first()
+    )
+    if not notebook:
+        raise HTTPException(status_code=404, detail="Notebook not found.")
+    return notebook
 
 
 class ChatRequest(BaseModel):
@@ -157,10 +182,16 @@ async def _execute_actions(
 # ---------------------------------------------------------------------------
 
 @router.post("/notebooks/{notebook_id}/chat", response_model=ChatResponse)
-async def chat(notebook_id: str, request: ChatRequest):
+async def chat(
+    notebook_id: str,
+    request: ChatRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
+    _require_notebook(notebook_id, current_user, db)
     papers = memory_store.get_papers(notebook_id)
     if not papers:
         return ChatResponse(
@@ -170,7 +201,7 @@ async def chat(notebook_id: str, request: ChatRequest):
         )
 
     # Plan actions
-    actions = await planning_service.plan_actions(request.question, papers)
+    actions = await _planner.plan_actions(request.question, papers)
     action_types = list({a.get("action", "retrieve") for a in actions})
     logger.debug("Actions planned: %s", actions)
 
@@ -242,7 +273,7 @@ async def chat(notebook_id: str, request: ChatRequest):
             )
 
         # Generate answer (single path for all cases)
-        content = await answering_service.generate_answer(
+        content = await _answering.generate_answer(
             question_with_context, image_paths, top_results
         ) if (image_paths or metadata_papers) else "I couldn't find relevant content for your question in the uploaded papers."
 

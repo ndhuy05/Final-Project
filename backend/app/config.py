@@ -21,11 +21,25 @@ class Settings(BaseSettings):
     # Paper2Code output (kept outside backend/ so uvicorn --reload doesn't watch it)
     PAPER2CODE_OUTPUT_DIR: str = "../paper2code_outputs"
 
+    # Paper2Poster pipeline
+    POSTER_MODEL_T: str = "openrouter_qwen3"                     # text model alias for get_agent_config()
+    POSTER_MODEL_V: str = "openrouter_qwen3"                     # vision model alias for get_agent_config()
+    PAPER2POSTER_DIR: str = "./app/poster_pipeline"              # self-contained pipeline root inside backend/
+    PAPER2POSTER_OUTPUT_DIR: str = "../paper2poster_outputs"     # where .pptx files are saved (outside backend/)
+
+    # Database
+    DATABASE_URL: str = "sqlite:///./vibeproject.db"
+
     # Upload storage
     UPLOAD_DIR: str = "./uploads"
 
     # Page image storage (for OpenRouter vision input)
     IMAGE_DIR: str = "./uploads/images"
+
+    # Authentication (JWT)
+    SECRET_KEY: str = "change-me-in-production"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:3000"]
