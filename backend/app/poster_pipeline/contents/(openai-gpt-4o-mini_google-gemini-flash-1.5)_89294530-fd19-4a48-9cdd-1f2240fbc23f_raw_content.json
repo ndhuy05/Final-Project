@@ -1,0 +1,37 @@
+{
+    "meta": {
+        "poster_title": "Robust Object Detection in Adverse Weather Conditions: ECL-YOLOv11 for Automotive Vision Systems",
+        "authors": "Zhaohui Liu, Jiaxu Zhang, Xiaojun Zhang, Hongle Song",
+        "affiliations": "College of Transportation, Shandong University of Science and Technology, Qingdao 266590, China"
+    },
+    "sections": [
+        {
+            "title": "Poster Title & Author",
+            "content": "Robust Object Detection in Adverse Weather Conditions: ECL-YOLOv11 for Automotive Vision Systems by Zhaohui Liu, Jiaxu Zhang, Xiaojun Zhang, and Hongle Song."
+        },
+        {
+            "title": "Abstract",
+            "content": "The rapid development of intelligent transportation systems and autonomous driving technologies has made visual perception a key component in ensuring safety and improving efficiency in complex traffic environments. As a core task in visual perception, object detection directly affects the reliability of downstream modules such as path planning and decision control. However, adverse weather conditions (e.g., fog, rain, and snow) significantly degrade image quality\u2014causing texture blurring, reduced contrast, and increased noise\u2014which in turn weakens the robustness of traditional detection models and raises potential traffic safety risks. To address this challenge, this paper proposes an enhanced object detection framework, ECL-YOLOv11 (Edge-enhanced, Context-guided, and Lightweight YOLOv11), designed to improve detection accuracy and real-time performance under adverse weather conditions, thereby providing a reliable solution for in-vehicle perception systems. The ECL-YOLOv11 architecture integrates three key modules: (1) Convolutional Edge-enhancement (CE) module, (2) Context-guided Multi-scale Fusion Network (AENet), (3) Lightweight Shared Convolutional Detection Head (LDHead). Experimental results show that ECL-YOLOv11 achieves mAP@50 and mAP@50\u201395 values of 62.7% and 40.5%, respectively, showing notable improvements over the baseline YOLOv11 model."
+        },
+        {
+            "title": "Introduction",
+            "content": "With the rapid development of intelligent transportation systems and autonomous driving technologies, visual perception has become a core technology for ensuring safety in complex traffic environments. Object detection directly impacts the reliability of functions such as path planning and decision control. However, adverse weather conditions remain a significant challenge, as they degrade image quality due to reduced contrast and increased noise, which weakens traditional object detection frameworks. Recent years have seen remarkable advancements in object detection methods based on CNNs, but issues persist under low-visibility conditions. Improving model robustness in adverse weather while maintaining inference efficiency is essential for intelligent driving. This study introduces ECL-YOLOv11, enhancing detection for challenging weather through three structural improvements: Edge-Enhancement Convolution (CE), Context-Guided Multi-Scale Fusion Network (AENet), and Lightweight Shared Convolution Detection Head (LDHead)."
+        },
+        {
+            "title": "Methodology",
+            "content": "The ECL-YOLOv11 framework employs three main modules tailored to enhance object detection in adverse conditions: 1) The CE module uses a Sobel operator to enhance edges and texture features, addressing the degradation under low visibility. 2) AENet integrates context-aware features to improve the detection of small and distant objects. 3) LDHead streamlines detection through parameter sharing across scales. Together, these components form a comprehensive detection system capable of maintaining high accuracy and efficiency under various challenging environmental conditions."
+        },
+        {
+            "title": "Experiments",
+            "content": "The study utilizes a dataset of 9006 traffic images under severe conditions (fog, rain, snow) to train and evaluate the model. We analyze ECL-YOLOv11's performance using metrics like mAP, Precision, and Recall. Implementation details include early stopping, learning-rate adjustments, and a robust training environment using specific hardware setups. The model exhibits significant stability and improves upon key performance indicators when compared to the baseline YOLOv11, highlighting the successful integration of CE, AENet, and LDHead modules."
+        },
+        {
+            "title": "Results",
+            "content": "ECL-YOLOv11 achieves 62.7% mAP@50 and 40.5% mAP@50\u201395, showcasing overall performance improvements with stable inference speed of 237.8 FPS. Ablation studies confirm the effective contributions of each module. The detailed performance comparison indicates that ECL-YOLOv11 significantly surpasses YOLOv11 and shows robustness across various weather conditions, underlining the efficacy of its structural enhancements. Additionally, qualitative assessments reveal that ECL-YOLOv11 effectively maintains detection integrity in fog, rain, and snow, demonstrating strong application potential for intelligent vehicle systems."
+        },
+        {
+            "title": "Conclusions",
+            "content": "ECL-YOLOv11 demonstrates enhanced detection capabilities under adverse weather, balancing robustness and real-time performance. While showing numeric improvements across various evaluations, the model's consistent performance under challenging environments validates its design philosophy. Future research will focus on multi-sensor integration, system-level optimization, and adaptive learning strategies to extend the model's applicability and functionality in diverse driving conditions."
+        }
+    ]
+}

@@ -54,6 +54,7 @@ omegaconf
 scikit-learn
 duckduckgo-search
 json-repair
+Spire.Presentation  # PPTX → image conversion in ppt_to_images()
 
 # Playwright (imported at top-level in wei_utils.py; must be installed even if not used)
 playwright

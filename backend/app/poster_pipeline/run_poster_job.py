@@ -36,6 +36,7 @@ import argparse
 import json
 import logging
 import os
+import re
 import shutil
 import sys
 from types import SimpleNamespace
@@ -118,11 +119,22 @@ def main() -> None:  # noqa: C901
         emit({"error": f"Import failed: {exc}"})
         raise
 
+    # Sanitize model names for use in file paths: OpenRouter IDs contain '/'
+    # (e.g. "openai/gpt-4o-mini") which would be interpreted as directory
+    # separators and cause FileNotFoundError when building intermediate paths.
+    def _slug(name: str) -> str:
+        """Replace any path-unsafe characters with hyphens."""
+        return re.sub(r'[/\\:*?"<>|]', '-', name)
+
+    # Build agent configs BEFORE sanitising so the full model ID is used.
+    agent_config_t = get_agent_config(cli.model_t)
+    agent_config_v = get_agent_config(cli.model_v)
+
     # --- Build the args namespace expected by the pipeline stages ---
     args = SimpleNamespace(
         poster_path=cli.pdf_path,
-        model_name_t=cli.model_t,
-        model_name_v=cli.model_v,
+        model_name_t=_slug(cli.model_t),
+        model_name_v=_slug(cli.model_v),
         poster_name=cli.poster_name,
         tmp_dir=cli.tmp_dir,
         index=cli.index,
@@ -137,9 +149,6 @@ def main() -> None:  # noqa: C901
         poster_width_inches=None,
         poster_height_inches=None,
     )
-
-    agent_config_t = get_agent_config(args.model_name_t)
-    agent_config_v = get_agent_config(args.model_name_v)
 
     # --- Determine poster dimensions ---
     poster_width  = 48 * units_per_inch
@@ -294,7 +303,8 @@ def main() -> None:  # noqa: C901
         f'contents/({args.model_name_t}_{args.model_name_v})'
         f'_{args.poster_name}_bullet_point_content_{args.index}.json'
     )
-    bullet_content = json.load(open(bullet_content_path, 'r'))
+    with open(bullet_content_path, 'r') as _bcf:
+        bullet_content = json.load(_bcf)
 
     # --- Stage 7: Apply styles (0 LLM) ---
     emit({"progress": 0.88, "step": "Applying styles\u2026"})

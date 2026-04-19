@@ -21,36 +21,36 @@
 
         <!-- View Toggle Buttons -->
         <div class="">
-          <div class="flex items-center">
+          <div class="flex items-center mx-3 my-2 bg-notebook-100  rounded-full p-1">
             <button
               @click="store.setSidebarView('notebooks')"
               :class="[
-                'flex-1 px-3 py-2 text-sm font-medium transition-colors relative',
-                store.sidebarView === 'notebooks' 
-                  ? 'bg-white text-notebook-900 rounded-t-lg border-l border-t border-r border-notebook-200 z-10' 
-                  : 'text-notebook-600 hover:bg-notebook-100'
+                'flex-1 px-3 py-1.5 text-sm font-medium rounded-full transition-all',
+                store.sidebarView === 'notebooks'
+                  ? 'bg-white text-notebook-900 shadow-card'
+                  : 'text-notebook-600 hover:text-notebook-800'
               ]"
             >
-              <component :is="icons.BookOpen" :size="16" class="inline mr-1.5" />
+              <component :is="icons.BookOpen" :size="14" class="inline mr-1" />
               Notebooks
             </button>
             <button
               @click="store.setSidebarView('sources')"
               :class="[
-                'flex-1 px-3 py-2 text-sm font-medium transition-colors relative',
-                store.sidebarView === 'sources' 
-                  ? 'bg-white text-notebook-900 rounded-t-lg border-t  border-l border-notebook-200 z-10' 
-                  : 'text-notebook-600 hover:bg-notebook-100'
+                'flex-1 px-3 py-1.5 text-sm font-medium rounded-full transition-all',
+                store.sidebarView === 'sources'
+                  ? 'bg-white text-notebook-900 shadow-card'
+                  : 'text-notebook-600 hover:text-notebook-800'
               ]"
             >
-              <component :is="icons.FileText" :size="16" class="inline mr-1.5" />
+              <component :is="icons.FileText" :size="14" class="inline mr-1" />
               Sources
             </button>
           </div>
         </div>
 
         <!-- Transition Wrapper for View Content -->
-        <div class="flex-1 overflow-hidden flex flex-col border-t border-notebook-200 bg-white mt-[-1px]">
+        <div class="flex-1 overflow-hidden flex flex-col bg-white">
         <transition
           mode="out-in"
           :enter-active-class="store.sidebarView === 'notebooks' ? 'transition-all duration-200 ease-out' : 'transition-all duration-200 ease-out'"
@@ -64,9 +64,9 @@
           <div v-if="store.sidebarView === 'notebooks'" key="notebooks" class="flex-1 flex flex-col overflow-hidden bg-white">
             <!-- Create Notebook Button -->
             <div class="p-4 border-b border-notebook-200 bg-white">
-              <button
+                <button
                 @click="store.createNotebook"
-                class="w-full flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                class="w-full flex items-center gap-2 px-4 py-2 bg-notebook-800 text-white rounded-lg hover:bg-notebook-900 transition-colors"
               >
               <component :is="icons.Plus" :size="18" />
               <span class="text-sm font-medium">New Notebook</span>
@@ -321,31 +321,31 @@
         <!-- Welcome State -->
         <div v-if="chatMessages.length === 0" class="max-w-3xl mx-auto">
           <div class="text-center py-12">
-            <h2 class="text-4xl font-bold text-notebook-900 mb-3">Research with AI</h2>
+            <h2 class="font-display text-5xl font-semibold text-notebook-900 mb-3">Research with AI</h2>
             <p class="text-lg text-notebook-600">Upload sources and ask questions to get started</p>
           </div>
 
           <!-- Feature Cards -->
           <div class="grid grid-cols-2 gap-4 mt-12">
-            <div class="p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-shadow cursor-pointer">
-              <component :is="icons.Brain" :size="24" class="text-blue-500 mb-2" />
+            <div class="p-4 border border-notebook-200 rounded-2xl hover:shadow-brand-glow transition-shadow cursor-pointer">
+              <component :is="icons.Brain" :size="24" class="text-brand mb-2" />
               <h3 class="font-semibold text-notebook-900 mb-1">Smart Analysis</h3>
               <p class="text-sm text-notebook-600">AI-powered insights from your research papers</p>
             </div>
-            <div class="p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-shadow cursor-pointer">
+            <div class="p-4 border border-notebook-200 rounded-2xl hover:shadow-brand-glow transition-shadow cursor-pointer">
               <component :is="icons.Quote" :size="24" class="text-green-500 mb-2" />
               <h3 class="font-semibold text-notebook-900 mb-1">Source Citations</h3>
               <p class="text-sm text-notebook-600">Every answer linked to original sources</p>
             </div>
-            <div class="p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-shadow cursor-pointer">
+            <div class="p-4 border border-notebook-200 rounded-2xl hover:shadow-brand-glow transition-shadow cursor-pointer">
               <component :is="icons.Layers" :size="24" class="text-purple-500 mb-2" />
               <h3 class="font-semibold text-notebook-900 mb-1">Multi-Paper Query</h3>
               <p class="text-sm text-notebook-600">Ask questions across multiple documents</p>
             </div>
-            <div class="p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-shadow cursor-pointer">
+            <div class="p-4 border border-notebook-200 rounded-2xl hover:shadow-brand-glow transition-shadow cursor-pointer">
               <component :is="icons.Sparkles" :size="24" class="text-orange-500 mb-2" />
               <h3 class="font-semibold text-notebook-900 mb-1">Generate Content</h3>
-              <p class="text-sm text-notebook-600">Create code, posters, and summaries</p>
+              <p class="text-sm text-notebook-600">Create code, posters, and website</p>
             </div>
           </div>
         </div>
@@ -359,13 +359,13 @@
             :class="message.role === 'user' ? 'justify-end' : 'justify-start'"
           >
             <!-- User Message -->
-            <div v-if="message.role === 'user'" class="max-w-[80%] bg-notebook-100 rounded-2xl px-4 py-3">
+            <div v-if="message.role === 'user'" class="max-w-[80%] bg-[#f0f0f0] rounded-2xl px-4 py-3">
               <p class="text-sm text-notebook-900">{{ message.content }}</p>
             </div>
 
             <!-- AI Message -->
             <div v-else class="max-w-[80%] flex gap-3">
-              <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+              <div class="w-8 h-8 rounded-full bg-brand flex items-center justify-center flex-shrink-0">
                 <component :is="icons.Sparkles" :size="16" class="text-white" />
               </div>
               <div class="flex-1">
@@ -390,7 +390,7 @@
 
         <!-- Typing Indicator -->
         <div v-if="store.isTyping" class="max-w-3xl mx-auto mt-6 flex gap-3 justify-start">
-          <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+          <div class="w-8 h-8 rounded-full bg-brand flex items-center justify-center flex-shrink-0">
             <component :is="icons.Sparkles" :size="16" class="text-white" />
           </div>
           <div class="bg-notebook-100 rounded-2xl px-4 py-3 flex items-center gap-1">
@@ -417,13 +417,13 @@
               <button
                 @click="handleSendMessage"
                 :disabled="!inputMessage.trim() || store.isTyping"
-                class="absolute right-2 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors disabled:bg-notebook-300 disabled:cursor-not-allowed"
+                class="absolute right-2 w-8 h-8 bg-notebook-800 text-white rounded-full flex items-center justify-center hover:bg-notebook-900 transition-colors disabled:bg-notebook-300 disabled:cursor-not-allowed"
               >
                 <component :is="icons.Send" :size="16" />
               </button>
             </div>
           </div>
-          <p class="text-xs text-notebook-500 mt-2 text-center">Press Enter to send, Shift+Enter for new line</p>
+          <p class="text-xs text-notebook-500 mt-2 text-center">AI can make mistakes. Please double-check responses.</p>
         </div>
       </div>
     </main>
@@ -444,179 +444,201 @@
           >
             <component :is="icons.ChevronRight" :size="18" class="text-notebook-600" />
           </button>
-          <h1 class="text-xl font-semibold text-notebook-900 truncate">Lab</h1>
+          <h1 class="text-xl font-semibold text-notebook-900 truncate">Lab Space</h1>
         </div>
 
         <!-- Feature Cards Grid -->
         <div class="flex-1 pb-4 pr-4 pl-4 space-y-4">
           <!-- Row 1: Paper to Code | Paper to Poster -->
           <div class="grid grid-cols-2 gap-4">
+
             <!-- Paper to Code -->
-            <div class="relative min-h-[140px] flex items-stretch">
-              <!-- Idle state -->
+            <div class="relative">
+              <!-- Idle -->
               <button
                 v-if="store.paper2codeJob.status === 'idle'"
                 @click="store.openPaperSelector('code')"
-                class="w-full p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-all cursor-pointer bg-white text-left flex flex-col"
+                class="w-full aspect-square rounded-2xl overflow-hidden shadow-brand-glow hover:shadow-elevated transition-all cursor-pointer flex flex-col"
               >
-                <component :is="icons.Code" :size="24" class="text-blue-500 mb-2" />
-                <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Code</h3>
-                <p class="text-xs text-notebook-600">Generate code from paper</p>
+                <div class="h-[40%] flex items-center justify-center bg-gradient-to-br from-brand to-indigo-600">
+                  <component :is="icons.Code" :size="28" class="text-white" />
+                </div>
+                <div class="h-[60%] px-3 flex flex-col justify-start pt-3 bg-white text-left">
+                  <h3 class="font-semibold text-notebook-900 text-sm mb-0.5">Paper to Code</h3>
+                  <p class="text-xs text-notebook-500">Generate code from paper</p>
+                </div>
               </button>
 
-              <!-- Running state -->
+              <!-- Running -->
               <div
                 v-else-if="store.paper2codeJob.status === 'running'"
-                class="w-full p-4 border border-blue-300 rounded-xl bg-blue-50 text-left flex flex-col relative"
+                class="w-full aspect-square rounded-2xl overflow-hidden flex flex-col"
               >
-                <div class="flex items-start justify-between mb-2">
-                  <component :is="icons.Code" :size="24" class="text-blue-400" />
+                <div class="h-[40%] relative flex items-center justify-center bg-gradient-to-br from-brand/80 to-indigo-600/80">
+                  <component :is="icons.Code" :size="28" class="text-white" />
                   <button
                     @click="store.cancelCodeJob()"
-                    class="p-1 bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+                    class="absolute top-2 right-2 p-1 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
                     title="Cancel generation"
                   >
-                    <component :is="icons.X" :size="16" class="text-white" />
+                    <component :is="icons.X" :size="14" class="text-white" />
                   </button>
                 </div>
-                <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Code</h3>
-                <div class="w-full bg-blue-100 rounded-full h-1.5 mt-auto mb-1.5">
-                  <div
-                    class="bg-blue-500 h-1.5 rounded-full transition-all duration-500"
-                    :style="{ width: (store.paper2codeJob.progress * 100) + '%' }"
-                  ></div>
+                <div class="h-[60%] px-3 flex flex-col justify-start pt-3 bg-white text-left">
+                  <h3 class="font-semibold text-notebook-900 text-sm mb-1.5">Paper to Code</h3>
+                  <div class="w-full bg-notebook-200 rounded-full h-1.5 mb-1">
+                    <div
+                      class="bg-brand h-1.5 rounded-full transition-all duration-500"
+                      :style="{ width: (store.paper2codeJob.progress * 100) + '%' }"
+                    ></div>
+                  </div>
+                  <p class="text-xs text-notebook-500 truncate">{{ store.paper2codeJob.step }}</p>
                 </div>
-                <p class="text-xs text-blue-600 truncate">{{ store.paper2codeJob.step }}</p>
               </div>
 
-              <!-- Done state -->
+              <!-- Done -->
               <div
                 v-else-if="store.paper2codeJob.status === 'done'"
-                class="w-full p-4 border border-green-300 rounded-xl bg-green-50 text-left flex flex-col"
+                class="w-full aspect-square rounded-2xl overflow-hidden shadow-brand-glow flex flex-col"
               >
-                <component :is="icons.Code" :size="24" class="text-green-500 mb-2" />
-                <h3 class="font-semibold text-notebook-900 text-sm mb-2">Paper to Code</h3>
-                <div class="flex gap-1.5 mt-auto">
-                  <button
-                    @click="store.downloadCodeResult()"
-                    class="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-green-500 text-white text-xs rounded-lg hover:bg-green-600 transition-colors"
-                  >
-                    <component :is="icons.Download" :size="13" />
-                    <span class="truncate">Download</span>
-                  </button>
-                  <button
-                    @click="store.resetCodeJob()"
-                    class="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 border border-notebook-300 text-notebook-600 text-xs rounded-lg hover:bg-notebook-100 transition-colors"
-                  >
-                    <span class="truncate">New</span>
-                  </button>
+                <div class="h-[40%] flex items-center justify-center bg-gradient-to-br from-brand to-indigo-600">
+                  <component :is="icons.Code" :size="28" class="text-white" />
+                </div>
+                <div class="h-[60%] px-3 flex flex-col justify-start pt-3 gap-1.5 bg-white">
+                  <h3 class="font-semibold text-notebook-900 text-sm">Paper to Code</h3>
+                  <div class="flex gap-1.5">
+                    <button
+                      @click="store.downloadCodeResult()"
+                      class="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-notebook-800 text-white text-xs rounded-lg hover:bg-notebook-900 transition-colors font-medium"
+                    >
+                      <component :is="icons.Download" :size="11" />
+                      <span class="truncate">Download</span>
+                    </button>
+                    <button
+                      @click="store.resetCodeJob()"
+                      class="flex-1 flex items-center justify-center px-2 py-1 border border-notebook-200 text-notebook-600 text-xs rounded-lg hover:bg-notebook-100 transition-colors"
+                    >New</button>
+                  </div>
                 </div>
               </div>
 
-              <!-- Error state -->
+              <!-- Error -->
               <div
                 v-else-if="store.paper2codeJob.status === 'error'"
-                class="w-full p-4 border border-red-300 rounded-xl bg-red-50 text-left flex flex-col"
+                class="w-full aspect-square rounded-2xl overflow-hidden flex flex-col"
               >
-                <component :is="icons.AlertCircle" :size="24" class="text-red-500 mb-2" />
-                <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Code</h3>
-                <p class="text-xs text-red-600 mb-2 truncate">{{ store.paper2codeJob.error || 'Generation failed' }}</p>
-                <button
-                  @click="store.resetCodeJob()"
-                  class="text-xs text-red-600 underline hover:text-red-700 mt-auto"
-                >Retry</button>
+                <div class="h-[40%] flex items-center justify-center bg-gradient-to-br from-brand/60 to-indigo-600/60">
+                  <component :is="icons.AlertCircle" :size="28" class="text-white" />
+                </div>
+                <div class="h-[60%] px-3 flex flex-col justify-start pt-3 bg-white text-left">
+                  <h3 class="font-semibold text-notebook-900 text-sm mb-0.5">Paper to Code</h3>
+                  <p class="text-xs text-red-500 truncate mb-1">{{ store.paper2codeJob.error || 'Generation failed' }}</p>
+                  <button @click="store.resetCodeJob()" class="text-xs text-brand underline hover:opacity-80 text-left">Retry</button>
+                </div>
               </div>
             </div>
 
             <!-- Paper to Poster -->
-            <div class="relative min-h-[140px] flex items-stretch">
-
+            <div class="relative">
               <!-- Idle -->
               <button
                 v-if="store.paper2posterJob.status === 'idle'"
                 @click="store.openPaperSelector('poster')"
-                class="w-full p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-all cursor-pointer bg-white text-left flex flex-col"
+                class="w-full aspect-square rounded-2xl overflow-hidden shadow-brand-glow hover:shadow-elevated transition-all cursor-pointer flex flex-col"
               >
-                <component :is="icons.Image" :size="24" class="text-purple-500 mb-2" />
-                <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Poster</h3>
-                <p class="text-xs text-notebook-600">Convert paper into conference poster</p>
+                <div class="h-[40%] flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500">
+                  <component :is="icons.Image" :size="28" class="text-white" />
+                </div>
+                <div class="h-[60%] px-3 flex flex-col justify-start pt-3 bg-white text-left">
+                  <h3 class="font-semibold text-notebook-900 text-sm mb-0.5">Paper to Poster</h3>
+                  <p class="text-xs text-notebook-500">Generate conference poster from paper</p>
+                </div>
               </button>
 
               <!-- Running -->
               <div
                 v-else-if="store.paper2posterJob.status === 'running'"
-                class="w-full p-4 border border-purple-300 rounded-xl bg-purple-50 transition-all flex flex-col relative"
+                class="w-full aspect-square rounded-2xl overflow-hidden flex flex-col"
               >
-                <div class="flex items-start justify-between mb-2">
-                  <component :is="icons.Image" :size="24" class="text-purple-400" />
+                <div class="h-[40%] relative flex items-center justify-center bg-gradient-to-br from-purple-500/80 to-pink-500/80">
+                  <component :is="icons.Image" :size="28" class="text-white" />
                   <button
                     @click="store.cancelPosterJob()"
-                    class="p-1 bg-red-500 hover:bg-red-600 rounded-lg transition-colors flex-shrink-0"
+                    class="absolute top-2 right-2 p-1 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
                     title="Cancel"
                   >
-                    <component :is="icons.X" :size="16" class="text-white" />
+                    <component :is="icons.X" :size="14" class="text-white" />
                   </button>
                 </div>
-                <h3 class="font-semibold text-purple-900 text-sm mb-1">Paper to Poster</h3>
-                <div class="w-full bg-purple-100 rounded-full h-1.5 mt-auto mb-1.5">
-                  <div
-                    class="bg-purple-500 h-1.5 rounded-full transition-all duration-500"
-                    :style="{ width: (store.paper2posterJob.progress * 100) + '%' }"
-                  ></div>
+                <div class="h-[60%] px-3 flex flex-col justify-start pt-3 bg-white text-left">
+                  <h3 class="font-semibold text-notebook-900 text-sm mb-1.5">Paper to Poster</h3>
+                  <div class="w-full bg-notebook-200 rounded-full h-1.5 mb-1">
+                    <div
+                      class="bg-purple-500 h-1.5 rounded-full transition-all duration-500"
+                      :style="{ width: (store.paper2posterJob.progress * 100) + '%' }"
+                    ></div>
+                  </div>
+                  <p class="text-xs text-notebook-500 truncate">{{ store.paper2posterJob.step }}</p>
                 </div>
-                <p class="text-xs text-purple-600 truncate">{{ store.paper2posterJob.step }}</p>
               </div>
 
               <!-- Done -->
               <div
                 v-else-if="store.paper2posterJob.status === 'done'"
-                class="w-full p-4 border border-green-300 rounded-xl bg-green-50 transition-all flex flex-col"
+                class="w-full aspect-square rounded-2xl overflow-hidden shadow-brand-glow flex flex-col"
               >
-                <component :is="icons.Image" :size="24" class="text-green-500 mb-2" />
-                <h3 class="font-semibold text-notebook-900 text-sm mb-2">Paper to Poster</h3>
-                <div class="flex gap-1.5 mt-auto">
-                  <button
-                    @click="store.downloadPosterResult()"
-                    class="flex items-center gap-1 px-2 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded-lg transition-colors"
-                  >
-                    <component :is="icons.Download" :size="13" />
-                    <span>Download</span>
-                  </button>
-                  <button
-                    @click="store.resetPosterJob()"
-                    class="flex items-center gap-1 px-2 py-1 text-xs rounded-lg border border-notebook-300 hover:bg-notebook-100 transition-colors"
-                  >
-                    <span>New</span>
-                  </button>
+                <div class="h-[40%] flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500">
+                  <component :is="icons.Image" :size="28" class="text-white" />
+                </div>
+                <div class="h-[60%] px-3 flex flex-col justify-start pt-3 gap-1.5 bg-white">
+                  <h3 class="font-semibold text-notebook-900 text-sm">Paper to Poster</h3>
+                  <div class="flex gap-1.5">
+                    <button
+                      @click="store.downloadPosterResult()"
+                      class="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-notebook-800 text-white text-xs rounded-lg hover:bg-notebook-900 transition-colors font-medium"
+                    >
+                      <component :is="icons.Download" :size="11" />
+                      <span class="truncate">Download</span>
+                    </button>
+                    <button
+                      @click="store.resetPosterJob()"
+                      class="flex-1 flex items-center justify-center px-2 py-1 border border-notebook-200 text-notebook-600 text-xs rounded-lg hover:bg-notebook-100 transition-colors"
+                    >New</button>
+                  </div>
                 </div>
               </div>
 
               <!-- Error -->
               <div
                 v-else-if="store.paper2posterJob.status === 'error'"
-                class="w-full p-4 border border-red-300 rounded-xl bg-red-50 transition-all flex flex-col"
+                class="w-full aspect-square rounded-2xl overflow-hidden flex flex-col"
               >
-                <component :is="icons.AlertCircle" :size="24" class="text-red-500 mb-2" />
-                <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Poster</h3>
-                <p class="text-xs text-red-600 mb-2 truncate">{{ store.paper2posterJob.error || 'Generation failed' }}</p>
-                <button
-                  @click="store.resetPosterJob()"
-                  class="text-xs text-red-600 underline hover:text-red-700 mt-auto"
-                >Retry</button>
+                <div class="h-[40%] flex items-center justify-center bg-gradient-to-br from-purple-500/60 to-pink-500/60">
+                  <component :is="icons.AlertCircle" :size="28" class="text-white" />
+                </div>
+                <div class="h-[60%] px-3 flex flex-col justify-start pt-3 bg-white text-left">
+                  <h3 class="font-semibold text-notebook-900 text-sm mb-0.5">Paper to Poster</h3>
+                  <p class="text-xs text-red-500 truncate mb-1">{{ store.paper2posterJob.error || 'Generation failed' }}</p>
+                  <button @click="store.resetPosterJob()" class="text-xs text-purple-600 underline hover:opacity-80 text-left">Retry</button>
+                </div>
               </div>
-
             </div>
+
           </div>
 
           <!-- Row 2: Paper to Web -->
           <div class="grid grid-cols-2 gap-4">
             <button
               @click="store.openPaperSelector('web')"
-              class="min-h-[140px] p-4 border border-notebook-200 rounded-xl hover:shadow-md transition-all cursor-pointer bg-white text-left flex flex-col"
+              class="w-full aspect-square rounded-2xl overflow-hidden shadow-brand-glow hover:shadow-elevated transition-all cursor-pointer flex flex-col"
             >
-              <component :is="icons.Globe" :size="24" class="text-green-500 mb-2" />
-              <h3 class="font-semibold text-notebook-900 text-sm mb-1">Paper to Web</h3>
-              <p class="text-xs text-notebook-600">Transform the paper into interactive website</p>
+              <div class="h-[40%] flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600">
+                <component :is="icons.Globe" :size="28" class="text-white" />
+              </div>
+              <div class="h-[60%] px-3 flex flex-col justify-start pt-3 bg-white text-left">
+                <h3 class="font-semibold text-notebook-900 text-sm mb-0.5">Paper to Web</h3>
+                <p class="text-xs text-notebook-500">Generate interactive website from paper</p>
+              </div>
             </button>
           </div>
         </div>
@@ -768,7 +790,7 @@
           </button>
           <button
             @click="store.confirmGeneration"
-            class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+            class="flex-1 px-4 py-2 bg-notebook-800 text-white rounded-lg hover:bg-notebook-900 transition-colors font-medium"
           >
             Yes
           </button>

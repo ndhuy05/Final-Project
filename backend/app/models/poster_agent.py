@@ -160,7 +160,7 @@ class PosterAgent(GenerationAgent):
                 for line in proc.stderr:
                     stripped = line.rstrip()
                     stderr_lines.append(stripped)
-                    logger.debug("poster-runner stderr: %s", stripped)
+                    logger.warning("poster-runner stderr: %s", stripped)
 
             stderr_thread = threading.Thread(target=_drain_stderr, daemon=True)
             stderr_thread.start()
@@ -169,6 +169,8 @@ class PosterAgent(GenerationAgent):
             for raw_line in proc.stdout:
                 if self._is_cancelled(job_id):
                     proc.kill()
+                    proc.wait()  # ensure the process is fully reaped on Windows
+                    stderr_thread.join(timeout=5)
                     logger.info("Poster job %s cancelled; subprocess killed.", job_id)
                     return
 
@@ -183,7 +185,12 @@ class PosterAgent(GenerationAgent):
                     continue
 
                 if "error" in msg:
-                    self._update(job_id, status="error", error=msg["error"], step="Error")
+                    err_msg = msg["error"]
+                    tb = msg.get("traceback", "")
+                    if tb:
+                        logger.error("poster-runner traceback:\n%s", tb)
+                        err_msg = err_msg + "\n\n" + tb
+                    self._update(job_id, status="error", error=err_msg, step="Error")
                     proc.kill()
                     return
 
@@ -208,7 +215,7 @@ class PosterAgent(GenerationAgent):
                 return
 
             if proc.returncode != 0:
-                tail = "\n".join(stderr_lines[-15:]) if stderr_lines else "(no stderr)"
+                tail = "\n".join(stderr_lines[-40:]) if stderr_lines else "(no stderr)"
                 self._update(
                     job_id,
                     status="error",

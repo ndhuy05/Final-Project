@@ -191,11 +191,23 @@ def get_agent_config(model_type):
             'model_config': OpenRouterConfig().as_dict(),
         }
     elif model_type == 'openrouter_qwen3':
+        # Alias kept for backward compatibility with existing .env files that set
+        # POSTER_MODEL_T=openrouter_qwen3 or POSTER_MODEL_V=openrouter_qwen3.
         agent_config = {
             'model_type': 'qwen/qwen3.5-plus-02-15',
             'model_platform': ModelPlatformType.OPENROUTER,
             'model_config': OpenRouterConfig().as_dict(),
-            'max_images': 99,
+            'max_images': 10,
+        }
+    elif '/' in model_type:
+        # Direct OpenRouter model ID (e.g. "openai/gpt-4o-mini", "google/gemini-flash-1.5").
+        # Any string containing a slash is treated as a provider/model slug and routed
+        # straight to OpenRouter — no alias mapping needed.
+        agent_config = {
+            'model_type': model_type,
+            'model_platform': ModelPlatformType.OPENROUTER,
+            'model_config': OpenRouterConfig().as_dict(),
+            'max_images': 10,
         }
     else:
         agent_config = {
@@ -996,8 +1008,9 @@ def account_token(response):
 
 def style_bullet_content(bullet_content_item, color, fill_color):
     for i in range(len(bullet_content_item)):
-        bullet_content_item[i]['runs'][0]['color'] = color
-        bullet_content_item[i]['runs'][0]['fill_color'] = fill_color
+        if bullet_content_item[i].get('runs'):
+            bullet_content_item[i]['runs'][0]['color'] = color
+            bullet_content_item[i]['runs'][0]['fill_color'] = fill_color
 
 def scale_to_target_area(width, height, target_width=900, target_height=1200):
     """

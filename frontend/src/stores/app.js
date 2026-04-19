@@ -425,7 +425,7 @@ export const useAppStore = defineStore('app', () => {
     const url = URL.createObjectURL(res.data)
     const a = document.createElement('a')
     a.href = url
-    a.download = `paper2poster_${jobId}.pdf`
+    a.download = `paper2poster_${jobId}.pptx`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

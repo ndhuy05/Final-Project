@@ -142,8 +142,15 @@ def generate_figure_code(figure_dict, utils_functions, slide_object_name, img_pa
     code = utils_functions
     raw_name = figure_dict["figure_name"]
     var_name = sanitize_for_var(raw_name)
+
+    # If no valid image path is available, emit a comment placeholder instead of
+    # broken code that would raise FileNotFoundError when exec'd.
+    if not img_path or str(img_path).strip().lower() in ('none', ''):
+        code += f'\n# Figure skipped (no image file available): {raw_name}\n'
+        return code
+
     # Normalize to forward slashes so the path is a valid Python string literal on Windows
-    img_path_safe = str(img_path).replace('\\', '/') if img_path else img_path
+    img_path_safe = str(img_path).replace('\\', '/')
 
     code += fr'''
 # Figure: {raw_name}

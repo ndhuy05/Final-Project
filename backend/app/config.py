@@ -22,8 +22,8 @@ class Settings(BaseSettings):
     PAPER2CODE_OUTPUT_DIR: str = "../paper2code_outputs"
 
     # Paper2Poster pipeline
-    POSTER_MODEL_T: str = "openrouter_qwen3"                     # text model alias for get_agent_config()
-    POSTER_MODEL_V: str = "openrouter_qwen3"                     # vision model alias for get_agent_config()
+    POSTER_MODEL_T: str = "qwen/qwen3.5-plus-02-15"             # OpenRouter model ID for text tasks
+    POSTER_MODEL_V: str = "qwen/qwen3.5-plus-02-15"             # OpenRouter model ID for vision tasks
     PAPER2POSTER_DIR: str = "./app/poster_pipeline"              # self-contained pipeline root inside backend/
     PAPER2POSTER_OUTPUT_DIR: str = "../paper2poster_outputs"     # where .pptx files are saved (outside backend/)
 

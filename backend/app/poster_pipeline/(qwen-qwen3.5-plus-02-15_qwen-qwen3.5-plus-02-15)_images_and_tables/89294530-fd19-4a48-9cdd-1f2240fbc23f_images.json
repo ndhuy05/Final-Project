@@ -1,0 +1,186 @@
+{
+    "1": {
+        "caption": "Figure 1",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-1.png",
+        "width": 190,
+        "height": 70,
+        "figure_size": 13300,
+        "figure_aspect": 2.7142857142857144
+    },
+    "2": {
+        "caption": "Figure 2",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-2.png",
+        "width": 32,
+        "height": 25,
+        "figure_size": 800,
+        "figure_aspect": 1.28
+    },
+    "3": {
+        "caption": "Figure 3",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-3.png",
+        "width": 181,
+        "height": 36,
+        "figure_size": 6516,
+        "figure_aspect": 5.027777777777778
+    },
+    "4": {
+        "caption": "Figure 4",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-4.png",
+        "width": 24,
+        "height": 24,
+        "figure_size": 576,
+        "figure_aspect": 1.0
+    },
+    "5": {
+        "caption": "Figure 5",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-5.png",
+        "width": 88,
+        "height": 58,
+        "figure_size": 5104,
+        "figure_aspect": 1.5172413793103448
+    },
+    "6": {
+        "caption": "Figure 1. CE module structure diagram.",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-6.png",
+        "width": 709,
+        "height": 192,
+        "figure_size": 136128,
+        "figure_aspect": 3.6927083333333335
+    },
+    "7": {
+        "caption": "Figure 2. Sobel Conv framework diagram.",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-7.png",
+        "width": 698,
+        "height": 163,
+        "figure_size": 113774,
+        "figure_aspect": 4.282208588957055
+    },
+    "8": {
+        "caption": "Figure 3. CEB framework diagram.",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-8.png",
+        "width": 706,
+        "height": 275,
+        "figure_size": 194150,
+        "figure_aspect": 2.5672727272727274
+    },
+    "9": {
+        "caption": "Figure 4. PCE module mechanism.",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-9.png",
+        "width": 712,
+        "height": 318,
+        "figure_size": 226416,
+        "figure_aspect": 2.238993710691824
+    },
+    "10": {
+        "caption": "Figure 10",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-10.png",
+        "width": 708,
+        "height": 132,
+        "figure_size": 93456,
+        "figure_aspect": 5.363636363636363
+    },
+    "11": {
+        "caption": "Figure 11",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-11.png",
+        "width": 708,
+        "height": 162,
+        "figure_size": 114696,
+        "figure_aspect": 4.37037037037037
+    },
+    "12": {
+        "caption": "Figure 7. AENet network framework diagram.",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-12.png",
+        "width": 711,
+        "height": 324,
+        "figure_size": 230364,
+        "figure_aspect": 2.1944444444444446
+    },
+    "13": {
+        "caption": "Figure 8. LDHead framework diagram.",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-13.png",
+        "width": 609,
+        "height": 602,
+        "figure_size": 366618,
+        "figure_aspect": 1.0116279069767442
+    },
+    "14": {
+        "caption": "Figure 9. Architecture diagram of ECL-YOLOv11, Notes: CE: Convolutional Edge-Enhancement module; AENet: Context-Guided Multi-Scale Fusion Network; LDHead: Lightweight Shared Convolutional Detection Head; RCM: Rectangular Calibration Module; C3K2: Cross-Stage Partial Connection block; DIF: Down-to-Up Information Flow module.",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-14.png",
+        "width": 630,
+        "height": 254,
+        "figure_size": 160020,
+        "figure_aspect": 2.4803149606299213
+    },
+    "15": {
+        "caption": "Figure 10. Sample images from the dataset.",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-15.png",
+        "width": 733,
+        "height": 515,
+        "figure_size": 377495,
+        "figure_aspect": 1.4233009708737865
+    },
+    "16": {
+        "caption": "Figure 11. Distribution of dataset targets.",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-16.png",
+        "width": 726,
+        "height": 342,
+        "figure_size": 248292,
+        "figure_aspect": 2.1228070175438596
+    },
+    "17": {
+        "caption": "Figure 12. Training performance metrics.",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-17.png",
+        "width": 710,
+        "height": 346,
+        "figure_size": 245660,
+        "figure_aspect": 2.052023121387283
+    },
+    "18": {
+        "caption": "Figure 13. mAP convergence curve of the validation set.",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-18.png",
+        "width": 627,
+        "height": 359,
+        "figure_size": 225093,
+        "figure_aspect": 1.7465181058495822
+    },
+    "19": {
+        "caption": "Figure 14. Comparison experimental results between ECL-YOLOv11 and YOLOv11.",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-19.png",
+        "width": 736,
+        "height": 287,
+        "figure_size": 211232,
+        "figure_aspect": 2.5644599303135887
+    },
+    "20": {
+        "caption": "Figure 15. Ablation study evaluation metrics.",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-20.png",
+        "width": 944,
+        "height": 504,
+        "figure_size": 475776,
+        "figure_aspect": 1.873015873015873
+    },
+    "21": {
+        "caption": "Figure 16. Overall performance metrics of the comparative experiment.",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-21.png",
+        "width": 942,
+        "height": 340,
+        "figure_size": 320280,
+        "figure_aspect": 2.7705882352941176
+    },
+    "22": {
+        "caption": "Figure 17. Qualitative visualization results of different models.",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-22.png",
+        "width": 737,
+        "height": 1184,
+        "figure_size": 872608,
+        "figure_aspect": 0.6224662162162162
+    },
+    "23": {
+        "caption": "Figure 18. Model validation results considering adverse weather conditions and motion states.",
+        "image_path": "(qwen-qwen3.5-plus-02-15_qwen-qwen3.5-plus-02-15)_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-23.png",
+        "width": 733,
+        "height": 550,
+        "figure_size": 403150,
+        "figure_aspect": 1.3327272727272728
+    }
+}

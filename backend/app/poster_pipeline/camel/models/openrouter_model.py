@@ -123,10 +123,15 @@ class OpenRouterModel(OpenAICompatibleModelV2):
         request_config = self._prepare_request(
             messages, response_format, tools
         )
+        # Strip None values — OpenAI client serialises them as JSON null which
+        # some OpenRouter endpoints reject (e.g. tool_choice=null with no
+        # tools list). Mirrors the filtering done in _arun().
+        request_config = {k: v for k, v in request_config.items() if v is not None}
 
         response = self._client.chat.completions.create(
             messages=messages,
             model=self.model_type,
+            **request_config,
         )
 
         return response
@@ -155,6 +160,8 @@ class OpenRouterModel(OpenAICompatibleModelV2):
         request_config = self._prepare_request(
             messages, response_format, tools
         )
+        # Strip None values to avoid sending explicit null fields.
+        request_config = {k: v for k, v in request_config.items() if v is not None}
 
         response = await self._async_client.chat.completions.create(
             messages=messages,

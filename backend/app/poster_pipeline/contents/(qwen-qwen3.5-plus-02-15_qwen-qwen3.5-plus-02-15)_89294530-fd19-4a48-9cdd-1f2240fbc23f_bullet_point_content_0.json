@@ -1,0 +1,344 @@
+[
+  {
+    "title": [
+      {
+        "alignment": "center",
+        "bullet": false,
+        "level": 0,
+        "font_size": 85,
+        "runs": [
+          {
+            "text": "Robust Object Detection in Adverse Weather Conditions: ECL-YOLOv11 for Automotive Vision Systems",
+            "bold": true
+          }
+        ]
+      }
+    ],
+    "textbox1": [
+      {
+        "alignment": "center",
+        "bullet": false,
+        "level": 0,
+        "font_size": 48,
+        "runs": [
+          {
+            "text": "Zhaohui Liu\u00b9, Jiaxu Zhang\u00b9, Xiaojun Zhang\u00b9 and Hongle Song\u00b9"
+          },
+          {
+            "text": "\n"
+          },
+          {
+            "text": "\u00b9 College of Transportation, Shandong University of Science and Technology, Qingdao 266590, China"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": [
+      {
+        "alignment": "left",
+        "bullet": false,
+        "level": 0,
+        "font_size": 80,
+        "runs": [
+          {
+            "text": "Background Motivation",
+            "bold": true
+          }
+        ]
+      }
+    ],
+    "textbox1": [
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "Visual perception is core to autonomous driving safety."
+          }
+        ]
+      },
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "Adverse weather degrades detection; existing models lack efficiency or robustness."
+          }
+        ]
+      },
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "Key Challenge: Improve weather robustness while maintaining high inference efficiency."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": [
+      {
+        "alignment": "left",
+        "bullet": false,
+        "level": 0,
+        "font_size": 80,
+        "runs": [
+          {
+            "text": "Proposed Method",
+            "bold": true
+          }
+        ]
+      }
+    ],
+    "textbox1": [
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "ECL-YOLOv11 addresses robustness and real-time challenges in adverse weather conditions."
+          }
+        ]
+      },
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "Backbone integrates Edge-Enhancement Convolution using Sobel operators to preserve edge information."
+          }
+        ]
+      },
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "Neck employs Context-Guided Multi-Scale Fusion Network (AENet) for enhanced feature perception."
+          }
+        ]
+      }
+    ],
+    "textbox2": [
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "Head utilizes Lightweight Shared Convolution Detection Head to reduce redundant computations."
+          }
+        ]
+      },
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "Cross-scale parameter sharing and depthwise separable convolution improve inference efficiency."
+          }
+        ]
+      },
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "Three modules form an integrated architecture for edge preservation, context fusion, and optimization."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": [
+      {
+        "alignment": "left",
+        "bullet": false,
+        "level": 0,
+        "font_size": 80,
+        "runs": [
+          {
+            "text": "Experimental Results",
+            "bold": true
+          }
+        ]
+      }
+    ],
+    "textbox1": [
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "Dataset: 9006 images across rain, fog, snow; 7 traffic categories."
+          }
+        ]
+      },
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "Metrics: ECL-YOLOv11 achieves 62.7% mAP@50 and 73.1% Precision."
+          }
+        ]
+      },
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "Baselines: Outperforms YOLOv11, YOLOv10n, YOLOv8, and Faster R-CNN."
+          }
+        ]
+      },
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "Efficiency: Delivers comparable accuracy to RT-DETR with faster inference."
+          }
+        ]
+      }
+    ],
+    "textbox2": [
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "Ablation: Overall mAP improvement of 1.3% across independent experiments."
+          }
+        ]
+      },
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "Modules: CE enhances edges, AENet strengthens fusion, LDHead decouples tasks."
+          }
+        ]
+      },
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "Robustness: Stable behavior in complex weather with reduced false positives."
+          }
+        ]
+      },
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 60,
+        "runs": [
+          {
+            "text": "Visualization: Maintains high-confidence detections avoiding category confusion."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": [
+      {
+        "alignment": "left",
+        "bullet": false,
+        "level": 0,
+        "font_size": 80,
+        "runs": [
+          {
+            "text": "Conclusion Future",
+            "bold": true
+          }
+        ]
+      }
+    ],
+    "textbox1": [
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 48,
+        "runs": [
+          {
+            "text": "Integrates edge-enhancement, context-guided fusion, lightweight detection."
+          }
+        ]
+      },
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 48,
+        "runs": [
+          {
+            "text": "Achieves 62.7% mAP@50, 237.8 FPS, robust in fog, rain, snow."
+          }
+        ]
+      },
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 48,
+        "runs": [
+          {
+            "text": "Limitations: small dataset, compute constraints, single-modality input."
+          }
+        ]
+      },
+      {
+        "alignment": "left",
+        "bullet": true,
+        "level": 0,
+        "font_size": 48,
+        "runs": [
+          {
+            "text": "Future: multi-sensor fusion, co-optimization, dynamic adaptation."
+          }
+        ]
+      }
+    ]
+  }
+]

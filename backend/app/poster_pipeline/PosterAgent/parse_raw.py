@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from utils.src.utils import get_json_from_response
 from utils.src.model_utils import parse_pdf
 import json
+import os
 import random
 
 from camel.models import ModelFactory
@@ -33,11 +34,11 @@ from jinja2 import Template
 import re
 
 load_dotenv()
-IMAGE_RESOLUTION_SCALE = 5.0
+IMAGE_RESOLUTION_SCALE = 2.0  # lowered from 5.0 — figure crops only, no need for 5× resolution
 
 pipeline_options = PdfPipelineOptions()
 pipeline_options.images_scale = IMAGE_RESOLUTION_SCALE
-pipeline_options.generate_page_images = True
+pipeline_options.generate_page_images = False  # full-page rasters not needed; only figure/table crops are used
 pipeline_options.generate_picture_images = True
 pipeline_options.do_ocr = False          # PDF has embedded text; OCR wastes ~2 min/page
 
@@ -132,6 +133,11 @@ def parse_raw(args, actor_config, version=1):
         if args.model_name_t.startswith('vllm_qwen'):
             text_content = text_content[:80000]
 
+    if 'sections' not in content_json:
+        print('Ouch! The response is missing the "sections" key, the LLM is not following the format :(')
+        print('Trying again...')
+        raise ValueError("Response is invalid: LLM response has no 'sections' key")
+
     if len(content_json['sections']) > 9:
         # First 2 sections + randomly select 5 sections + last 2 sections
         selected_sections = content_json['sections'][:2] + random.sample(content_json['sections'][2:-2], 5) + content_json['sections'][-2:]
@@ -143,13 +149,13 @@ def parse_raw(args, actor_config, version=1):
         if type(section) != dict or not 'title' in section or not 'content' in section:
             print(f"Ouch! The response is invalid, the LLM is not following the format :(")
             print('Trying again...')
-            raise
+            raise ValueError("Response is invalid: LLM is not following the format")
         if 'title' in section['title'].lower():
             has_title = True
 
     if not has_title:
         print('Ouch! The response is invalid, the LLM is not following the format :(')
-        raise
+        raise ValueError("Response is invalid: no section with 'title' in its title")
 
     os.makedirs('contents', exist_ok=True)
     json.dump(content_json, open(f'contents/({args.model_name_t}_{args.model_name_v})_{args.poster_name}_raw_content.json', 'w'), indent=4)
@@ -168,22 +174,37 @@ def gen_image_and_table(args, conv_res):
     # Save images of figures and tables
     table_counter = 0
     picture_counter = 0
+    saved_files: set[str] = set()
     for element, _level in conv_res.document.iterate_items():
         if isinstance(element, TableItem):
             table_counter += 1
             element_image_filename = (
                 output_dir / f"{doc_filename}-table-{table_counter}.png"
             )
-            with element_image_filename.open("wb") as fp:
-                element.get_image(conv_res.document).save(fp, "PNG")
+            img = element.get_image(conv_res.document)
+            if img is not None:
+                try:
+                    with element_image_filename.open("wb") as fp:
+                        img.save(fp, "PNG")
+                    # Normalise to forward slashes so the membership check below
+                    # works on Windows regardless of os.sep.
+                    saved_files.add(element_image_filename.as_posix())
+                except Exception:
+                    pass
 
         if isinstance(element, PictureItem):
             picture_counter += 1
             element_image_filename = (
                 output_dir / f"{doc_filename}-picture-{picture_counter}.png"
             )
-            with element_image_filename.open("wb") as fp:
-                element.get_image(conv_res.document).save(fp, "PNG")
+            img = element.get_image(conv_res.document)
+            if img is not None:
+                try:
+                    with element_image_filename.open("wb") as fp:
+                        img.save(fp, "PNG")
+                    saved_files.add(element_image_filename.as_posix())
+                except Exception:
+                    pass
 
     # Save markdown with embedded pictures
     md_filename = output_dir / f"{doc_filename}-with-images.md"
@@ -202,17 +223,24 @@ def gen_image_and_table(args, conv_res):
     table_index = 1
     for table in conv_res.document.tables:
         caption = table.caption_text(conv_res.document)
-        if len(caption) > 0:
-            table_img_path = f'({args.model_name_t}_{args.model_name_v})_images_and_tables/{args.poster_name}/{args.poster_name}-table-{table_index}.png'
-            table_img = PIL.Image.open(table_img_path)
-            tables[str(table_index)] = {
-                'caption': caption,
-                'table_path': table_img_path,
-                'width': table_img.width,
-                'height': table_img.height,
-                'figure_size': table_img.width * table_img.height,
-                'figure_aspect': table_img.width / table_img.height,
-            }
+        # Include tables even without a caption; fall back to a generic label so
+        # the LLM filter can still reason about them.
+        if not caption:
+            caption = f"Table {table_index}"
+        table_img_path = f'({args.model_name_t}_{args.model_name_v})_images_and_tables/{args.poster_name}/{args.poster_name}-table-{table_index}.png'
+        if table_img_path in saved_files:
+            try:
+                table_img = PIL.Image.open(table_img_path)
+                tables[str(table_index)] = {
+                    'caption': caption,
+                    'table_path': table_img_path,
+                    'width': table_img.width,
+                    'height': table_img.height,
+                    'figure_size': table_img.width * table_img.height,
+                    'figure_aspect': table_img.width / table_img.height,
+                }
+            except Exception:
+                pass
 
         table_index += 1
 
@@ -220,17 +248,23 @@ def gen_image_and_table(args, conv_res):
     image_index = 1
     for image in conv_res.document.pictures:
         caption = image.caption_text(conv_res.document)
-        if len(caption) > 0:
-            image_img_path = f'({args.model_name_t}_{args.model_name_v})_images_and_tables/{args.poster_name}/{args.poster_name}-picture-{image_index}.png'
-            image_img = PIL.Image.open(image_img_path)
-            images[str(image_index)] = {
-                'caption': caption,
-                'image_path': image_img_path,
-                'width': image_img.width,
-                'height': image_img.height,
-                'figure_size': image_img.width * image_img.height,
-                'figure_aspect': image_img.width / image_img.height,
-            }
+        # Include images even without a caption; fall back to a generic label.
+        if not caption:
+            caption = f"Figure {image_index}"
+        image_img_path = f'({args.model_name_t}_{args.model_name_v})_images_and_tables/{args.poster_name}/{args.poster_name}-picture-{image_index}.png'
+        if image_img_path in saved_files:
+            try:
+                image_img = PIL.Image.open(image_img_path)
+                images[str(image_index)] = {
+                    'caption': caption,
+                    'image_path': image_img_path,
+                    'width': image_img.width,
+                    'height': image_img.height,
+                    'figure_size': image_img.width * image_img.height,
+                    'figure_aspect': image_img.width / image_img.height,
+                }
+            except Exception:
+                pass
         image_index += 1
 
     json.dump(images, open(f'({args.model_name_t}_{args.model_name_v})_images_and_tables/{args.poster_name}_images.json', 'w'), indent=4)

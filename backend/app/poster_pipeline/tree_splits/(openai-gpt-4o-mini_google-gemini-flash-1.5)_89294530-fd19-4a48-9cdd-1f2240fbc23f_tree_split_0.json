@@ -1,0 +1,487 @@
+{
+    "poster_width": 1200,
+    "poster_height": 900,
+    "poster_width_inches": 48.0,
+    "poster_height_inches": 36.0,
+    "panels": [
+        {
+            "panel_id": 0,
+            "section_name": "Poster Title & Author",
+            "tp": 0.03268109908409659,
+            "text_len": 157,
+            "gp": 0,
+            "figure_size": 0,
+            "figure_aspect": 1,
+            "sp": 0.032596453187090854,
+            "rp": 2.757510299871203
+        },
+        {
+            "panel_id": 1,
+            "section_name": "Abstract",
+            "tp": 0.28580349708576186,
+            "text_len": 1373,
+            "gp": 0,
+            "figure_size": 0,
+            "figure_aspect": 1,
+            "sp": 0.11194165731540918,
+            "rp": 2.1007901859256126
+        },
+        {
+            "panel_id": 2,
+            "section_name": "Introduction",
+            "tp": 0.21544546211490426,
+            "text_len": 1035,
+            "gp": 0,
+            "figure_size": 0,
+            "figure_aspect": 1,
+            "sp": 0.08988682261526808,
+            "rp": 2.283332454440094
+        },
+        {
+            "panel_id": 3,
+            "section_name": "Methodology",
+            "tp": 0.12052456286427976,
+            "text_len": 579,
+            "gp": 0,
+            "figure_size": 0,
+            "figure_aspect": 1,
+            "sp": 0.06013237106714869,
+            "rp": 2.5296024971696904
+        },
+        {
+            "panel_id": 4,
+            "section_name": "Experiments",
+            "tp": 0.1142797668609492,
+            "text_len": 549,
+            "gp": 0,
+            "figure_size": 0,
+            "figure_aspect": 1,
+            "sp": 0.05817484136003558,
+            "rp": 2.5458044736650587
+        },
+        {
+            "panel_id": 5,
+            "section_name": "Results",
+            "tp": 0.12926727726894255,
+            "text_len": 621,
+            "gp": 0,
+            "figure_size": 0,
+            "figure_aspect": 1,
+            "sp": 0.06287291265710707,
+            "rp": 2.506919730076175
+        },
+        {
+            "panel_id": 6,
+            "section_name": "Conclusions",
+            "tp": 0.10199833472106577,
+            "text_len": 490,
+            "gp": 0,
+            "figure_size": 0,
+            "figure_aspect": 1,
+            "sp": 0.05432503293604645,
+            "rp": 2.577668360772616
+        }
+    ],
+    "panel_arrangement": [
+        {
+            "panel_name": "Poster Title & Author",
+            "panel_id": 0,
+            "x": 0,
+            "y": 0,
+            "width": 1200,
+            "height": 90.0
+        },
+        {
+            "panel_name": "Abstract",
+            "panel_id": 1,
+            "x": 0,
+            "y": 90.0,
+            "width": 665.5650819182199,
+            "height": 373.81315901010066
+        },
+        {
+            "panel_name": "Introduction",
+            "panel_id": 2,
+            "x": 665.5650819182199,
+            "y": 90.0,
+            "width": 534.4349180817801,
+            "height": 373.81315901010066
+        },
+        {
+            "panel_name": "Methodology",
+            "panel_id": 3,
+            "x": 0,
+            "y": 463.81315901010066,
+            "width": 609.9276941800209,
+            "height": 219.12067526978774
+        },
+        {
+            "panel_name": "Experiments",
+            "panel_id": 4,
+            "x": 609.9276941800209,
+            "y": 463.81315901010066,
+            "width": 590.0723058199791,
+            "height": 219.12067526978774
+        },
+        {
+            "panel_name": "Results",
+            "panel_id": 5,
+            "x": 0,
+            "y": 682.9338342798884,
+            "width": 643.7612434815237,
+            "height": 217.0661657201116
+        },
+        {
+            "panel_name": "Conclusions",
+            "panel_id": 6,
+            "x": 643.7612434815237,
+            "y": 682.9338342798884,
+            "width": 556.2387565184763,
+            "height": 217.0661657201116
+        }
+    ],
+    "figure_arrangement": [],
+    "text_arrangement": [
+        {
+            "panel_id": 0,
+            "x": 3.0,
+            "y": 3.0,
+            "width": 1194.0,
+            "height": 37.333333333333336,
+            "textbox_id": 0,
+            "textbox_name": "p<Poster Title & Author>_t0",
+            "num_chars": 410
+        },
+        {
+            "panel_id": 0,
+            "x": 3.0,
+            "y": 40.333333333333336,
+            "width": 1194.0,
+            "height": 46.666666666666664,
+            "textbox_id": 0,
+            "textbox_name": "p<Poster Title & Author>_t1",
+            "num_chars": 410
+        },
+        {
+            "panel_id": 1,
+            "x": 3.0,
+            "y": 93.0,
+            "width": 659.5650819182199,
+            "height": 32.0,
+            "textbox_id": 0,
+            "textbox_name": "p<Abstract>_t0",
+            "num_chars": 220
+        },
+        {
+            "panel_id": 1,
+            "x": 3.0,
+            "y": 125.0,
+            "width": 659.5650819182199,
+            "height": 335.81315901010066,
+            "textbox_id": 1,
+            "textbox_name": "p<Abstract>_t1",
+            "num_chars": 1320
+        },
+        {
+            "panel_id": 2,
+            "x": 668.5650819182199,
+            "y": 93.0,
+            "width": 528.4349180817801,
+            "height": 32.0,
+            "textbox_id": 0,
+            "textbox_name": "p<Introduction>_t0",
+            "num_chars": 180
+        },
+        {
+            "panel_id": 2,
+            "x": 668.5650819182199,
+            "y": 125.0,
+            "width": 528.4349180817801,
+            "height": 335.81315901010066,
+            "textbox_id": 1,
+            "textbox_name": "p<Introduction>_t1",
+            "num_chars": 1080
+        },
+        {
+            "panel_id": 3,
+            "x": 3.0,
+            "y": 466.81315901010066,
+            "width": 603.9276941800209,
+            "height": 32.0,
+            "textbox_id": 0,
+            "textbox_name": "p<Methodology>_t0",
+            "num_chars": 200
+        },
+        {
+            "panel_id": 3,
+            "x": 3.0,
+            "y": 498.81315901010066,
+            "width": 603.9276941800209,
+            "height": 181.12067526978774,
+            "textbox_id": 1,
+            "textbox_name": "p<Methodology>_t1",
+            "num_chars": 600
+        },
+        {
+            "panel_id": 4,
+            "x": 612.9276941800209,
+            "y": 466.81315901010066,
+            "width": 584.0723058199791,
+            "height": 32.0,
+            "textbox_id": 0,
+            "textbox_name": "p<Experiments>_t0",
+            "num_chars": 200
+        },
+        {
+            "panel_id": 4,
+            "x": 612.9276941800209,
+            "y": 498.81315901010066,
+            "width": 584.0723058199791,
+            "height": 181.12067526978774,
+            "textbox_id": 1,
+            "textbox_name": "p<Experiments>_t1",
+            "num_chars": 600
+        },
+        {
+            "panel_id": 5,
+            "x": 3.0,
+            "y": 685.9338342798884,
+            "width": 637.7612434815237,
+            "height": 32.0,
+            "textbox_id": 0,
+            "textbox_name": "p<Results>_t0",
+            "num_chars": 220
+        },
+        {
+            "panel_id": 5,
+            "x": 3.0,
+            "y": 717.9338342798884,
+            "width": 637.7612434815237,
+            "height": 179.0661657201116,
+            "textbox_id": 1,
+            "textbox_name": "p<Results>_t1",
+            "num_chars": 660
+        },
+        {
+            "panel_id": 6,
+            "x": 646.7612434815237,
+            "y": 685.9338342798884,
+            "width": 550.2387565184763,
+            "height": 32.0,
+            "textbox_id": 0,
+            "textbox_name": "p<Conclusions>_t0",
+            "num_chars": 190
+        },
+        {
+            "panel_id": 6,
+            "x": 646.7612434815237,
+            "y": 717.9338342798884,
+            "width": 550.2387565184763,
+            "height": 179.0661657201116,
+            "textbox_id": 1,
+            "textbox_name": "p<Conclusions>_t1",
+            "num_chars": 570
+        }
+    ],
+    "panel_arrangement_inches": [
+        {
+            "panel_name": "Poster Title & Author",
+            "panel_id": 0,
+            "x": 0.0,
+            "y": 0.0,
+            "width": 48.0,
+            "height": 3.6
+        },
+        {
+            "panel_name": "Abstract",
+            "panel_id": 1,
+            "x": 0.0,
+            "y": 3.6,
+            "width": 26.622603276728796,
+            "height": 14.952526360404027
+        },
+        {
+            "panel_name": "Introduction",
+            "panel_id": 2,
+            "x": 26.622603276728796,
+            "y": 3.6,
+            "width": 21.377396723271204,
+            "height": 14.952526360404027
+        },
+        {
+            "panel_name": "Methodology",
+            "panel_id": 3,
+            "x": 0.0,
+            "y": 18.552526360404027,
+            "width": 24.397107767200836,
+            "height": 8.76482701079151
+        },
+        {
+            "panel_name": "Experiments",
+            "panel_id": 4,
+            "x": 24.397107767200836,
+            "y": 18.552526360404027,
+            "width": 23.602892232799164,
+            "height": 8.76482701079151
+        },
+        {
+            "panel_name": "Results",
+            "panel_id": 5,
+            "x": 0.0,
+            "y": 27.317353371195537,
+            "width": 25.750449739260947,
+            "height": 8.682646628804465
+        },
+        {
+            "panel_name": "Conclusions",
+            "panel_id": 6,
+            "x": 25.750449739260947,
+            "y": 27.317353371195537,
+            "width": 22.249550260739053,
+            "height": 8.682646628804465
+        }
+    ],
+    "figure_arrangement_inches": [],
+    "text_arrangement_inches": [
+        {
+            "panel_id": 0,
+            "x": 0.12,
+            "y": 0.12,
+            "width": 47.76,
+            "height": 1.4933333333333334,
+            "textbox_id": 0,
+            "textbox_name": "p<Poster Title & Author>_t0",
+            "num_chars": 410
+        },
+        {
+            "panel_id": 0,
+            "x": 0.12,
+            "y": 1.6133333333333335,
+            "width": 47.76,
+            "height": 1.8666666666666665,
+            "textbox_id": 0,
+            "textbox_name": "p<Poster Title & Author>_t1",
+            "num_chars": 410
+        },
+        {
+            "panel_id": 1,
+            "x": 0.12,
+            "y": 3.72,
+            "width": 26.382603276728798,
+            "height": 1.28,
+            "textbox_id": 0,
+            "textbox_name": "p<Abstract>_t0",
+            "num_chars": 220
+        },
+        {
+            "panel_id": 1,
+            "x": 0.12,
+            "y": 5.0,
+            "width": 26.382603276728798,
+            "height": 13.432526360404026,
+            "textbox_id": 1,
+            "textbox_name": "p<Abstract>_t1",
+            "num_chars": 1320
+        },
+        {
+            "panel_id": 2,
+            "x": 26.742603276728797,
+            "y": 3.72,
+            "width": 21.137396723271205,
+            "height": 1.28,
+            "textbox_id": 0,
+            "textbox_name": "p<Introduction>_t0",
+            "num_chars": 180
+        },
+        {
+            "panel_id": 2,
+            "x": 26.742603276728797,
+            "y": 5.0,
+            "width": 21.137396723271205,
+            "height": 13.432526360404026,
+            "textbox_id": 1,
+            "textbox_name": "p<Introduction>_t1",
+            "num_chars": 1080
+        },
+        {
+            "panel_id": 3,
+            "x": 0.12,
+            "y": 18.672526360404028,
+            "width": 24.157107767200838,
+            "height": 1.28,
+            "textbox_id": 0,
+            "textbox_name": "p<Methodology>_t0",
+            "num_chars": 200
+        },
+        {
+            "panel_id": 3,
+            "x": 0.12,
+            "y": 19.952526360404025,
+            "width": 24.157107767200838,
+            "height": 7.24482701079151,
+            "textbox_id": 1,
+            "textbox_name": "p<Methodology>_t1",
+            "num_chars": 600
+        },
+        {
+            "panel_id": 4,
+            "x": 24.517107767200837,
+            "y": 18.672526360404028,
+            "width": 23.36289223279916,
+            "height": 1.28,
+            "textbox_id": 0,
+            "textbox_name": "p<Experiments>_t0",
+            "num_chars": 200
+        },
+        {
+            "panel_id": 4,
+            "x": 24.517107767200837,
+            "y": 19.952526360404025,
+            "width": 23.36289223279916,
+            "height": 7.24482701079151,
+            "textbox_id": 1,
+            "textbox_name": "p<Experiments>_t1",
+            "num_chars": 600
+        },
+        {
+            "panel_id": 5,
+            "x": 0.12,
+            "y": 27.437353371195535,
+            "width": 25.51044973926095,
+            "height": 1.28,
+            "textbox_id": 0,
+            "textbox_name": "p<Results>_t0",
+            "num_chars": 220
+        },
+        {
+            "panel_id": 5,
+            "x": 0.12,
+            "y": 28.717353371195536,
+            "width": 25.51044973926095,
+            "height": 7.162646628804464,
+            "textbox_id": 1,
+            "textbox_name": "p<Results>_t1",
+            "num_chars": 660
+        },
+        {
+            "panel_id": 6,
+            "x": 25.87044973926095,
+            "y": 27.437353371195535,
+            "width": 22.00955026073905,
+            "height": 1.28,
+            "textbox_id": 0,
+            "textbox_name": "p<Conclusions>_t0",
+            "num_chars": 190
+        },
+        {
+            "panel_id": 6,
+            "x": 25.87044973926095,
+            "y": 28.717353371195536,
+            "width": 22.00955026073905,
+            "height": 7.162646628804464,
+            "textbox_id": 1,
+            "textbox_name": "p<Conclusions>_t1",
+            "num_chars": 570
+        }
+    ]
+}
