@@ -98,6 +98,7 @@ Paper2Code/
 Paper2Poster/
 TODO.md
 DESIGN.md
+AGENTS.md
 
 # Runtime output directories (root level)
 paper2poster_outputs/

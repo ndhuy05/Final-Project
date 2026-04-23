@@ -98,6 +98,14 @@ OpenLab/
 **Backend** — run from `backend/` directory:
 ```bash
 cd backend
+python -m venv venv
+# Windows
+venv\Scripts\activate
+# macOS/Linux
+source venv/bin/activate
+
+pip install -r requirements.txt
+playwright install chromium   # required after pip install
 uvicorn app.main:app --reload --port 8000
 ```
 - Reads settings from `backend/.env` (relative paths in config.py assume CWD is `backend/`)

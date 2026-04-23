@@ -579,7 +579,6 @@
                       class="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-notebook-800 text-white text-xs rounded-lg hover:bg-notebook-900 transition-colors font-medium"
                     >
                       <component :is="icons.Download" :size="10" />
-                      <span class="truncate">Download</span>
                     </button>
                     <button
                       @click="store.resetCodeJob()"
@@ -667,7 +666,7 @@
                       class="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-notebook-800 text-white text-xs rounded-lg hover:bg-notebook-900 transition-colors font-medium"
                     >
                       <component :is="icons.Download" :size="10" />
-                      <span class="truncate"></span>
+                      <!-- <span class="truncate"></span> -->
                     </button>
                     <button
                       @click="store.resetPosterJob()"
@@ -745,7 +744,7 @@
           <button
             v-else-if="store.paper2codeJob.status === 'done'"
             @click="store.downloadCodeResult()"
-            class="p-2 hover:bg-green-100 rounded-lg transition-colors group"
+            class="p-2 flex items-center justify-center hover:bg-green-100 rounded-lg transition-colors group"
             title="Download generated code"
           >
             <component :is="icons.Download" :size="20" class="text-green-500 group-hover:text-green-600" />
@@ -770,7 +769,7 @@
           <button
             v-else-if="store.paper2posterJob.status === 'done'"
             @click="store.downloadPosterResult()"
-            class="p-2 hover:bg-green-100 rounded-lg transition-colors group"
+            class="p-2 flex items-center justify-center hover:bg-green-100 rounded-lg transition-colors group"
             title="Download generated poster"
           >
             <component :is="icons.Download" :size="20" class="text-green-500 group-hover:text-green-600" />

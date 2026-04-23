@@ -7,8 +7,8 @@ alembic
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 bcrypt<4.0.0  # passlib 1.7.4 is incompatible with bcrypt 4+
-pydantic==2.5.3
-pydantic-settings==2.1.0
+pydantic>=2.7.0,<3.0.0
+pydantic-settings>=2.3.0,<3.0.0
 python-dotenv==1.0.0
 python-multipart==0.0.6
 qdrant-client>=1.9.0
@@ -49,12 +49,20 @@ transformers
 FlagEmbedding
 
 # Utilities used by PosterAgent
+python-Levenshtein
+tiktoken
 tenacity
 omegaconf
 scikit-learn
 duckduckgo-search
 json-repair
 Spire.Presentation  # PPTX → image conversion in ppt_to_images()
+PyYAML              # yaml import in gen_outline_layout.py, gen_poster_content.py
+Jinja2              # jinja2 import in parse_raw.py, gen_outline_layout.py, gen_poster_content.py
+lxml                # lxml.etree in tree_split_layout.py and utils/src/utils.py
+numpy               # numpy in tree_split_layout.py and utils/src/model_utils.py
+rich                # rich.print in utils/src/utils.py
+httpx               # httpx in camel/models/samba_model.py (imported at module level via model_factory)
 
 # Playwright (imported at top-level in wei_utils.py; must be installed even if not used)
 playwright

@@ -39,7 +39,12 @@ import os
 import re
 import shutil
 import sys
+import warnings
 from types import SimpleNamespace
+
+# Suppress noisy deprecation warnings from transformers / huggingface
+warnings.filterwarnings("ignore", category=FutureWarning, module="transformers")
+warnings.filterwarnings("ignore", message=".*use_fast.*", category=UserWarning)
 
 logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("run_poster_job")

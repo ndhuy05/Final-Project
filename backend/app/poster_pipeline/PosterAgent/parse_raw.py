@@ -53,14 +53,11 @@ def parse_raw(args, actor_config, version=1):
     raw_source = args.poster_path
     markdown_clean_pattern = re.compile(r"<!--[\s\S]*?-->")
 
-    raw_result = doc_converter.convert(raw_source)
-
-    # --- Determine text_content ---
+    # --- Determine text_content BEFORE running Docling ---
     # Prefer pre-extracted VLM text from Qdrant (written by the parent service)
     # because it is higher quality than Docling's markdown export.
-    # Docling still ran above so that gen_image_and_table() can use raw_result
-    # for figure/table extraction.
     preextracted_path = getattr(args, "preextracted_text_path", None)
+    text_content = None
     if preextracted_path:
         try:
             with open(preextracted_path, "r", encoding="utf-8") as _f:
@@ -74,8 +71,25 @@ def parse_raw(args, actor_config, version=1):
             print(f"[parse_raw] WARNING: failed to load pre-extracted text ({exc}); "
                   "falling back to Docling markdown.")
             preextracted_path = None
+            text_content = None
 
-    if not preextracted_path:
+    # Check whether image/table extraction outputs from a previous run are cached.
+    # These paths mirror what gen_image_and_table() writes.
+    _img_json = f'({args.model_name_t}_{args.model_name_v})_images_and_tables/{args.poster_name}_images.json'
+    _tbl_json = f'({args.model_name_t}_{args.model_name_v})_images_and_tables/{args.poster_name}_tables.json'
+    _images_cached = os.path.exists(_img_json) and os.path.exists(_tbl_json)
+
+    # Only run the heavy Docling ML pipeline when it is actually needed:
+    #   - text_content is not yet available (no pre-extracted text), OR
+    #   - image/table crops have not been extracted yet for this paper.
+    if text_content is not None and _images_cached:
+        print("[parse_raw] Skipping Docling: pre-extracted text and cached "
+              "images/tables are both available.")
+        raw_result = None
+    else:
+        raw_result = doc_converter.convert(raw_source)
+
+    if text_content is None:
         raw_markdown = raw_result.document.export_to_markdown()
         text_content = markdown_clean_pattern.sub("", raw_markdown)
 
@@ -164,6 +178,20 @@ def parse_raw(args, actor_config, version=1):
 
 def gen_image_and_table(args, conv_res):
     input_token, output_token = 0, 0
+
+    images_json_path = f'({args.model_name_t}_{args.model_name_v})_images_and_tables/{args.poster_name}_images.json'
+    tables_json_path = f'({args.model_name_t}_{args.model_name_v})_images_and_tables/{args.poster_name}_tables.json'
+
+    # conv_res is None when parse_raw() skipped Docling because both pre-extracted
+    # text and cached image/table JSONs were already present.
+    if conv_res is None:
+        print("[gen_image_and_table] Loading cached images/tables from previous run.")
+        with open(images_json_path, 'r', encoding='utf-8') as _f:
+            images = json.load(_f)
+        with open(tables_json_path, 'r', encoding='utf-8') as _f:
+            tables = json.load(_f)
+        return input_token, output_token, images, tables
+
     raw_source = args.poster_path
 
     output_dir = Path(f'({args.model_name_t}_{args.model_name_v})_images_and_tables/{args.poster_name}')
