@@ -1,7 +1,7 @@
 """
 Notebook ORM model.
 
-A named workspace that groups Papers and ChatSessions together.
+A named workspace that groups Papers and a single ChatSession together.
 Belongs to one User; soft-deleted via deleted_at.
 paper_count_cached is a denormalised counter updated by the Papers router
 to avoid COUNT(*) on every sidebar render.
@@ -44,8 +44,9 @@ class Notebook(Base, TimestampMixin):
     papers: Mapped[list["Paper"]] = relationship(  # type: ignore[name-defined]  # noqa: F821
         "Paper", back_populates="notebook", cascade="all, delete-orphan"
     )
-    chat_sessions: Mapped[list["ChatSession"]] = relationship(  # type: ignore[name-defined]  # noqa: F821
-        "ChatSession", back_populates="notebook", cascade="all, delete-orphan"
+    chat_session: Mapped["ChatSession | None"] = relationship(  # type: ignore[name-defined]  # noqa: F821
+        "ChatSession", back_populates="notebook", cascade="all, delete-orphan",
+        uselist=False,
     )
 
     # --- Methods ---
@@ -63,10 +64,11 @@ class Notebook(Base, TimestampMixin):
         """Return active (non-deleted) papers ordered by creation time."""
         return [p for p in self.papers if p.deleted_at is None]
 
-    def get_chat_sessions(self) -> list["ChatSession"]:  # type: ignore[name-defined]  # noqa: F821
-        """Return active chat sessions ordered by creation time (newest first)."""
-        active = [s for s in self.chat_sessions if s.deleted_at is None]
-        return sorted(active, key=lambda s: s.created_at, reverse=True)
+    def get_chat_session(self) -> "ChatSession | None":  # type: ignore[name-defined]  # noqa: F821
+        """Return the chat session if it exists and has not been soft-deleted."""
+        if self.chat_session and self.chat_session.deleted_at is None:
+            return self.chat_session
+        return None
 
     def __repr__(self) -> str:
         return f"<Notebook id={self.id!r} title={self.title!r}>"

@@ -120,7 +120,7 @@ export const useAppStore = defineStore('app', () => {
     const res = await apiClient.get('/notebooks')
     // Backend returns { "notebooks": [...] }, not a bare array
     notebooks.value = res.data.notebooks ?? res.data
-    activeNotebook.value = notebooks.value.length > 0 ? notebooks.value[0] : null
+    activeNotebook.value = null
   }
 
   // --- Legacy / Misc Actions ---
@@ -207,17 +207,23 @@ export const useAppStore = defineStore('app', () => {
     sidebarView.value = view
   }
 
-  function selectNotebook(id) {
+  async function selectNotebook(id) {
     const notebook = notebooks.value.find(n => n.id === id)
     if (notebook) {
       activeNotebook.value = notebook
       sidebarView.value = 'sources'
       notebookMenuOpen.value = null
+      try {
+        const res = await apiClient.get(`/notebooks/${id}/chat/history`)
+        activeNotebook.value.messages = res.data.messages ?? []
+      } catch {
+        activeNotebook.value.messages = []
+      }
     }
   }
 
-  async function createNotebook() {
-    const res = await apiClient.post('/notebooks', { name: 'Untitled Notebook' })
+  async function createNotebook(name) {
+    const res = await apiClient.post('/notebooks', { name: name })
     notebooks.value.unshift(res.data)
     selectNotebook(res.data.id)
   }
@@ -237,7 +243,7 @@ export const useAppStore = defineStore('app', () => {
     if (index !== -1) {
       notebooks.value.splice(index, 1)
       if (activeNotebook.value?.id === id) {
-        activeNotebook.value = notebooks.value.length > 0 ? notebooks.value[0] : null
+        activeNotebook.value = null
       }
       notebookMenuOpen.value = null
     }

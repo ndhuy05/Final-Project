@@ -10,7 +10,7 @@ citations_json stores a JSON array:
 This is kept as a TEXT column (not a JSON column) for maximum SQLite compatibility.
 """
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -39,7 +39,7 @@ class ChatSession(Base, TimestampMixin):
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     # --- Relationships ---
-    notebook: Mapped["Notebook"] = relationship("Notebook", back_populates="chat_sessions")  # type: ignore[name-defined]  # noqa: F821
+    notebook: Mapped["Notebook"] = relationship("Notebook", back_populates="chat_session")  # type: ignore[name-defined]  # noqa: F821
     messages: Mapped[list["ChatMessage"]] = relationship(
         "ChatMessage", back_populates="session",
         cascade="all, delete-orphan",
@@ -107,7 +107,7 @@ class ChatMessage(Base):
 
     # --- Timestamp (immutable) ---
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, server_default="CURRENT_TIMESTAMP", nullable=False
+        DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
     )
 
     # --- Relationships ---

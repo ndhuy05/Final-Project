@@ -1,4 +1,4 @@
-# VibeProject - NotebookLM-Inspired Research Paper Q&A System
+# OpenLab - NotebookLM-Inspired Research Paper Q&A System
 
 A modern web application for managing, querying, and analyzing research papers. Features a clean NotebookLM-inspired UI with notebook management, paper organization, and AI-powered chat backed by a full RAG pipeline.
 

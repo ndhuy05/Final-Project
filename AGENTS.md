@@ -1,279 +1,210 @@
-# AGENTS.md — VibeProject Coding Guidelines
+# AGENTS.md — OpenLab
 
-## Project Overview
+## 1. Think Before Coding
 
-Full-stack research assistant: **Vue 3 + Pinia frontend** (JavaScript, no TypeScript) and a
-**FastAPI Python backend** serving an agentic RAG pipeline with Paper2Code generation.
-The two apps live in `frontend/` and `backend/` with no shared monorepo tooling.
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
+
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+
+## 2. Simplicity First
+
+**Minimum code that solves the problem. Nothing speculative.**
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+## 3. Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
 ---
 
-## Prerequisites
-
-- **Node.js 20+** (frontend)
-- **Python 3.11+** (backend)
-- **OpenRouter API key** — set in `backend/.env` as `OPENROUTER_API_KEY`
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+Compact, high-signal guide for AI agents working in this repo.
+Only things that are non-obvious or frequently-missed are listed.
 
 ---
 
-## Commands
+## Repo layout
 
-### Frontend (`frontend/`)
+```
+OpenLab/
+├── backend/          # FastAPI + SQLAlchemy + Qdrant (Python 3.11+)
+│   ├── app/
+│   │   ├── config.py          # all settings (pydantic-settings, reads backend/.env)
+│   │   ├── main.py            # FastAPI app, lifespan, router registration
+│   │   ├── database.py        # SQLAlchemy engine + SessionLocal
+│   │   ├── models/            # ORM models
+│   │   ├── schemas/           # Pydantic request/response models
+│   │   ├── routers/           # auth, chat, generate, health, notebooks, papers, poster
+│   │   ├── services/          # embedding, qdrant, reranker, pdf, auth, memory_store
+│   │   └── poster_pipeline/   # self-contained PosterAgent pipeline (see below)
+│   ├── .env                   # gitignored — copy from .env.example
+│   ├── .env.example
+│   └── requirements.txt
+└── frontend/         # Vue 3 + Vite + Pinia + TailwindCSS (plain JS, no TypeScript)
+    ├── src/
+    │   ├── api/               # axios wrappers
+    │   ├── components/
+    │   ├── router/
+    │   ├── stores/            # Pinia stores
+    │   └── views/
+    └── package.json
+```
 
+---
+
+## Starting the services
+
+**Backend** — run from `backend/` directory:
 ```bash
-npm install          # install dependencies
-npm run dev          # Vite dev server → http://localhost:5173
-npm run build        # production build → dist/
-npm run preview      # serve production build locally
+cd backend
+uvicorn app.main:app --reload --port 8000
 ```
+- Reads settings from `backend/.env` (relative paths in config.py assume CWD is `backend/`)
+- Tables are auto-created at startup via `Base.metadata.create_all()` — **do not run alembic migrations**; there is no `alembic/` directory even though `alembic` is listed in requirements.txt
 
-> No lint or test runner is configured. If you add tests use Vitest:
-> ```bash
-> npx vitest run src/stores/app.test.js          # single test file
-> npx vitest run src/stores/app.test.js -t "name" # single test by name
-> ```
-
-### Backend (`backend/`)
-
+**Frontend** — run from `frontend/` directory:
 ```bash
-pip install -r requirements.txt
-uvicorn app.main:app --reload   # dev server → http://localhost:8000
+cd frontend
+npm install
+npm run dev       # Vite dev server on :5173
 ```
 
-> No test runner is configured. If you add tests use pytest:
-> ```bash
-> pytest backend/tests/test_foo.py                    # single file
-> pytest backend/tests/test_foo.py::test_bar          # single test
-> pytest backend/tests/test_foo.py::TestClass::method # single method
-> ```
+---
 
-### Environment
+## Backend — critical non-obvious details
 
-Both apps require a `.env` file. Copy the examples before running:
+### No test suite
+There are no tests. Do not try to run pytest or jest.
+
+### Database
+- SQLite at `backend/vibeproject.db` (auto-created; gitignored)
+- Qdrant runs **locally on-disk** at `backend/qdrant_storage/` — no Docker, no server to start
+- Legacy `memory_store.json` (if present) is auto-migrated to SQLite on first startup; do nothing
+
+### python-pptx — custom git fork required
+`requirements.txt` pins:
+```
+python-pptx @ git+https://github.com/Force1ess/python-pptx@dc356685...
+```
+The stock PyPI `python-pptx` is **incompatible** with PosterAgent. Never replace it with `pip install python-pptx`.
+
+### bcrypt version constraint
+`requirements.txt` requires `bcrypt<4.0.0`. passlib 1.7.4 breaks with bcrypt 4+. Do not upgrade.
+
+### fastembed — ONNX model download on first use
+`fastembed-gpu` downloads BAAI/bge-small-en-v1.5 (embeddings) and BAAI/bge-reranker-base (reranker) as `.onnx` files to `fastembed_cache/` on first import. This is expected; the directory is gitignored.
+
+### docling — heavy download on first use
+`docling` downloads ~2 GB of IBM layout/OCR models on first use. This is expected and takes several minutes.
+
+### Playwright — post-install step
+After `pip install -r requirements.txt`, run:
 ```bash
-cp backend/.env.example backend/.env   # then fill in API keys
-# frontend/.env already present; edit VITE_API_BASE_URL if needed
+playwright install chromium
 ```
+`playwright` is imported at the module level in `wei_utils.py` and will fail at import time if the browser is not installed.
+
+### All LLM calls go through OpenRouter
+Set `OPENROUTER_API_KEY` in `backend/.env`. There is no local LLM inference (except fastembed for embeddings/reranking). The API base URL used is `https://openrouter.ai/api/v1`.
+
+### API prefix
+All backend endpoints are under `/api/v1` (configured in `config.py` via `API_V1_STR`).
+
+### CORS
+Allowed origins are `http://localhost:5173` and `http://localhost:3000` by default. Override via `BACKEND_CORS_ORIGINS` in `.env`.
+
+### Auth
+JWT-based. Token valid 7 days by default. Secret read from `SECRET_KEY` in `.env`.
 
 ---
 
-## Key Files
+## Poster pipeline — runtime directories
 
-```
-frontend/src/stores/app.js              # all Pinia state + every API call
-frontend/src/views/Home.vue             # entire application UI
-frontend/src/api/client.js              # Axios singleton — all HTTP goes here
-backend/app/main.py                     # FastAPI entry point, CORS, router registration
-backend/app/config.py                   # pydantic-settings (all env vars)
-backend/app/routers/papers.py           # upload / list / delete papers
-backend/app/routers/chat.py             # POST /chat — agentic RAG endpoint
-backend/app/routers/generate.py         # Paper2Code start / status / cancel / download
-backend/app/services/openrouter_service.py  # VLM extraction, planner, answer generation
-backend/app/services/embedding_service.py   # async OpenRouter embeddings
-backend/app/services/qdrant_service.py      # local Qdrant client + vector search
-backend/app/services/reranker_service.py    # cross-encoder reranking (BAAI/bge-reranker-base)
-backend/app/services/memory_store.py        # JSON-file paper metadata persistence
-backend/app/services/paper2code_service.py  # 3-stage Paper2Code pipeline (threading)
-backend/app/services/pdf_service.py         # PDF → PIL page images (PyMuPDF)
-```
+Everything under `backend/app/poster_pipeline/` that is **not** Python source is runtime output and is gitignored:
 
----
+| Path pattern | Contents |
+|---|---|
+| `*_images_and_tables/` | Extracted images/tables per model run (PNG, HTML, MD, JSON) |
+| `contents/` | Intermediate parsed content JSON files |
+| `tree_splits/` | Intermediate section-tree JSON files |
+| `checkpoints/` | Checkpoint files |
+| `outlines/` | Outline files |
+| `log/` | Pipeline logs |
+| `tmp/` | Temporary files |
 
-## Architecture Notes
+These directories exist in the working tree but are **never committed**.
 
-- **Single-store, single-view** frontend: all state in `frontend/src/stores/app.js`; all UI in
-  `frontend/src/views/Home.vue`. Do not reach into the Pinia store from outside store files.
-- **Service-module** backend: each `backend/app/services/*.py` is a plain module (not a class)
-  with lazy-initialized module-level singletons. Keep this pattern when adding new services.
-- **No database/ORM**: persistence is `memory_store.json` (JSON file). `models/` and `schemas/`
-  directories exist as empty scaffolding — do not add SQLAlchemy/Alembic unless explicitly asked.
-- **Background threads for Paper2Code**: blocking OpenAI SDK calls run in `threading.Thread` to
-  avoid blocking the async FastAPI event loop. Mirror this pattern for any new blocking pipeline.
-- **Agentic RAG flow**: planner LLM → parallel `asyncio.gather` of `read_metadata` / `retrieve`
-  actions → cross-encoder reranking → VLM reads page images (N-1, N, N+1) → answer.
-- **Duplicate upload** returns HTTP 409; re-uploading the same filename is intentionally blocked.
+Final `.pptx` outputs go to `../paper2poster_outputs/` (relative to `backend/`), i.e. `OpenLab/paper2poster_outputs/`. Also gitignored.
+
+Paper2Code outputs go to `../paper2code_outputs/` (i.e. `OpenLab/paper2code_outputs/`). Also gitignored.
 
 ---
 
-## Environment Variables
+## Frontend — non-obvious details
 
-All model names and secrets live in `backend/.env` (never hard-code them):
-
-```env
-OPENROUTER_API_KEY=sk-or-...
-OPENROUTER_VISION_MODEL=google/gemini-flash-1.5    # page extraction + answer VLM
-OPENROUTER_ANSWER_MODEL=google/gemini-flash-1.5    # answer generation VLM
-OPENROUTER_PLANNER_MODEL=openai/gpt-4o-mini        # planner + metadata answers
-OPENROUTER_EMBEDDING_MODEL=openai/text-embedding-3-small  # 4096-dim vectors
-OPENROUTER_CODE_MODEL=anthropic/claude-3.5-sonnet  # Paper to Code generation
-```
-
-> **Gotcha**: if `OPENROUTER_EMBEDDING_MODEL` is changed, delete `qdrant_storage/` and
-> re-upload all papers — vector dimensions must match what is stored in Qdrant.
+- **Plain JavaScript** — no TypeScript anywhere. Do not add `.ts` files.
+- **Vue 3** with both Options API (older views) and Composition API (`<script setup>`) — either style is acceptable.
+- **Pinia** for state management. Stores are in `frontend/src/stores/`.
+- **TailwindCSS v3** — utility classes only, no custom CSS framework.
+- `npm` is the package manager. There is a `package-lock.json`. Do not use `pnpm` or `yarn`.
+- Backend API is proxied through Vite in dev; check `frontend/vite.config.js` for proxy rules.
 
 ---
 
-## Frontend Code Style (JavaScript / Vue 3)
+## What is gitignored (non-obvious items)
 
-### General
+| Pattern | Reason |
+|---|---|
+| `backend/app/poster_pipeline/*_images_and_tables/` | Runtime per-model image extraction outputs |
+| `backend/app/poster_pipeline/contents/` | Runtime intermediate JSON |
+| `backend/app/poster_pipeline/tree_splits/` | Runtime intermediate JSON |
+| `backend/app/poster_pipeline/checkpoints/`, `log/`, `tmp/`, `outlines/` | Runtime pipeline state |
+| `paper2code_outputs/`, `paper2poster_outputs/` | Pipeline final outputs at repo root |
+| `fastembed_cache/`, `.fastembed_cache/`, `*.onnx` | ONNX model cache |
+| `backend/vibeproject.db`, `*.db`, `*.sqlite3` | Runtime databases |
+| `backend/qdrant_storage/` | Qdrant on-disk index |
+| `backend/uploads/` | User-uploaded PDFs |
+| `TODO.md`, `DESIGN.md` | Local planning docs, not for the repo |
 
-- Plain JavaScript — **no TypeScript**. Do not introduce `*.ts` files or `tsconfig.json`.
-- No ESLint/Prettier configured. Keep style consistent with existing code (2-space indent, single
-  quotes, no semicolons at end of file-level statements).
-
-### Imports
-
-```js
-// 1. Vue reactivity APIs
-import { ref, computed, watch, nextTick } from 'vue'
-// 2. Store / router
-import { useAppStore } from '@/stores/app'
-// 3. Third-party libraries
-import axios from 'axios'
-// 4. Icon components (grouped in one import)
-import { Folder, Plus, Trash2 } from 'lucide-vue-next'
-```
-
-- Use `import.meta.env.VITE_*` for environment variables; never hard-code base URLs.
-- All HTTP calls must go through `frontend/src/api/client.js` (the Axios singleton).
-
-### Vue Patterns
-
-- **Always** use `<script setup>` (Composition API). Never write Options API components.
-- Use `ref()` for all reactive primitives; `computed()` for derived values.
-- Conditional classes: use array syntax `:class="[base, cond ? 'a' : 'b']"`.
-- Use event modifiers in templates (`@click.stop`, `@keydown.enter.exact.prevent`).
-- Call `nextTick()` before any DOM-dependent operation after a reactive change.
-- `v-if` / `v-else-if` / `v-else` chains for multi-state UI (idle / loading / done / error).
-
-### Naming Conventions
-
-| Thing | Convention | Example |
-|---|---|---|
-| Variables, refs, functions | `camelCase` | `uploadState`, `handleFileUpload` |
-| Component files | `PascalCase.vue` | `Home.vue`, `UploadPanel.vue` |
-| Pinia store actions | verb-first camelCase | `createNotebook`, `toggleMenu` |
-| Store ID | lowercase string | `defineStore('app', ...)` |
-| Tailwind color tokens | `notebook-{50..900}` | `bg-notebook-800` |
-
-### State Management
-
-- The Pinia store is the **only** place that calls the API. Components call store actions.
-- Module-level `let _pollInterval = null` pattern for polling; always clear on terminal states.
-
-### Error Handling
-
-```js
-try {
-  await store.uploadPaper(file)
-} catch (err) {
-  errorMessage.value = err?.response?.data?.detail || 'Upload failed'
-} finally {
-  isLoading.value = false
-}
-```
-
-- Extract error messages with optional chaining: `err?.response?.data?.detail || 'fallback'`.
-- Use `.catch(() => {})` only for intentional fire-and-forget calls (e.g., cancel a job).
-- Surface errors via local `ref` state; there is no global error boundary.
-
-### Styling
-
-- Tailwind CSS utility classes exclusively. Use `@apply` inside `<style scoped>` only for
-  multi-rule prose/markdown overrides (see `Home.vue`).
-- The custom `notebook-*` palette (defined in `tailwind.config.js`) is the design token system.
-  Prefer `notebook-*` over Tailwind's default `gray-*`.
-
----
-
-## Backend Code Style (Python)
-
-### General
-
-- Target **Python 3.11+**. Use `T | None` union syntax, not `Optional[T]`, for new code.
-- 4-space indentation, PEP 8 naming.
-- Every service module must start with a docstring explaining its responsibility.
-
-### Imports
-
-```python
-# 1. Standard library
-import json
-import logging
-from typing import Any
-
-# 2. Third-party
-from fastapi import HTTPException
-from pydantic import BaseModel
-
-# 3. Local app modules
-from app.config import settings
-from app.services import memory_store
-```
-
-### Naming Conventions
-
-| Thing | Convention | Example |
-|---|---|---|
-| Variables, functions, modules | `snake_case` | `upload_paper`, `memory_store` |
-| Classes (Pydantic models, etc.) | `PascalCase` | `ChatRequest`, `PaperMetadata` |
-| Constants / env config keys | `UPPER_SNAKE_CASE` | `OPENROUTER_API_KEY` |
-| Private helpers | leading underscore | `_get_client`, `_extract_json` |
-| Router function names | verb-noun | `upload_paper`, `delete_paper` |
-
-### Typing
-
-- Annotate all function signatures: `def foo(x: str, y: int = 5) -> list[dict[str, Any]]:`.
-- Use `dict[str, Any]` and `list[dict]` for service layer collection types.
-- Define all FastAPI request/response bodies as `pydantic.BaseModel` subclasses inline in the
-  router file (not in the empty `schemas/` directory).
-
-### Service Module Pattern
-
-```python
-logger = logging.getLogger(__name__)
-
-_client: AsyncOpenAI | None = None   # lazy singleton
-
-def _get_client() -> AsyncOpenAI:
-    global _client
-    if _client is None:
-        _client = AsyncOpenAI(api_key=settings.OPENROUTER_API_KEY, ...)
-    return _client
-```
-
-- Use `# --- Section Name ---` dividers to separate logical sections in long files.
-- Module-level `logger = logging.getLogger(__name__)` in every service file.
-
-### Error Handling
-
-```python
-# FastAPI endpoints
-raise HTTPException(status_code=404, detail="Paper not found")
-
-# Service layer — log and re-raise (or return fallback)
-try:
-    result = await _get_client().embeddings.create(...)
-except Exception as e:
-    logger.exception("Embedding failed: %s", e)
-    raise
-```
-
-- Reranker and other non-critical services: `logger.warning(...)` and continue without the
-  feature rather than crashing (graceful degradation).
-- JSON parsing: implement a 3-tier fallback (direct parse → strip markdown fences → regex).
-- Background thread errors: catch broadly, set `job["status"] = "error"`, log with
-  `logger.exception`.
-
-### Async Patterns
-
-- All OpenRouter / OpenAI API calls must be `async def` + `await`.
-- Parallel calls: `await asyncio.gather(*[_run_one(a) for a in actions], return_exceptions=True)`.
-- Blocking SDK calls in background work: use `threading.Thread`, not `asyncio.run_in_executor`.
-- Cancellation: check a `_is_cancelled(job_id)` flag between LLM calls inside threads.
-
-### Configuration
-
-- All secrets and tunables come from `backend/app/config.py` (`pydantic-settings BaseSettings`).
-- Never hard-code API keys, model names, or URLs. Add new settings to `config.py` and
-  `.env.example` together.
+If `git status` shows a large number of files in `backend/app/poster_pipeline/` as untracked, the `.gitignore` rule for `*_images_and_tables/` covers them — do not add them.

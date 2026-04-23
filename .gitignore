@@ -89,15 +89,30 @@ frontend/dist-ssr/
 
 # Backend static / generated
 backend/uploads/
-backend/qdrant_storage
-backend/outputs
-backend/test_poster_output
+backend/qdrant_storage/
+backend/outputs/
+backend/test_poster_output/
 backend/vibeproject.db
 backend/poster_pipeline/assets
 Paper2Code/
 Paper2Poster/
 TODO.md
-# DESIGN.md
+DESIGN.md
+
+# Runtime output directories (root level)
 paper2poster_outputs/
-paper2code_outputs_test/
-# backend/memory_store.json
+paper2code_outputs/
+
+# Poster pipeline runtime outputs (model-named dirs and intermediate JSON per run)
+backend/app/poster_pipeline/*_images_and_tables/
+backend/app/poster_pipeline/contents/
+backend/app/poster_pipeline/tree_splits/
+backend/app/poster_pipeline/checkpoints/
+backend/app/poster_pipeline/log/
+backend/app/poster_pipeline/tmp/
+backend/app/poster_pipeline/outlines/
+
+# fastembed / HuggingFace model cache (downloaded on first use)
+.fastembed_cache/
+fastembed_cache/
+*.onnx

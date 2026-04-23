@@ -2,8 +2,10 @@
 Chat router: agentic Q&A pipeline.
 A planner LLM decides which actions to run (read_metadata / retrieve),
 actions execute in parallel, then a VLM generates the final answer.
+All turns are persisted to the notebook's single ChatSession.
 """
 import asyncio
+import json
 import logging
 import os
 from fastapi import APIRouter, Depends, HTTPException
@@ -14,6 +16,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import get_db
 from app.models.notebook import Notebook
+from app.models.chat import ChatSession
 from app.models.user import User
 from app.services import (
     qdrant_service, memory_store, embedding_service,
@@ -43,6 +46,16 @@ def _require_notebook(notebook_id: str, current_user: User, db: Session) -> Note
     if not notebook:
         raise HTTPException(status_code=404, detail="Notebook not found.")
     return notebook
+
+
+def _get_or_create_session(notebook: Notebook, db: Session) -> ChatSession:
+    """Return the notebook's single ChatSession, creating it if it doesn't exist yet."""
+    session = notebook.get_chat_session()
+    if session is None:
+        session = ChatSession(notebook_id=notebook.id)
+        db.add(session)
+        db.flush()  # assign session.id without committing the transaction
+    return session
 
 
 class ChatRequest(BaseModel):
@@ -181,6 +194,40 @@ async def _execute_actions(
 # Endpoint
 # ---------------------------------------------------------------------------
 
+class MessageOut(BaseModel):
+    role: str
+    content: str
+    citations: List[Citation]
+
+
+class HistoryResponse(BaseModel):
+    messages: List[MessageOut]
+
+
+@router.get("/notebooks/{notebook_id}/chat/history", response_model=HistoryResponse)
+async def get_chat_history(
+    notebook_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return the full ordered chat history for a notebook's session."""
+    notebook = _require_notebook(notebook_id, current_user, db)
+    session = notebook.get_chat_session()
+    if session is None:
+        return HistoryResponse(messages=[])
+    messages: List[MessageOut] = []
+    for msg in session.get_history():
+        citations: List[Citation] = []
+        if msg.citations_json:
+            try:
+                raw = json.loads(msg.citations_json)
+                citations = [Citation(**c) for c in raw]
+            except Exception:
+                logger.warning("Failed to parse citations_json for message %s", msg.id)
+        messages.append(MessageOut(role=msg.role, content=msg.content, citations=citations))
+    return HistoryResponse(messages=messages)
+
+
 @router.post("/notebooks/{notebook_id}/chat", response_model=ChatResponse)
 async def chat(
     notebook_id: str,
@@ -191,7 +238,7 @@ async def chat(
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
-    _require_notebook(notebook_id, current_user, db)
+    notebook = _require_notebook(notebook_id, current_user, db)
     papers = memory_store.get_papers(notebook_id)
     if not papers:
         return ChatResponse(
@@ -282,6 +329,17 @@ async def chat(
         content = f"An error occurred while generating the answer: {str(e)[:120]}"
         citations = []
         action_types = ["error"]
+
+    # --- Persist both turns to the notebook's chat session ---
+    try:
+        chat_session = _get_or_create_session(notebook, db)
+        chat_session.send_message(role="user", content=request.question)
+        citations_json = json.dumps([c.model_dump() for c in citations]) if citations else None
+        chat_session.send_message(role="assistant", content=content, citations_json=citations_json)
+        db.commit()
+    except Exception:
+        logger.exception("Failed to persist chat messages for notebook %s", notebook_id)
+        db.rollback()
 
     return ChatResponse(
         content=content,
