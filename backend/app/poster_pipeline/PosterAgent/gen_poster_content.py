@@ -101,7 +101,7 @@ def gen_poster_title_content(args, actor_config):
 
     return result_json, total_input_token, total_output_token
 
-def gen_bullet_point_content(args, actor_config, critic_config, agent_modify=True, tmp_dir='tmp'):
+def gen_bullet_point_content(args, actor_config, critic_config, agent_modify=True, tmp_dir='tmp', on_section_done=None):
     import json, yaml, copy, threading
     from concurrent.futures import ThreadPoolExecutor, as_completed
     from PIL import Image
@@ -320,6 +320,8 @@ def gen_bullet_point_content(args, actor_config, critic_config, agent_modify=Tru
     max_workers = getattr(args, 'max_workers', 4)
     results = {}
     lock = threading.Lock()
+    n_sections = len(raw_content['sections']) - 1  # excludes title (index 0)
+    completed_count = 0
 
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
         futures = {
@@ -334,6 +336,9 @@ def gen_bullet_point_content(args, actor_config, critic_config, agent_modify=Tru
                 total_output_token_t += t_out
                 total_input_token_v += v_in
                 total_output_token_v += v_out
+                completed_count += 1
+                if on_section_done is not None:
+                    on_section_done(completed_count, n_sections)
 
     # ----------------------- Title generation (sequential) -----------------------
     title_json, title_input_token, title_output_token = gen_poster_title_content(args, actor_config)

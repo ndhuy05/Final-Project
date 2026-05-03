@@ -299,8 +299,13 @@ def main() -> None:  # noqa: C901
 
     # --- Stage 6: Generate bullet point content (N parallel LLM calls) ---
     emit({"progress": 0.40, "step": "Generating poster content (parallel)\u2026"})
+
+    def _on_section_done(completed, total):
+        progress = 0.40 + (completed / total) * 0.48
+        emit({"progress": round(progress, 3), "step": f"Generating poster content\u2026 ({completed}/{total} sections)"})
+
     _t_in, _t_out, _v_in, _v_out = gen_bullet_point_content(
-        args, agent_config_t, agent_config_v, tmp_dir=args.tmp_dir
+        args, agent_config_t, agent_config_v, tmp_dir=args.tmp_dir, on_section_done=_on_section_done
     )
 
     # Load the saved bullet_point_content

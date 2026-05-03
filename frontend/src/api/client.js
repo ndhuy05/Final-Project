@@ -18,11 +18,13 @@ apiClient.interceptors.request.use((config) => {
   return config
 })
 
-// Redirect to login on 401
+// Redirect to login on 401 — but not if already on the login page,
+// otherwise a failed login attempt (401 from /auth/login) causes a
+// full page reload before the catch block can show the error message.
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && window.location.pathname !== '/login') {
       localStorage.removeItem('token')
       window.location.replace('/login')
     }
