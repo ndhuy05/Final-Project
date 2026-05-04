@@ -46,9 +46,9 @@ def compute_gp(table_info, image_info):
         v['gp'] = v['figure_size'] / total_area
 
 def filter_image_table(args, filter_config):
-    images = json.load(open(f'({args.model_name_t}_{args.model_name_v})_images_and_tables/{args.poster_name}_images.json', 'r'))
-    tables = json.load(open(f'({args.model_name_t}_{args.model_name_v})_images_and_tables/{args.poster_name}_tables.json', 'r'))
-    doc_json = json.load(open(f'contents/({args.model_name_t}_{args.model_name_v})_{args.poster_name}_raw_content.json', 'r'))
+    images = json.load(open(f'{args.model_name_t}_images_and_tables/{args.poster_name}_images.json', 'r'))
+    tables = json.load(open(f'{args.model_name_t}_images_and_tables/{args.poster_name}_tables.json', 'r'))
+    doc_json = json.load(open(f'contents/{args.model_name_t}_{args.poster_name}_raw_content.json', 'r'))
     agent_filter = 'image_table_filter_agent'
     with open(f"utils/prompt_templates/{agent_filter}.yaml", "r", encoding="utf-8") as f:
         config_filter = yaml.safe_load(f)
@@ -104,17 +104,17 @@ def filter_image_table(args, filter_config):
     response_json = get_json_from_response(response.msgs[0].content)
     table_information = response_json['table_information']
     image_information = response_json['image_information']
-    json.dump(image_information, open(f'({args.model_name_t}_{args.model_name_v})_images_and_tables/{args.poster_name}_images_filtered.json', 'w'), indent=4)
-    json.dump(table_information, open(f'({args.model_name_t}_{args.model_name_v})_images_and_tables/{args.poster_name}_tables_filtered.json', 'w'), indent=4)
+    json.dump(image_information, open(f'{args.model_name_t}_images_and_tables/{args.poster_name}_images_filtered.json', 'w'), indent=4)
+    json.dump(table_information, open(f'{args.model_name_t}_images_and_tables/{args.poster_name}_tables_filtered.json', 'w'), indent=4)
 
     return input_token, output_token
 
 def gen_outline_layout_v2(args, actor_config):
     total_input_token, total_output_token = 0, 0
     agent_name = 'poster_planner_new_v2'
-    doc_json = json.load(open(f'contents/({args.model_name_t}_{args.model_name_v})_{args.poster_name}_raw_content.json', 'r'))
-    filtered_table_information = json.load(open(f'({args.model_name_t}_{args.model_name_v})_images_and_tables/{args.poster_name}_tables_filtered.json', 'r'))
-    filtered_image_information = json.load(open(f'({args.model_name_t}_{args.model_name_v})_images_and_tables/{args.poster_name}_images_filtered.json', 'r'))
+    doc_json = json.load(open(f'contents/{args.model_name_t}_{args.poster_name}_raw_content.json', 'r'))
+    filtered_table_information = json.load(open(f'{args.model_name_t}_images_and_tables/{args.poster_name}_tables_filtered.json', 'r'))
+    filtered_image_information = json.load(open(f'{args.model_name_t}_images_and_tables/{args.poster_name}_images_filtered.json', 'r'))
 
     # Normalise: the LLM sometimes returns a list instead of a dict keyed by index.
     # Recover the original numeric ID from the image/table file path so that later

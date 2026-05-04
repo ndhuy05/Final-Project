@@ -106,6 +106,7 @@ minimax
 # Runtime output directories (root level)
 paper2poster_outputs/
 paper2code_outputs/
+paper2web_outputs/
 
 # Poster pipeline runtime outputs (model-named dirs and intermediate JSON per run)
 backend/app/poster_pipeline/*_images_and_tables/
@@ -120,3 +121,12 @@ backend/app/poster_pipeline/outlines/
 .fastembed_cache/
 fastembed_cache/
 *.onnx
+
+# Web pipeline runtime outputs (model-named dirs and intermediate files per run)
+backend/app/web_pipeline/*_images_and_tables/
+backend/app/web_pipeline/contents/
+backend/app/web_pipeline/log/
+backend/app/web_pipeline/website_outlines/
+backend/app/web_pipeline/simple_gen_logs/
+backend/app/web_pipeline/generated_website_*/
+backend/app/web_pipeline/tmp/

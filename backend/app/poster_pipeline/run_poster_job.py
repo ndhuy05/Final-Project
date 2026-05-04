@@ -7,7 +7,7 @@ the parent process can poll and update the in-memory job dict without any
 shared state or IPC beyond stdout.
 
 New pipeline stages (~18-30 LLM calls, ~15-30 min):
-  1. parse_raw              - Docling PDF → raw_content JSON
+  1. parse_raw              - pre-extracted text → raw_content JSON
   2. gen_image_and_table    - extract figure/table images
   3. filter_image_table     - LLM filters unnecessary figures
   4. gen_outline_layout_v2  - 1 LLM call (figure placement JSON)
@@ -48,6 +48,16 @@ warnings.filterwarnings("ignore", message=".*use_fast.*", category=UserWarning)
 
 logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("run_poster_job")
+
+# Suppress CAMEL's internal token-limit warning for unknown model IDs (cosmetic only;
+# it fires whenever UnifiedModelType.token_limit is accessed and max_tokens is not
+# set in the config — it does NOT affect what is sent to the API).
+logging.getLogger("root").addFilter(
+    lambda r: "Invalid or missing `max_tokens`" not in r.getMessage()
+)
+logging.getLogger().addFilter(
+    lambda r: "Invalid or missing `max_tokens`" not in r.getMessage()
+)
 
 units_per_inch = 25
 
@@ -175,14 +185,24 @@ def main() -> None:  # noqa: C901
 
     emit({"progress": 0.03, "step": f"Poster size: {poster_width_inches:.1f} x {poster_height_inches:.1f} inches"})
 
-    # --- Stage 1: Parse PDF with Docling ---
-    emit({"progress": 0.05, "step": "Parsing PDF with Docling\u2026"})
+    # --- Stage 1: Parse PDF text ---
+    emit({"progress": 0.05, "step": "Parsing paper text\u2026"})
     _input_tok, _output_tok, raw_result = parse_raw(args, agent_config_t, version=2)
     _, _, images, tables = gen_image_and_table(args, raw_result)
 
     # --- Stage 2: Filter unnecessary figures/tables ---
     emit({"progress": 0.15, "step": "Filtering figures\u2026"})
-    _input_tok, _output_tok = filter_image_table(args, agent_config_t)
+    if images or tables:
+        _input_tok, _output_tok = filter_image_table(args, agent_config_t)
+    else:
+        # No images could be extracted — write empty filtered files so downstream
+        # stages (gen_outline_layout_v2) can open them without crashing.
+        _img_dir = f'{args.model_name_t}_images_and_tables'
+        os.makedirs(_img_dir, exist_ok=True)
+        with open(f'{_img_dir}/{args.poster_name}_images_filtered.json', 'w') as _f:
+            json.dump({}, _f)
+        with open(f'{_img_dir}/{args.poster_name}_tables_filtered.json', 'w') as _f:
+            json.dump({}, _f)
 
     # --- Stage 3: Generate outline (1 LLM call) ---
     emit({"progress": 0.22, "step": "Generating outline layout (v2)\u2026"})
@@ -263,7 +283,7 @@ def main() -> None:  # noqa: C901
         'text_arrangement_inches': text_arrangement_inches,
     }
     tree_split_path = (
-        f'tree_splits/({args.model_name_t}_{args.model_name_v})'
+        f'tree_splits/{args.model_name_t}'
         f'_{args.poster_name}_tree_split_{args.index}.json'
     )
     with open(tree_split_path, 'w') as f:
@@ -310,7 +330,7 @@ def main() -> None:  # noqa: C901
 
     # Load the saved bullet_point_content
     bullet_content_path = (
-        f'contents/({args.model_name_t}_{args.model_name_v})'
+        f'contents/{args.model_name_t}'
         f'_{args.poster_name}_bullet_point_content_{args.index}.json'
     )
     with open(bullet_content_path, 'r') as _bcf:

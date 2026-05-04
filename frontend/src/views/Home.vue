@@ -696,18 +696,91 @@
 
           <!-- Row 2: Paper to Web -->
           <div class="grid grid-cols-2 gap-3">
-            <button
-              @click="store.openPaperSelector('web')"
-              class="w-full aspect-square rounded-2xl overflow-hidden shadow-brand-glow hover:shadow-elevated transition-all cursor-pointer flex flex-col"
-            >
-              <div class="h-[40%] flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600">
-                <component :is="icons.Globe" :size="24" class="text-white" />
+            <div class="relative">
+              <!-- Idle -->
+              <button
+                v-if="store.paper2webJob.status === 'idle'"
+                @click="store.openPaperSelector('web')"
+                class="w-full aspect-square rounded-2xl overflow-hidden shadow-brand-glow hover:shadow-elevated transition-all cursor-pointer flex flex-col"
+              >
+                <div class="h-[40%] flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600">
+                  <component :is="icons.Globe" :size="24" class="text-white" />
+                </div>
+                <div class="h-[60%] px-3 flex flex-col justify-start pt-2.5 bg-white text-left">
+                  <h3 class="font-semibold text-notebook-900 text-xs mb-0.5">Paper to Web</h3>
+                  <p class="text-xs text-notebook-500">Generate website from paper</p>
+                </div>
+              </button>
+
+              <!-- Running -->
+              <div
+                v-else-if="store.paper2webJob.status === 'running'"
+                class="w-full aspect-square rounded-2xl overflow-hidden flex flex-col"
+              >
+                <div class="h-[40%] relative flex items-center justify-center bg-gradient-to-br from-emerald-500/80 to-teal-600/80">
+                  <component :is="icons.Globe" :size="24" class="text-white" />
+                  <button
+                    @click="store.cancelWebJob()"
+                    class="absolute top-2 right-2 p-1 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                    title="Cancel"
+                  >
+                    <component :is="icons.X" :size="12" class="text-white" />
+                  </button>
+                </div>
+                <div class="h-[60%] px-3 flex flex-col justify-between py-2.5 bg-white text-left">
+                  <h3 class="font-semibold text-notebook-900 text-xs">Paper to Web</h3>
+                  <div>
+                    <div class="w-full bg-notebook-200 rounded-full h-1.5 mb-1">
+                      <div
+                        class="bg-emerald-500 h-1.5 rounded-full transition-all duration-500"
+                        :style="{ width: (store.paper2webJob.progress * 100) + '%' }"
+                      ></div>
+                    </div>
+                    <p class="text-xs text-notebook-500 truncate">{{ store.paper2webJob.step }}</p>
+                  </div>
+                </div>
               </div>
-              <div class="h-[60%] px-3 flex flex-col justify-start pt-2.5 bg-white text-left">
-                <h3 class="font-semibold text-notebook-900 text-xs mb-0.5">Paper to Web</h3>
-                <p class="text-xs text-notebook-500">Generate website from paper</p>
+
+              <!-- Done -->
+              <div
+                v-else-if="store.paper2webJob.status === 'done'"
+                class="w-full aspect-square rounded-2xl overflow-hidden shadow-brand-glow flex flex-col"
+              >
+                <div class="h-[40%] flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600">
+                  <component :is="icons.Globe" :size="24" class="text-white" />
+                </div>
+                <div class="h-[60%] px-3 flex flex-col justify-between py-2.5 bg-white">
+                  <h3 class="font-semibold text-notebook-900 text-xs">Paper to Web</h3>
+                  <div class="flex gap-1.5">
+                    <button
+                      @click="store.downloadWebResult()"
+                      class="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-notebook-800 text-white text-xs rounded-lg hover:bg-notebook-900 transition-colors font-medium"
+                    >
+                      <component :is="icons.Download" :size="10" />
+                    </button>
+                    <button
+                      @click="store.resetWebJob()"
+                      class="flex-1 flex items-center justify-center px-2 py-1 border border-notebook-200 text-notebook-600 text-xs rounded-lg hover:bg-notebook-100 transition-colors"
+                    >New</button>
+                  </div>
+                </div>
               </div>
-            </button>
+
+              <!-- Error -->
+              <div
+                v-else-if="store.paper2webJob.status === 'error'"
+                class="w-full aspect-square rounded-2xl overflow-hidden flex flex-col"
+              >
+                <div class="h-[40%] flex items-center justify-center bg-gradient-to-br from-emerald-500/60 to-teal-600/60">
+                  <component :is="icons.AlertCircle" :size="24" class="text-white" />
+                </div>
+                <div class="h-[60%] px-3 flex flex-col justify-start pt-2.5 bg-white text-left">
+                  <h3 class="font-semibold text-notebook-900 text-xs mb-0.5">Paper to Web</h3>
+                  <p class="text-xs text-red-500 truncate mb-1">{{ store.paper2webJob.error || 'Generation failed' }}</p>
+                  <button @click="store.resetWebJob()" class="text-xs text-emerald-600 underline hover:opacity-80 text-left">Retry</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -777,11 +850,27 @@
 
           <!-- Web Icon -->
           <button
-            @click="store.openPaperSelector('web')"
+            v-if="store.paper2webJob.status === 'idle' || store.paper2webJob.status === 'error'"
+            @click="store.paper2webJob.status === 'error' ? store.resetWebJob() : store.openPaperSelector('web')"
             class="p-2 hover:bg-green-100 rounded-lg transition-colors group"
             title="Paper to Web"
           >
             <component :is="icons.Globe" :size="20" class="text-green-500 group-hover:text-green-600" />
+          </button>
+          <button
+            v-else-if="store.paper2webJob.status === 'running'"
+            class="p-2 rounded-lg cursor-default"
+            title="Generating website\u2026"
+          >
+            <component :is="icons.Globe" :size="20" class="text-green-300 animate-pulse" />
+          </button>
+          <button
+            v-else-if="store.paper2webJob.status === 'done'"
+            @click="store.downloadWebResult()"
+            class="p-2 flex items-center justify-center hover:bg-green-100 rounded-lg transition-colors group"
+            title="Download generated website"
+          >
+            <component :is="icons.Download" :size="20" class="text-green-500 group-hover:text-green-600" />
           </button>
         </div>
       </div>

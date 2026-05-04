@@ -54,7 +54,7 @@ def render_textbox(text_arrangement, textbox_content, tmp_dir):
 
 def gen_poster_title_content(args, actor_config):
     total_input_token, total_output_token = 0, 0
-    raw_content = json.load(open(f'contents/({args.model_name_t}_{args.model_name_v})_{args.poster_name}_raw_content.json', 'r'))
+    raw_content = json.load(open(f'contents/{args.model_name_t}_{args.poster_name}_raw_content.json', 'r'))
     actor_agent_name = 'poster_title_agent'
 
     title_string = raw_content['meta']
@@ -111,8 +111,8 @@ def gen_bullet_point_content(args, actor_config, critic_config, agent_modify=Tru
     total_input_token_t = total_output_token_t = 0
     total_input_token_v = total_output_token_v = 0
 
-    raw_content = json.load(open(f'contents/({args.model_name_t}_{args.model_name_v})_{args.poster_name}_raw_content.json', 'r'))
-    with open(f'tree_splits/({args.model_name_t}_{args.model_name_v})_{args.poster_name}_tree_split_{args.index}.json', 'r') as f:
+    raw_content = json.load(open(f'contents/{args.model_name_t}_{args.poster_name}_raw_content.json', 'r'))
+    with open(f'tree_splits/{args.model_name_t}_{args.poster_name}_tree_split_{args.index}.json', 'r') as f:
         tree_split_results = json.load(f)
 
     panels = tree_split_results['panels']
@@ -352,7 +352,7 @@ def gen_bullet_point_content(args, actor_config, critic_config, agent_modify=Tru
 
     json.dump(
         bullet_point_content,
-        open(f'contents/({args.model_name_t}_{args.model_name_v})_{args.poster_name}_bullet_point_content_{args.index}.json', 'w'),
+        open(f'contents/{args.model_name_t}_{args.poster_name}_bullet_point_content_{args.index}.json', 'w'),
         indent=2
     )
 

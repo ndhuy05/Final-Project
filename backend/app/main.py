@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import SessionLocal, engine
 from app.models.base import Base
-from app.routers import health, papers, chat, generate, poster, auth, notebooks
+from app.routers import health, papers, chat, generate, poster, web, auth, notebooks
 
 # Third-party loggers stay at INFO; only our app uses DEBUG
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
@@ -119,6 +119,7 @@ app.include_router(papers.router,   prefix=settings.API_V1_STR, tags=["papers"])
 app.include_router(chat.router,     prefix=settings.API_V1_STR, tags=["chat"])
 app.include_router(generate.router, prefix=settings.API_V1_STR, tags=["generate"])
 app.include_router(poster.router,   prefix=settings.API_V1_STR, tags=["poster"])
+app.include_router(web.router,      prefix=settings.API_V1_STR, tags=["web"])
 
 
 @app.get("/")

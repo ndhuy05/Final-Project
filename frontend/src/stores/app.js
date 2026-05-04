@@ -49,6 +49,17 @@ export const useAppStore = defineStore('app', () => {
   })
   let _posterPollInterval = null
 
+  // Paper2Web job state
+  const paper2webJob = ref({
+    status: 'idle',   // 'idle' | 'running' | 'done' | 'error'
+    progress: 0,
+    step: '',
+    jobId: null,
+    paperId: null,
+    error: null,
+  })
+  let _webPollInterval = null
+
   // Chat state (from activeNotebook)
   const messages = ref([])
   const notes = ref([])
@@ -368,11 +379,53 @@ export const useAppStore = defineStore('app', () => {
       return
     }
 
-    // Placeholder for other features (web)
-    console.log(`Generating ${selectedFeature.value} for paper: ${selectedPaperForGeneration.value?.title}`)
-    showConfirmation.value = false
-    selectedPaperForGeneration.value = null
-    selectedFeature.value = null
+    if (selectedFeature.value === 'web' && selectedPaperForGeneration.value) {
+      const paper = selectedPaperForGeneration.value
+      showConfirmation.value = false
+      selectedPaperForGeneration.value = null
+      selectedFeature.value = null
+
+      paper2webJob.value = {
+        status: 'running',
+        progress: 0,
+        step: 'Starting\u2026',
+        jobId: null,
+        paperId: paper.id,
+        error: null,
+      }
+
+      apiClient.post(`/notebooks/${activeNotebook.value.id}/papers/${paper.id}/generate/web`)
+        .then(res => {
+          const jobId = res.data.job_id
+          paper2webJob.value.jobId = jobId
+
+          _webPollInterval = setInterval(() => {
+            apiClient.get(`/generate/web/${jobId}/status`)
+              .then(r => {
+                const { status, progress, step, error } = r.data
+                paper2webJob.value.progress = progress
+                paper2webJob.value.step = step
+                if (status === 'done' || status === 'error' || status === 'cancelled') {
+                  paper2webJob.value.status = status
+                  paper2webJob.value.error = error
+                  clearInterval(_webPollInterval)
+                  _webPollInterval = null
+                }
+              })
+              .catch(() => {
+                paper2webJob.value.status = 'error'
+                paper2webJob.value.error = 'Failed to poll status.'
+                clearInterval(_webPollInterval)
+                _webPollInterval = null
+              })
+          }, 2000)
+        })
+        .catch(err => {
+          paper2webJob.value.status = 'error'
+          paper2webJob.value.error = err?.response?.data?.detail || 'Failed to start generation.'
+        })
+      return
+    }
   }
 
   function cancelGeneration() {
@@ -446,6 +499,39 @@ export const useAppStore = defineStore('app', () => {
     paper2posterJob.value = { status: 'idle', progress: 0, step: '', jobId: null, paperId: null, error: null }
   }
 
+  function cancelWebJob() {
+    const jobId = paper2webJob.value.jobId
+    if (!jobId) {
+      resetWebJob()
+      return
+    }
+    apiClient.post(`/generate/web/${jobId}/cancel`)
+      .catch(() => {}) // best-effort
+      .finally(() => resetWebJob())
+  }
+
+  async function downloadWebResult() {
+    const jobId = paper2webJob.value.jobId
+    if (!jobId) return
+    const res = await apiClient.get(`/generate/web/${jobId}/download`, { responseType: 'blob' })
+    const url = URL.createObjectURL(res.data)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `paper2web_${jobId}.zip`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  function resetWebJob() {
+    if (_webPollInterval) {
+      clearInterval(_webPollInterval)
+      _webPollInterval = null
+    }
+    paper2webJob.value = { status: 'idle', progress: 0, step: '', jobId: null, paperId: null, error: null }
+  }
+
   // --- Paper Management Actions ---
 
   function togglePaperMenu(paperId) {
@@ -505,6 +591,7 @@ export const useAppStore = defineStore('app', () => {
     selectedPaperForGeneration,
     paper2codeJob,
     paper2posterJob,
+    paper2webJob,
     // Actions
     initApp,
     login,
@@ -540,5 +627,8 @@ export const useAppStore = defineStore('app', () => {
     cancelPosterJob,
     downloadPosterResult,
     resetPosterJob,
+    cancelWebJob,
+    downloadWebResult,
+    resetWebJob,
   }
 })

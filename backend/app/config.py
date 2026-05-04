@@ -27,6 +27,14 @@ class Settings(BaseSettings):
     PAPER2POSTER_DIR: str = "./app/poster_pipeline"              # self-contained pipeline root inside backend/
     PAPER2POSTER_OUTPUT_DIR: str = "../paper2poster_outputs"     # where .pptx files are saved (outside backend/)
 
+    # Paper2Web pipeline
+    WEB_MODEL_T: str = "openrouter_qwen3_30b_a3b"               # text/parse/outline/extract model alias
+    WEB_MODEL_G: str = "openrouter_qwen3_coder"                  # HTML generator model alias
+    WEB_MODEL_V: str = "openrouter_qwen2_5_VL_72B"              # vision model alias for iterative optimizer
+    WEB_MODEL_C: str = "openrouter_qwen3_coder"                  # coder model alias for iterative optimizer
+    PAPER2WEB_DIR: str = "./app/web_pipeline"                    # self-contained pipeline root inside backend/
+    PAPER2WEB_OUTPUT_DIR: str = "../paper2web_outputs"           # where output dirs are saved (outside backend/)
+
     # Database
     DATABASE_URL: str = "sqlite:///./vibeproject.db"
 

@@ -151,6 +151,8 @@ class PosterAgent(GenerationAgent):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 bufsize=1,
                 env=env,
             )
@@ -179,9 +181,13 @@ class PosterAgent(GenerationAgent):
                     continue
 
                 try:
-                    msg: dict = json.loads(raw_line)
+                    msg = json.loads(raw_line)
                 except json.JSONDecodeError:
                     logger.debug("poster-runner (non-JSON stdout): %s", raw_line)
+                    continue
+
+                if not isinstance(msg, dict):
+                    logger.debug("poster-runner (non-dict JSON): %s", raw_line)
                     continue
 
                 if "error" in msg:
