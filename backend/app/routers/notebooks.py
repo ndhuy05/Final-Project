@@ -3,17 +3,22 @@ Notebooks router: create, list, rename, and delete user-owned notebooks.
 All endpoints require a valid JWT (via get_current_user).
 """
 import logging
-import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.database import get_db
+from app.core.database import get_db
 from app.models.notebook import Notebook
 from app.models.user import User
 from app.services import memory_store
 from app.services.auth_service import get_current_user
+from app.services.notebook_service import (
+    list_notebooks_for_user,
+    create_notebook,
+    rename_notebook,
+    delete_notebook as _delete_notebook,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -54,57 +59,30 @@ async def list_notebooks(
     db: Session = Depends(get_db),
 ):
     """Return all non-deleted notebooks owned by the current user."""
-    notebooks = (
-        db.query(Notebook)
-        .filter(
-            Notebook.user_id == current_user.id,
-            Notebook.deleted_at.is_(None),
-        )
-        .order_by(Notebook.created_at.asc())
-        .all()
-    )
+    notebooks = list_notebooks_for_user(db, current_user.id)
     return {"notebooks": [_notebook_to_dict(n) for n in notebooks]}
 
 
 @router.post("/notebooks", status_code=201)
-async def create_notebook(
+async def create_notebook_endpoint(
     request: NotebookCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Create a new notebook owned by the current user."""
-    notebook = Notebook(
-        id=str(uuid.uuid4()),
-        title=request.name,
-        user_id=current_user.id,
-    )
-    db.add(notebook)
-    db.commit()
-    db.refresh(notebook)
+    notebook = create_notebook(db, name=request.name, user_id=current_user.id)
     return _notebook_to_dict(notebook)
 
 
 @router.patch("/notebooks/{notebook_id}")
-async def rename_notebook(
+async def rename_notebook_endpoint(
     notebook_id: str,
     request: NotebookRename,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Rename a notebook owned by the current user."""
-    notebook = (
-        db.query(Notebook)
-        .filter(
-            Notebook.id == notebook_id,
-            Notebook.user_id == current_user.id,
-            Notebook.deleted_at.is_(None),
-        )
-        .first()
-    )
-    if not notebook:
-        raise HTTPException(status_code=404, detail="Notebook not found.")
-    notebook.rename(request.name)
-    db.commit()
+    rename_notebook(db, notebook_id, current_user.id, request.name)
     return {"success": True}
 
 
@@ -115,17 +93,5 @@ async def delete_notebook(
     db: Session = Depends(get_db),
 ):
     """Soft-delete a notebook owned by the current user."""
-    notebook = (
-        db.query(Notebook)
-        .filter(
-            Notebook.id == notebook_id,
-            Notebook.user_id == current_user.id,
-            Notebook.deleted_at.is_(None),
-        )
-        .first()
-    )
-    if not notebook:
-        raise HTTPException(status_code=404, detail="Notebook not found.")
-    notebook.delete()
-    db.commit()
+    _delete_notebook(db, notebook_id, current_user.id)
     return {"success": True}

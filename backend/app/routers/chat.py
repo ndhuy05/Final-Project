@@ -13,16 +13,16 @@ from pydantic import BaseModel
 from typing import List, Tuple
 from sqlalchemy.orm import Session
 
-from app.config import settings
-from app.database import get_db
-from app.models.notebook import Notebook
-from app.models.chat import ChatSession
+from app.core.config import settings
+from app.core.database import get_db
 from app.models.user import User
 from app.services import (
     qdrant_service, memory_store, embedding_service,
     reranker_service,
 )
-from app.models import PlannerAgent, AnsweringAgent
+from app.services.notebook_service import get_notebook_for_user
+from app.services.chat_service import persist_chat_turn
+from app.agents import PlannerAgent, AnsweringAgent
 from app.services.auth_service import get_current_user
 
 logger = logging.getLogger(__name__)
@@ -30,32 +30,6 @@ router = APIRouter()
 
 _planner = PlannerAgent()
 _answering = AnsweringAgent()
-
-
-def _require_notebook(notebook_id: str, current_user: User, db: Session) -> Notebook:
-    """Return the Notebook owned by current_user or raise HTTP 404."""
-    notebook = (
-        db.query(Notebook)
-        .filter(
-            Notebook.id == notebook_id,
-            Notebook.user_id == current_user.id,
-            Notebook.deleted_at.is_(None),
-        )
-        .first()
-    )
-    if not notebook:
-        raise HTTPException(status_code=404, detail="Notebook not found.")
-    return notebook
-
-
-def _get_or_create_session(notebook: Notebook, db: Session) -> ChatSession:
-    """Return the notebook's single ChatSession, creating it if it doesn't exist yet."""
-    session = notebook.get_chat_session()
-    if session is None:
-        session = ChatSession(notebook_id=notebook.id)
-        db.add(session)
-        db.flush()  # assign session.id without committing the transaction
-    return session
 
 
 class ChatRequest(BaseModel):
@@ -211,7 +185,7 @@ async def get_chat_history(
     db: Session = Depends(get_db),
 ):
     """Return the full ordered chat history for a notebook's session."""
-    notebook = _require_notebook(notebook_id, current_user, db)
+    notebook = get_notebook_for_user(db, notebook_id, current_user.id)
     session = notebook.get_chat_session()
     if session is None:
         return HistoryResponse(messages=[])
@@ -238,7 +212,7 @@ async def chat(
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
-    notebook = _require_notebook(notebook_id, current_user, db)
+    notebook = get_notebook_for_user(db, notebook_id, current_user.id)
     papers = memory_store.get_papers(notebook_id)
     if not papers:
         return ChatResponse(
@@ -331,15 +305,7 @@ async def chat(
         action_types = ["error"]
 
     # --- Persist both turns to the notebook's chat session ---
-    try:
-        chat_session = _get_or_create_session(notebook, db)
-        chat_session.send_message(role="user", content=request.question)
-        citations_json = json.dumps([c.model_dump() for c in citations]) if citations else None
-        chat_session.send_message(role="assistant", content=content, citations_json=citations_json)
-        db.commit()
-    except Exception:
-        logger.exception("Failed to persist chat messages for notebook %s", notebook_id)
-        db.rollback()
+    persist_chat_turn(db, notebook, request.question, content, citations)
 
     return ChatResponse(
         content=content,

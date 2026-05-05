@@ -7,12 +7,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from app.database import get_db
+from app.core.database import get_db
 from app.models.user import User
 from app.services import memory_store
 from app.services.auth_service import get_current_user
-from app.models import PosterAgent
-from app.config import settings
+from app.agents import PosterAgent
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -48,7 +48,7 @@ async def start_poster_generation(
     if not os.path.exists(pdf_path):
         raise HTTPException(status_code=404, detail="PDF file not found on disk.")
 
-    job_id = _poster_agent.run(
+    job_id = _poster_agent.generate_poster(
         notebook_id=notebook_id,
         paper_id=paper_id,
         paper_title=paper.get("title", ""),

@@ -5,7 +5,7 @@ Both embed_text and embed_texts are async — callers must await them.
 """
 from typing import List
 import openai
-from app.config import settings
+from app.core.config import settings
 
 
 def _get_client() -> openai.AsyncOpenAI:

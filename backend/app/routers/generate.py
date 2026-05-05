@@ -6,11 +6,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from app.database import get_db
+from app.core.database import get_db
 from app.models.user import User
 from app.services import memory_store
 from app.services.auth_service import get_current_user
-from app.models import CodeAgent
+from app.agents import CodeAgent
 
 router = APIRouter()
 

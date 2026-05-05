@@ -14,7 +14,7 @@ from qdrant_client.models import (
     FieldCondition,
     MatchValue,
 )
-from app.config import settings
+from app.core.config import settings
 
 _client: QdrantClient = None
 

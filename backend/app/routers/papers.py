@@ -15,13 +15,13 @@ import aiofiles
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sqlalchemy.orm import Session
 
-from app.config import settings
-from app.database import get_db
-from app.models.notebook import Notebook
+from app.core.config import settings
+from app.core.database import get_db
 from app.models.user import User
 from app.services import memory_store, pdf_service, qdrant_service, embedding_service
 from app.services.auth_service import get_current_user
-from app.models import ExtractionAgent
+from app.services.notebook_service import get_notebook_for_user
+from app.agents import ExtractionAgent
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -36,22 +36,6 @@ _text_splitter = RecursiveCharacterTextSplitter(
     separators=["\n\n", "\n", ". ", " ", ""],
     strip_whitespace=True,
 )
-
-
-def _require_notebook(notebook_id: str, current_user: User, db: Session) -> Notebook:
-    """Return the Notebook owned by current_user or raise HTTP 404."""
-    notebook = (
-        db.query(Notebook)
-        .filter(
-            Notebook.id == notebook_id,
-            Notebook.user_id == current_user.id,
-            Notebook.deleted_at.is_(None),
-        )
-        .first()
-    )
-    if not notebook:
-        raise HTTPException(status_code=404, detail="Notebook not found.")
-    return notebook
 
 
 def _chunk_text(text: str) -> List[str]:
@@ -116,7 +100,7 @@ async def upload_paper(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    _require_notebook(notebook_id, current_user, db)
+    get_notebook_for_user(db, notebook_id, current_user.id)
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
 
@@ -201,7 +185,7 @@ async def list_papers(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    _require_notebook(notebook_id, current_user, db)
+    get_notebook_for_user(db, notebook_id, current_user.id)
     papers = memory_store.get_papers(notebook_id)
     return {"papers": papers}
 
@@ -221,7 +205,7 @@ async def list_chunks(
     ?type=table — show only table chunks
     ?limit=20&offset=0 — pagination
     """
-    _require_notebook(notebook_id, current_user, db)
+    get_notebook_for_user(db, notebook_id, current_user.id)
     client = qdrant_service.get_client()
     name = qdrant_service.collection_name(notebook_id)
     try:
@@ -271,7 +255,7 @@ async def delete_paper(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    _require_notebook(notebook_id, current_user, db)
+    get_notebook_for_user(db, notebook_id, current_user.id)
     paper = memory_store.get_paper(notebook_id, paper_id)
     if not paper:
         raise HTTPException(status_code=404, detail="Paper not found.")

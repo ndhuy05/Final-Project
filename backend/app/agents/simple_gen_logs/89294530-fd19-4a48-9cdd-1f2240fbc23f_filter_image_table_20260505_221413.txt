@@ -1,0 +1,382 @@
+================================================================================
+🚀 Simple Gen Outline Layout Website - filter_image_table
+⏰ TIME: 2026-05-05 22:14:13
+📄 NAME: 89294530-fd19-4a48-9cdd-1f2240fbc23f
+================================================================================
+
+📝 THE PROMPT:
+------------------------------------------------------------
+Instructions:
+The user will provide JSON: 
+  1. "json_content": The content of the research paper (sections, text, etc.). 
+  2. "image_information": A dict of images (each with caption, path, size constraints). 
+  3. "table_information": A dict of tables (each with caption, path, size constraints).
+
+Your task:
+  1. Read the research paper outline (json_content).
+  2. Filter image_information and table_information so that only entries relevant to the project website content remain. 
+     • Relevance is determined by matching or relating their captions to the paper's sections or content. 
+     • Consider which visual elements would be most valuable for a project website (e.g., methodology diagrams, result charts, data summaries).
+     • If an image or table does not clearly match or support any content in json_content, remove it.
+     • IMPORTANT: Keep ALL relevant visual elements - do not limit the quantity artificially.
+  3. Return a JSON with the structure:
+     {
+       "image_information": <filtered image information JSON>,
+       "table_information": <filtered table information JSON>
+     }
+
+Output Format:
+Just return a JSON object with the two keys: "image_information" and "table_information" — each containing the filtered data.
+No additional keys or text. Both "image_information" and "table_information" should present even if they are empty.
+
+Note:
+• If no entries remain for either images or tables, just return an empty dict for that key.
+• Keep ALL entries that are relevant to the paper content (no artificial limit on quantity).
+• The goal is to include every visual element that enhances understanding of the research.
+• Make sure the JSON you output is valid.
+
+Please provide only the JSON object as your final output.
+
+json_content:
+{'meta': {'website_title': 'Robust Object Detection in Adverse Weather Conditions: ECL-YOLOv11 for Automotive Vision Systems', 'authors': 'Zhaohui Liu, Jiaxu Zhang, Xiaojun Zhang, Hongle Song', 'affiliations': 'College of Transportation, Shandong University of Science and Technology'}, 'sections': [{'title': 'Introduction', 'content': 'Adverse weather severely degrades vehicle images. Fog, rain, and snow blur edges and reduce contrast. Traditional detectors fail under low-visibility conditions. ECL-YOLOv11 addresses this with three enhancements. The CE module preserves sharp structural boundaries. AENet fuses multi-scale contexts for distant objects. LDHead optimizes speed for automotive real-time deployment.'}, {'title': 'Related Work', 'content': 'CNN detectors like YOLOv11 excel in clear conditions. Transformer models offer global context but demand high compute. Weather-preprocessing adds computational overhead. Current fusion networks struggle with boundary degradation. Anchor boxes mismatch targets in low-contrast scenes. Lightweight heads often sacrifice detection precision. A unified framework balancing robustness and speed remains missing.'}, {'title': 'Dataset Overview', 'content': 'We constructed a custom adverse-weather dataset containing 9006 traffic images. Scenes capture urban roads and highways under fog, heavy rain, and snow. Seven vehicle and pedestrian classes are annotated for detection tasks. Data splits follow an 80-percent training, 10-percent validation, and 10-percent testing ratio. Compared to large-scale clear-weather benchmarks, this set emphasizes low-visibility degradation. Every frame includes precise bounding boxes for robust model training.'}, {'title': 'Methodology/Approach', 'content': 'ECL-YOLOv11 integrates a Convolutional Edge-Enhancement module into the backbone. Fixed Sobel operators extract gradients while learnable convolutions capture semantics. The AENet neck utilizes rectangular calibration and bidirectional feature flow. This architecture aligns multi-scale contexts for distant and small targets. A lightweight shared-convolution detection head replaces traditional decoupled heads. Cross-scale parameter sharing significantly reduces redundant matrix multiplications.'}, {'title': 'Results/Evaluation', 'content': 'Training utilizes 640x640 resolutions and runs for 600 epochs with early stopping. Baseline comparisons show ECL-YOLOv11 achieves 62.7 percent mAP@50 and 40.5 percent mAP@50-95. Precision reaches 73.1 percent, outperforming the standard YOLOv11 baseline by 4.3 percent. The model processes frames at 237.8 FPS, meeting stringent automotive real-time thresholds. Ablation studies confirm each module independently improves boundary retention and fusion consistency. Compared to RT-DETR and Faster R-CNN, our approach delivers comparable accuracy with substantially lower inference latency.'}, {'title': 'Applications', 'content': 'The framework enables reliable perception for autonomous vehicles operating in precipitation. Systems like adaptive cruise control benefit from accurate distant car detection. Lane departure warnings gain stability when pedestrian edges remain visible in fog. Traffic monitoring networks achieve consistent tracking during heavy snowfall. Edge-enhanced localization reduces collision risks in low-traffic rural highways. Shared-convolution heads ensure low-latency decision-making for emergency braking modules.'}, {'title': 'Conclusion', 'content': 'ECL-YOLOv11 successfully bridges the robustness-efficiency gap for weather-degraded vision. Explicit edge preservation and context-guided fusion consistently improve detection metrics. Current limitations involve a compact nine-thousand-image scale and single-modality reliance. Future work will integrate LiDAR and radar inputs for comprehensive spatial awareness. Continuous learning pipelines will further adapt networks to evolving environmental distributions. This foundation establishes a reliable standard for all-weather automotive perception.'}]}
+
+image_information:
+{
+    "6": {
+        "caption": "Figure 1. CE module structure diagram.",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-6.png",
+        "width": 1774,
+        "height": 478,
+        "figure_size": 847972,
+        "figure_aspect": 3.711297071129707
+    },
+    "7": {
+        "caption": "Figure 2. Sobel Conv framework diagram.",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-7.png",
+        "width": 1745,
+        "height": 407,
+        "figure_size": 710215,
+        "figure_aspect": 4.287469287469287
+    },
+    "8": {
+        "caption": "Figure 3. CEB framework diagram.",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-8.png",
+        "width": 1763,
+        "height": 688,
+        "figure_size": 1212944,
+        "figure_aspect": 2.5625
+    },
+    "9": {
+        "caption": "Figure 4. PCE module mechanism.",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-9.png",
+        "width": 1780,
+        "height": 796,
+        "figure_size": 1416880,
+        "figure_aspect": 2.236180904522613
+    },
+    "12": {
+        "caption": "Figure 7. AENet network framework diagram.",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-12.png",
+        "width": 1776,
+        "height": 810,
+        "figure_size": 1438560,
+        "figure_aspect": 2.1925925925925926
+    },
+    "13": {
+        "caption": "Figure 8. LDHead framework diagram.",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-13.png",
+        "width": 1524,
+        "height": 1505,
+        "figure_size": 2293620,
+        "figure_aspect": 1.012624584717608
+    },
+    "14": {
+        "caption": "Figure 9. Architecture diagram of ECL-YOLOv11, Notes: CE: Convolutional Edge-Enhancement module; AENet: Context-Guided Multi-Scale Fusion Network; LDHead: Lightweight Shared Convolutional Detection Head; RCM: Rectangular Calibration Module; C3K2: Cross-Stage Partial Connection block; DIF: Down-to-Up Information Flow module.",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-14.png",
+        "width": 1575,
+        "height": 635,
+        "figure_size": 1000125,
+        "figure_aspect": 2.4803149606299213
+    },
+    "15": {
+        "caption": "Figure 10. Sample images from the dataset.",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-15.png",
+        "width": 1832,
+        "height": 1288,
+        "figure_size": 2359616,
+        "figure_aspect": 1.4223602484472049
+    },
+    "16": {
+        "caption": "Figure 11. Distribution of dataset targets.",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-16.png",
+        "width": 1816,
+        "height": 854,
+        "figure_size": 1550864,
+        "figure_aspect": 2.126463700234192
+    },
+    "19": {
+        "caption": "Figure 14. Comparison experimental results between ECL-YOLOv11 and YOLOv11.",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-19.png",
+        "width": 1839,
+        "height": 717,
+        "figure_size": 1318563,
+        "figure_aspect": 2.564853556485356
+    },
+    "20": {
+        "caption": "Figure 15. Ablation study evaluation metrics.",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-20.png",
+        "width": 2360,
+        "height": 1260,
+        "figure_size": 2973600,
+        "figure_aspect": 1.873015873015873
+    },
+    "21": {
+        "caption": "Figure 16. Overall performance metrics of the comparative experiment.",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-21.png",
+        "width": 2357,
+        "height": 849,
+        "figure_size": 2001093,
+        "figure_aspect": 2.7762073027090697
+    },
+    "22": {
+        "caption": "Figure 17. Qualitative visualization results of different models.",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-22.png",
+        "width": 1841,
+        "height": 2960,
+        "figure_size": 5449360,
+        "figure_aspect": 0.6219594594594594
+    },
+    "23": {
+        "caption": "Figure 18. Model validation results considering adverse weather conditions and motion states.",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-23.png",
+        "width": 1833,
+        "height": 1375,
+        "figure_size": 2520375,
+        "figure_aspect": 1.333090909090909
+    }
+}
+
+table_information:
+{
+    "1": {
+        "caption": "Table 1. Experimental environment parameters.",
+        "table_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-table-1.png",
+        "width": 1969,
+        "height": 773,
+        "figure_size": 1522037,
+        "figure_aspect": 2.5472186287192757
+    },
+    "2": {
+        "caption": "Table 2. Experimental results metrics.",
+        "table_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-table-2.png",
+        "width": 1968,
+        "height": 238,
+        "figure_size": 468384,
+        "figure_aspect": 8.268907563025211
+    },
+    "3": {
+        "caption": "Table 3. Evaluation metrics.",
+        "table_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-table-3.png",
+        "width": 2621,
+        "height": 1333,
+        "figure_size": 3493793,
+        "figure_aspect": 1.9662415603900976
+    },
+    "4": {
+        "caption": "Table 4. Compare the test results of each module.",
+        "table_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-table-4.png",
+        "width": 2621,
+        "height": 295,
+        "figure_size": 773195,
+        "figure_aspect": 8.884745762711864
+    },
+    "5": {
+        "caption": "Table 4. Cont.",
+        "table_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-table-5.png",
+        "width": 2619,
+        "height": 501,
+        "figure_size": 1312119,
+        "figure_aspect": 5.227544910179641
+    },
+    "6": {
+        "caption": "Table 5. Comparison of detection results of all holistic models.",
+        "table_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-table-6.png",
+        "width": 2622,
+        "height": 655,
+        "figure_size": 1717410,
+        "figure_aspect": 4.003053435114504
+    }
+}
+
+🤖 THE RETURN RESULT:
+------------------------------------------------------------
+{
+  "image_information": {
+    "6": {
+      "caption": "Figure 1. CE module structure diagram.",
+      "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-6.png",
+      "width": 1774,
+      "height": 478,
+      "figure_size": 847972,
+      "figure_aspect": 3.711297071129707
+    },
+    "7": {
+      "caption": "Figure 2. Sobel Conv framework diagram.",
+      "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-7.png",
+      "width": 1745,
+      "height": 407,
+      "figure_size": 710215,
+      "figure_aspect": 4.287469287469287
+    },
+    "8": {
+      "caption": "Figure 3. CEB framework diagram.",
+      "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-8.png",
+      "width": 1763,
+      "height": 688,
+      "figure_size": 1212944,
+      "figure_aspect": 2.5625
+    },
+    "9": {
+      "caption": "Figure 4. PCE module mechanism.",
+      "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-9.png",
+      "width": 1780,
+      "height": 796,
+      "figure_size": 1416880,
+      "figure_aspect": 2.236180904522613
+    },
+    "12": {
+      "caption": "Figure 7. AENet network framework diagram.",
+      "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-12.png",
+      "width": 1776,
+      "height": 810,
+      "figure_size": 1438560,
+      "figure_aspect": 2.1925925925925926
+    },
+    "13": {
+      "caption": "Figure 8. LDHead framework diagram.",
+      "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-13.png",
+      "width": 1524,
+      "height": 1505,
+      "figure_size": 2293620,
+      "figure_aspect": 1.012624584717608
+    },
+    "14": {
+      "caption": "Figure 9. Architecture diagram of ECL-YOLOv11, Notes: CE: Convolutional Edge-Enhancement module; AENet: Context-Guided Multi-Scale Fusion Network; LDHead: Lightweight Shared Convolutional Detection Head; RCM: Rectangular Calibration Module; C3K2: Cross-Stage Partial Connection block; DIF: Down-to-Up Information Flow module.",
+      "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-14.png",
+      "width": 1575,
+      "height": 635,
+      "figure_size": 1000125,
+      "figure_aspect": 2.4803149606299213
+    },
+    "15": {
+      "caption": "Figure 10. Sample images from the dataset.",
+      "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-15.png",
+      "width": 1832,
+      "height": 1288,
+      "figure_size": 2359616,
+      "figure_aspect": 1.4223602484472049
+    },
+    "16": {
+      "caption": "Figure 11. Distribution of dataset targets.",
+      "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-16.png",
+      "width": 1816,
+      "height": 854,
+      "figure_size": 1550864,
+      "figure_aspect": 2.126463700234192
+    },
+    "19": {
+      "caption": "Figure 14. Comparison experimental results between ECL-YOLOv11 and YOLOv11.",
+      "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-19.png",
+      "width": 1839,
+      "height": 717,
+      "figure_size": 1318563,
+      "figure_aspect": 2.564853556485356
+    },
+    "20": {
+      "caption": "Figure 15. Ablation study evaluation metrics.",
+      "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-20.png",
+      "width": 2360,
+      "height": 1260,
+      "figure_size": 2973600,
+      "figure_aspect": 1.873015873015873
+    },
+    "21": {
+      "caption": "Figure 16. Overall performance metrics of the comparative experiment.",
+      "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-21.png",
+      "width": 2357,
+      "height": 849,
+      "figure_size": 2001093,
+      "figure_aspect": 2.7762073027090697
+    },
+    "22": {
+      "caption": "Figure 17. Qualitative visualization results of different models.",
+      "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-22.png",
+      "width": 1841,
+      "height": 2960,
+      "figure_size": 5449360,
+      "figure_aspect": 0.6219594594594594
+    },
+    "23": {
+      "caption": "Figure 18. Model validation results considering adverse weather conditions and motion states.",
+      "image_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-picture-23.png",
+      "width": 1833,
+      "height": 1375,
+      "figure_size": 2520375,
+      "figure_aspect": 1.333090909090909
+    }
+  },
+  "table_information": {
+    "1": {
+      "caption": "Table 1. Experimental environment parameters.",
+      "table_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-table-1.png",
+      "width": 1969,
+      "height": 773,
+      "figure_size": 1522037,
+      "figure_aspect": 2.5472186287192757
+    },
+    "2": {
+      "caption": "Table 2. Experimental results metrics.",
+      "table_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-table-2.png",
+      "width": 1968,
+      "height": 238,
+      "figure_size": 468384,
+      "figure_aspect": 8.268907563025211
+    },
+    "3": {
+      "caption": "Table 3. Evaluation metrics.",
+      "table_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-table-3.png",
+      "width": 2621,
+      "height": 1333,
+      "figure_size": 3493793,
+      "figure_aspect": 1.9662415603900976
+    },
+    "4": {
+      "caption": "Table 4. Compare the test results of each module.",
+      "table_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-table-4.png",
+      "width": 2621,
+      "height": 295,
+      "figure_size": 773195,
+      "figure_aspect": 8.884745762711864
+    },
+    "5": {
+      "caption": "Table 4. Cont.",
+      "table_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-table-5.png",
+      "width": 2619,
+      "height": 501,
+      "figure_size": 1312119,
+      "figure_aspect": 5.227544910179641
+    },
+    "6": {
+      "caption": "Table 5. Comparison of detection results of all holistic models.",
+      "table_path": "qwen-qwen3.6-flash_images_and_tables/89294530-fd19-4a48-9cdd-1f2240fbc23f/89294530-fd19-4a48-9cdd-1f2240fbc23f-table-6.png",
+      "width": 2622,
+      "height": 655,
+      "figure_size": 1717410,
+      "figure_aspect": 4.003053435114504
+    }
+  }
+}
+
+================================================================================
+  - INPUT: 13306 TOKENS
+  - OUTPUT: 7278 TOKENS

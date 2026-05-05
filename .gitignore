@@ -108,25 +108,21 @@ paper2poster_outputs/
 paper2code_outputs/
 paper2web_outputs/
 
-# Poster pipeline runtime outputs (model-named dirs and intermediate JSON per run)
-backend/app/poster_pipeline/*_images_and_tables/
-backend/app/poster_pipeline/contents/
-backend/app/poster_pipeline/tree_splits/
-backend/app/poster_pipeline/checkpoints/
-backend/app/poster_pipeline/log/
-backend/app/poster_pipeline/tmp/
-backend/app/poster_pipeline/outlines/
+# Agents pipeline runtime outputs (model-named dirs and intermediate JSON per run)
+# Generated when subprocesses run with CWD = backend/app/agents/
+backend/app/agents/*_images_and_tables/
+backend/app/agents/contents/
+backend/app/agents/tree_splits/
+backend/app/agents/checkpoints/
+backend/app/agents/log/
+backend/app/agents/tmp/
+backend/app/agents/outlines/
+backend/app/agents/website_outlines/
+backend/app/agents/generated_website_*/
+
+
 
 # fastembed / HuggingFace model cache (downloaded on first use)
 .fastembed_cache/
 fastembed_cache/
 *.onnx
-
-# Web pipeline runtime outputs (model-named dirs and intermediate files per run)
-backend/app/web_pipeline/*_images_and_tables/
-backend/app/web_pipeline/contents/
-backend/app/web_pipeline/log/
-backend/app/web_pipeline/website_outlines/
-backend/app/web_pipeline/simple_gen_logs/
-backend/app/web_pipeline/generated_website_*/
-backend/app/web_pipeline/tmp/
