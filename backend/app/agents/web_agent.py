@@ -64,10 +64,10 @@ class WebAgent(GenerationAgent):
             "--pdf_path",     pdf_path,
             "--website_name", website_slug,
             "--output_dir",   job_output_dir,
-            "--model_t",      settings.WEB_MODEL_T,
-            "--model_g",      settings.WEB_MODEL_G,
-            "--model_v",      settings.WEB_MODEL_V,
-            "--model_c",      settings.WEB_MODEL_C,
+            "--model_t",      settings.PAPER2WEB_TEXT_MODEL,
+            "--model_g",      settings.PAPER2WEB_GENERATOR_MODEL,
+            "--model_v",      settings.PAPER2WEB_VISION_MODEL,
+            "--model_c",      settings.PAPER2WEB_CODE_MODEL,
         ]
 
         env = os.environ.copy()

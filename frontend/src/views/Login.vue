@@ -21,8 +21,7 @@
 
           <!-- Brand identity -->
           <div class="flex flex-col items-center gap-3">
-            <img src="/O_logo.png" alt="OpenLab" class="w-20 h-20 object-contain" />
-            <span class="font-display text-3xl font-semibold text-[#222222] tracking-tight">OpenLab</span>
+            <img src="/OpenLab_logo_lightmode.png" alt="OpenLab" class="w-30 h-16 object-contain" draggable="false"/>
             <p class="text-sm text-[#45515e] text-center leading-relaxed">
               Your AI-powered research workspace.<br>From paper to insight in minutes.
             </p>
@@ -243,7 +242,7 @@
     <!-- ── FOOTER ──────────────────────────────────────────── -->
     <footer class="w-full bg-[#181e25] py-4 px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
       <div class="flex items-center gap-2">
-        <img src="/O_logo.png" alt="OpenLab" class="w-5 h-5 object-contain opacity-60" />
+        <img src="/O.png" alt="OpenLab" class="w-5 h-5 object-contain opacity-60" />
         <span class="text-xs text-white/40">&copy; {{ new Date().getFullYear() }} OpenLab. All rights reserved.</span>
       </div>
       <div class="flex items-center gap-5">
@@ -448,6 +447,12 @@ async function handleRegister() {
 </script>
 
 <style scoped>
+img {
+  -webkit-user-drag: none; /* Chặn kéo ảnh trên Chrome, Safari, Edge */
+  pointer-events: none; /* Không cho tương tác chuột */
+  user-select: none;    /* Không cho chọn */
+}
+
 .panel-enter-active,
 .panel-leave-active {
   transition: opacity 0.2s ease, transform 0.2s ease;

@@ -1,6 +1,6 @@
 """
 Qdrant service: local on-disk client, dense single-vector collection.
-Vectors are 1536-dim text embeddings from OpenRouter (openai/text-embedding-3-small).
+Vectors are 4096-dim text embeddings from OpenRouter (qwen/qwen3-embedding-8b).
 No Docker required — uses QdrantClient(path=...).
 """
 import os

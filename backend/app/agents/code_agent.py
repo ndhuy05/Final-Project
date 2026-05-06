@@ -59,7 +59,7 @@ class CodeAgent(GenerationAgent):
             raise InterruptedError("Job cancelled")
         client = self._get_client()
         completion = client.chat.completions.create(
-            model=settings.OPENROUTER_CODE_MODEL,
+            model=settings.PAPER2CODE_CODE_MODEL,
             messages=messages,
         )
         return completion.choices[0].message.content or ""

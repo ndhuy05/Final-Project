@@ -23,10 +23,10 @@ logger = logging.getLogger(__name__)
 class AnsweringAgent:
     """
     Generates the final VLM answer from retrieved page images and text context.
-    Uses OPENROUTER_ANSWER_MODEL (vision-capable).
+    Uses RAG_ANSWER_MODEL (vision-capable).
     """
 
-    model: str = settings.OPENROUTER_ANSWER_MODEL
+    model: str = settings.RAG_ANSWER_MODEL
 
     def __init__(self) -> None:
         self._client: AsyncOpenAI | None = None
@@ -55,7 +55,7 @@ class AnsweringAgent:
         results: list[dict[str, Any]] | None = None,
     ) -> str:
         """
-        Generate an answer using OPENROUTER_ANSWER_MODEL.
+        Generate an answer using RAG_ANSWER_MODEL.
 
         With images: vision call — model reads page images alongside the question.
         Without images: text-only call — question already contains any metadata context.

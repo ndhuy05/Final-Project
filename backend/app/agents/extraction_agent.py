@@ -34,7 +34,7 @@ class ExtractionAgent:
     - embeddings + Qdrant upsert
     """
 
-    model: str = settings.OPENROUTER_VISION_MODEL
+    model: str = settings.RAG_VISION_MODEL
 
     def __init__(self) -> None:
         self._client: AsyncOpenAI | None = None

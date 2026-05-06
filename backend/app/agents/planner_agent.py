@@ -24,11 +24,11 @@ logger = logging.getLogger(__name__)
 class PlannerAgent:
     """
     Decides which retrieval actions to run before answering a question.
-    Uses a text-only LLM (OPENROUTER_PLANNER_MODEL) that outputs a JSON action list.
+    Uses a text-only LLM (RAG_PLANNER_MODEL) that outputs a JSON action list.
     Falls back to a single retrieve-all action on any error.
     """
 
-    model: str = settings.OPENROUTER_PLANNER_MODEL
+    model: str = settings.RAG_PLANNER_MODEL
 
     def __init__(self) -> None:
         self._client: AsyncOpenAI | None = None

@@ -130,8 +130,8 @@ class PosterAgent(GenerationAgent):
             "--pdf_path",    pdf_path,
             "--poster_name", poster_slug,
             "--output_dir",  job_output_dir,
-            "--model_t",     settings.POSTER_MODEL_T,
-            "--model_v",     settings.POSTER_MODEL_V,
+            "--model_t",     settings.PAPER2POSTER_TEXT_MODEL,
+            "--model_v",     settings.PAPER2POSTER_VISION_MODEL,
             "--tmp_dir",     job_tmp_dir,
         ]
         if preextracted_path is not None:

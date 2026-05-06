@@ -12,26 +12,26 @@ class Settings(BaseSettings):
 
     # OpenRouter API
     OPENROUTER_API_KEY: str = ""
-    OPENROUTER_VISION_MODEL: str = "google/gemini-flash-1.5"   # extraction
-    OPENROUTER_PLANNER_MODEL: str = "openai/gpt-4o-mini"        # routing + decomposition
-    OPENROUTER_ANSWER_MODEL: str = "google/gemini-flash-1.5"   # answer generation
-    OPENROUTER_CODE_MODEL: str = "anthropic/claude-3.5-sonnet"  # paper2code generation
-    OPENROUTER_EMBEDDING_MODEL: str = "openai/text-embedding-3-small"  # 1536-dim
+    RAG_VISION_MODEL: str = "qwen/qwen3.6-flash"         # extraction
+    RAG_PLANNER_MODEL: str = "qwen/qwen3.6-flash"        # routing + decomposition
+    RAG_ANSWER_MODEL: str = "openai/gpt-5.2"             # answer generation
+    PAPER2CODE_CODE_MODEL: str = "minimax/minimax-m2.7"         # paper2code generation
+    RAG_EMBEDDING_MODEL: str = "qwen/qwen3-embedding-8b"  # 4096-dim
 
     # Paper2Code output (kept outside backend/ so uvicorn --reload doesn't watch it)
     PAPER2CODE_OUTPUT_DIR: str = "../paper2code_outputs"
 
     # Paper2Poster pipeline
-    POSTER_MODEL_T: str = "qwen/qwen3.5-plus-02-15"             # OpenRouter model ID for text tasks
-    POSTER_MODEL_V: str = "qwen/qwen3.5-plus-02-15"             # OpenRouter model ID for vision tasks
+    PAPER2POSTER_TEXT_MODEL: str = "qwen/qwen3.6-flash"                  # OpenRouter model ID for text tasks
+    PAPER2POSTER_VISION_MODEL: str = "qwen/qwen3-vl-32b-instruct"          # OpenRouter model ID for vision tasks
     PAPER2POSTER_DIR: str = "./app/agents"                      # consolidated agents root inside backend/
     PAPER2POSTER_OUTPUT_DIR: str = "../paper2poster_outputs"     # where .pptx files are saved (outside backend/)
 
     # Paper2Web pipeline
-    WEB_MODEL_T: str = "openrouter_qwen3_30b_a3b"               # text/parse/outline/extract model alias
-    WEB_MODEL_G: str = "openrouter_qwen3_coder"                  # HTML generator model alias
-    WEB_MODEL_V: str = "openrouter_qwen2_5_VL_72B"              # vision model alias for iterative optimizer
-    WEB_MODEL_C: str = "openrouter_qwen3_coder"                  # coder model alias for iterative optimizer
+    PAPER2WEB_TEXT_MODEL: str = "qwen/qwen3.6-flash"                     # text/parse/outline/extract model alias
+    PAPER2WEB_GENERATOR_MODEL: str = "qwen/qwen3-coder-next"                  # HTML generator model alias
+    PAPER2WEB_VISION_MODEL: str = "qwen/qwen3-vl-32b-instruct"             # vision model alias for iterative optimizer
+    PAPER2WEB_CODE_MODEL: str = "qwen/qwen3-coder-next"                  # coder model alias for iterative optimizer
     PAPER2WEB_DIR: str = "./app/agents"                         # consolidated agents root inside backend/
     PAPER2WEB_OUTPUT_DIR: str = "../paper2web_outputs"           # where output dirs are saved (outside backend/)
 

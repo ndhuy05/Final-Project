@@ -192,7 +192,7 @@ def get_agent_config(model_type):
         }
     elif model_type == 'openrouter_qwen3':
         # Alias kept for backward compatibility with existing .env files that set
-        # POSTER_MODEL_T=openrouter_qwen3 or POSTER_MODEL_V=openrouter_qwen3.
+        # PAPER2POSTER_TEXT_MODEL=openrouter_qwen3 or PAPER2POSTER_VISION_MODEL=openrouter_qwen3.
         agent_config = {
             'model_type': 'qwen/qwen3.5-plus-02-15',
             'model_platform': ModelPlatformType.OPENROUTER,

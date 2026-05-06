@@ -49,7 +49,7 @@ PDF
   └─ PyMuPDF → page PNGs saved to disk
 
   For each page (one at a time via VLM):
-    VLM (OPENROUTER_VISION_MODEL)
+    VLM (RAG_VISION_MODEL)
       ← page image
       → plain text  (tables described in prose)
       → metadata on page 0: title, authors, year, venue, abstract,
@@ -67,7 +67,7 @@ PDF
 
 ── RETRIEVAL (Chat) ─────────────────────────────────────────────────────
 Question
-  └─ Planner LLM (OPENROUTER_PLANNER_MODEL)
+  └─ Planner LLM (RAG_PLANNER_MODEL)
        → list of actions: read_metadata / retrieve (with paper_id scope)
        (actions run in parallel via asyncio.gather)
 
@@ -82,7 +82,7 @@ Question
     └─ best result at page N per paper
          → load images: page N-1, page N, page N+1 from disk
 
-  VLM (OPENROUTER_ANSWER_MODEL)
+  VLM (RAG_ANSWER_MODEL)
     ← images from all targeted papers + question (+ metadata block if read_metadata ran)
     → answer citing (Page X) for image facts, (metadata) for bibliographic facts
 ```
@@ -124,11 +124,11 @@ Question
 ### AI / Models (via OpenRouter)
 | Role | Default Model | Config Key |
 |---|---|---|
-| Page extraction (VLM) | `google/gemini-flash-1.5` | `OPENROUTER_VISION_MODEL` |
-| Answer generation (VLM) | `google/gemini-flash-1.5` | `OPENROUTER_ANSWER_MODEL` |
-| Planner + metadata answers (text-only) | `openai/gpt-4o-mini` | `OPENROUTER_PLANNER_MODEL` |
-| Text embeddings | `openai/text-embedding-3-small` | `OPENROUTER_EMBEDDING_MODEL` |
-| Paper to Code generation | `anthropic/claude-3.5-sonnet` | `OPENROUTER_CODE_MODEL` |
+| Page extraction (VLM) | `google/gemini-flash-1.5` | `RAG_VISION_MODEL` |
+| Answer generation (VLM) | `google/gemini-flash-1.5` | `RAG_ANSWER_MODEL` |
+| Planner + metadata answers (text-only) | `openai/gpt-4o-mini` | `RAG_PLANNER_MODEL` |
+| Text embeddings | `openai/text-embedding-3-small` | `RAG_EMBEDDING_MODEL` |
+| Paper to Code generation | `anthropic/claude-3.5-sonnet` | `PAPER2CODE_CODE_MODEL` |
 
 ---
 
@@ -209,11 +209,11 @@ npm run dev
 
 ```env
 OPENROUTER_API_KEY=sk-or-...
-OPENROUTER_VISION_MODEL=google/gemini-flash-1.5         # for page extraction
-OPENROUTER_ANSWER_MODEL=google/gemini-flash-1.5         # for VLM answer generation
-OPENROUTER_PLANNER_MODEL=openai/gpt-4o-mini             # for planner + metadata answers
-OPENROUTER_EMBEDDING_MODEL=openai/text-embedding-3-small  # for text embeddings (4096-dim)
-OPENROUTER_CODE_MODEL=anthropic/claude-3.5-sonnet       # for Paper to Code generation
+RAG_VISION_MODEL=google/gemini-flash-1.5         # for page extraction
+RAG_ANSWER_MODEL=google/gemini-flash-1.5         # for VLM answer generation
+RAG_PLANNER_MODEL=openai/gpt-4o-mini             # for planner + metadata answers
+RAG_EMBEDDING_MODEL=openai/text-embedding-3-small  # for text embeddings (4096-dim)
+PAPER2CODE_CODE_MODEL=anthropic/claude-3.5-sonnet       # for Paper to Code generation
 ```
 
 ---
@@ -240,7 +240,7 @@ OPENROUTER_CODE_MODEL=anthropic/claude-3.5-sonnet       # for Paper to Code gene
 ### Known Limitations
 - **In-memory metadata**: Notebooks and paper metadata reset on server restart (no database)
 - **No auth**: Notebook IDs passed directly in URL
-- **Qdrant storage reset required**: If `OPENROUTER_EMBEDDING_MODEL` is changed, delete `qdrant_storage/` and re-upload all papers (vector dimensions must match)
+- **Qdrant storage reset required**: If `RAG_EMBEDDING_MODEL` is changed, delete `qdrant_storage/` and re-upload all papers (vector dimensions must match)
 
 ### Debug Endpoint
 Browse stored chunks at:

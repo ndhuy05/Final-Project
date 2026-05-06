@@ -9,7 +9,7 @@
       <template v-if="!store.leftSidebarCollapsed">
         <!-- Header with Notebook Name and Collapse Button -->
         <div class="p-4 flex items-center justify-between">
-          <img src="/OpenLab_logo_light.png" alt="OpenLab" class="h-9 w-auto object-contain" />
+          <img src="/OpenLab_logo_lightmode.png" alt="OpenLab" class="h-5 w-auto object-contain" draggable="false"/>
           <button 
             @click="store.toggleLeftSidebar"
             class="p-1 hover:bg-notebook-200 rounded-lg transition-colors flex-shrink-0"
@@ -430,9 +430,7 @@
 
             <!-- AI Message -->
             <div v-else class="max-w-[80%] flex gap-3">
-              <div class="w-8 h-8 rounded-full bg-brand flex items-center justify-center flex-shrink-0">
-                <component :is="icons.Sparkles" :size="16" class="text-white" />
-              </div>
+              <img src="/O.png" alt="OpenLab" class="w-6 h-6 object-contain opacity-60" draggable="false"/>
               <div class="flex-1">
                 <div class="prose prose-sm max-w-none" v-html="renderMarkdown(message.content)"></div>
                 
@@ -509,7 +507,7 @@
           >
             <component :is="icons.ChevronRight" :size="18" class="text-notebook-600" />
           </button>
-          <h1 class="text-xl font-semibold text-notebook-900 truncate">Lab Space</h1>
+          <h1 class="text-xl font-bold text-notebook-900 truncate">Lab Space</h1>
         </div>
 
         <!-- Feature Cards Grid -->
@@ -922,6 +920,47 @@
       </div>
     </div>
 
+    <!-- Custom Dialog (replaces browser prompt / confirm) -->
+    <div
+      v-if="dialog.show"
+      class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      @click.self="closeDialog"
+    >
+      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
+        <h2 class="text-lg font-semibold text-notebook-900 mb-4">{{ dialog.title }}</h2>
+
+        <!-- Input type -->
+        <input
+          v-if="dialog.type === 'input'"
+          ref="dialogInput"
+          v-model="dialog.inputValue"
+          :placeholder="dialog.inputPlaceholder"
+          @keydown.enter="submitDialog"
+          @keydown.esc="closeDialog"
+          class="w-full px-3 py-2 border border-notebook-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm mb-5"
+        />
+
+        <!-- Confirm type -->
+        <p v-else class="text-sm text-notebook-600 mb-5">{{ dialog.message }}</p>
+
+        <div class="flex gap-3">
+          <button
+            @click="closeDialog"
+            class="flex-1 px-4 py-2 border border-notebook-300 text-notebook-700 rounded-lg hover:bg-notebook-50 transition-colors font-medium text-sm"
+          >Cancel</button>
+          <button
+            @click="submitDialog"
+            :class="[
+              'flex-1 px-4 py-2 rounded-lg transition-colors font-medium text-sm',
+              dialog.confirmDanger
+                ? 'bg-red-600 text-white hover:bg-red-700'
+                : 'bg-notebook-800 text-white hover:bg-notebook-900'
+            ]"
+          >{{ dialog.confirmLabel }}</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Confirmation Dialog -->
     <div 
       v-if="store.showConfirmation"
@@ -969,6 +1008,41 @@ import {
 
 const store = useAppStore()
 
+// Custom dialog (replaces browser prompt / confirm)
+const dialogInput = ref(null)
+const dialog = ref({
+  show: false,
+  type: null,        // 'input' | 'confirm'
+  title: '',
+  message: '',
+  inputValue: '',
+  inputPlaceholder: '',
+  confirmLabel: 'Confirm',
+  confirmDanger: false,
+  onConfirm: null,
+})
+
+watch(() => dialog.value.show, (show) => {
+  if (show && dialog.value.type === 'input') {
+    nextTick(() => dialogInput.value?.focus())
+  }
+})
+
+function closeDialog() {
+  dialog.value.show = false
+}
+
+function submitDialog() {
+  if (dialog.value.type === 'input') {
+    const val = dialog.value.inputValue.trim()
+    if (!val) return
+    dialog.value.onConfirm(val)
+  } else {
+    dialog.value.onConfirm()
+  }
+  closeDialog()
+}
+
 // Icon components
 const icons = {
   Upload, FileText, Settings, PanelRight, Brain, Quote, Layers, Sparkles,
@@ -1013,36 +1087,68 @@ watch([chatMessages, () => store.isTyping], () => {
 
 // Notebook handlers
 const handleCreateNotebook = () => {
-  const name = prompt('Enter notebook name:')
-  if (name && name.trim()) {
-    store.createNotebook(name.trim())
+  dialog.value = {
+    show: true, type: 'input',
+    title: 'New Notebook',
+    message: '',
+    inputValue: '',
+    inputPlaceholder: 'Notebook name',
+    confirmLabel: 'Create',
+    confirmDanger: false,
+    onConfirm: (name) => store.createNotebook(name),
   }
 }
 
 const handleRenameNotebook = (notebook) => {
-  const newName = prompt('Enter new notebook name:', notebook.name)
-  if (newName && newName.trim()) {
-    store.renameNotebook(notebook.id, newName.trim())
+  dialog.value = {
+    show: true, type: 'input',
+    title: 'Rename Notebook',
+    message: '',
+    inputValue: notebook.name,
+    inputPlaceholder: 'Notebook name',
+    confirmLabel: 'Rename',
+    confirmDanger: false,
+    onConfirm: (name) => store.renameNotebook(notebook.id, name),
   }
 }
 
 const handleDeleteNotebook = (id) => {
-  if (confirm('Are you sure you want to delete this notebook? This action cannot be undone.')) {
-    store.deleteNotebook(id)
+  dialog.value = {
+    show: true, type: 'confirm',
+    title: 'Delete Notebook',
+    message: 'This notebook and all its data will be permanently deleted.',
+    inputValue: '',
+    inputPlaceholder: '',
+    confirmLabel: 'Delete',
+    confirmDanger: true,
+    onConfirm: () => store.deleteNotebook(id),
   }
 }
 
 // Paper handlers
 const handleRenamePaper = (paper) => {
-  const newTitle = prompt('Enter new paper title:', paper.title)
-  if (newTitle && newTitle.trim()) {
-    store.renamePaper(paper.id, newTitle.trim())
+  dialog.value = {
+    show: true, type: 'input',
+    title: 'Rename Paper',
+    message: '',
+    inputValue: paper.title,
+    inputPlaceholder: 'Paper title',
+    confirmLabel: 'Rename',
+    confirmDanger: false,
+    onConfirm: (name) => store.renamePaper(paper.id, name),
   }
 }
 
-const handleDeletePaper = async (paper) => {
-  if (confirm(`Are you sure you want to delete "${paper.title}"? This action cannot be undone.`)) {
-    await store.deletePaper(paper.id)
+const handleDeletePaper = (paper) => {
+  dialog.value = {
+    show: true, type: 'confirm',
+    title: 'Delete Paper',
+    message: `"${paper.title}" will be permanently deleted.`,
+    inputValue: '',
+    inputPlaceholder: '',
+    confirmLabel: 'Delete',
+    confirmDanger: true,
+    onConfirm: () => store.deletePaper(paper.id),
   }
 }
 
@@ -1089,6 +1195,12 @@ const handleSendMessage = () => {
 /* Auto-resize textarea */
 textarea {
   field-sizing: content;
+}
+
+img {
+  -webkit-user-drag: none; /* Chặn kéo ảnh trên Chrome, Safari, Edge */
+  pointer-events: none; /* Không cho tương tác chuột */
+  user-select: none;    /* Không cho chọn */
 }
 
 /* ---- Empty state (no notebook selected) ---- */
