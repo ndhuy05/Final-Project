@@ -38,7 +38,6 @@ class UserResponse(BaseModel):
     id: str
     username: str
     email: str
-    full_name: str | None
 
 
 # --- Endpoints ---
@@ -64,5 +63,4 @@ async def me(current_user: User = Depends(get_current_user)):
         id=current_user.id,
         username=current_user.username,
         email=current_user.email,
-        full_name=current_user.full_name,
     )

@@ -17,7 +17,7 @@ from app.services.notebook_service import (
     list_notebooks_for_user,
     create_notebook,
     rename_notebook,
-    delete_notebook as _delete_notebook,
+    delete_notebook,
 )
 
 logger = logging.getLogger(__name__)
@@ -87,11 +87,11 @@ async def rename_notebook_endpoint(
 
 
 @router.delete("/notebooks/{notebook_id}")
-async def delete_notebook(
+async def delete_notebook_endpoint(
     notebook_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Soft-delete a notebook owned by the current user."""
-    _delete_notebook(db, notebook_id, current_user.id)
+    """Hard-delete a notebook owned by the current user."""
+    delete_notebook(db, notebook_id, current_user.id)
     return {"success": True}

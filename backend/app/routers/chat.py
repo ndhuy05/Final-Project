@@ -305,7 +305,7 @@ async def chat(
         action_types = ["error"]
 
     # --- Persist both turns to the notebook's chat session ---
-    persist_chat_turn(db, notebook, request.question, content, citations)
+    persist_chat_turn(db, notebook, request.question, content, citations, current_user.id)
 
     return ChatResponse(
         content=content,

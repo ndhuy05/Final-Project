@@ -1,6 +1,6 @@
 """
 Papers router: upload PDF, extract content with OpenRouter vision model,
-chunk with LangChain, embed with fastembed, store in Qdrant.
+chunk with LangChain (512-token chunks, cl100k_base tokenizer), embed with fastembed, store in Qdrant.
 Extracts structured metadata + description from the first batch (contains page 0).
 """
 import logging
@@ -30,16 +30,16 @@ BATCH_SIZE = 1  # pages per VLM call (increase only if vision model reliably fol
 
 _extraction_agent = ExtractionAgent()
 
-_text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=500,
-    chunk_overlap=75,
+_text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+    encoding_name="cl100k_base",
+    chunk_size=512,
+    chunk_overlap=64,
     separators=["\n\n", "\n", ". ", " ", ""],
-    strip_whitespace=True,
 )
 
 
 def _chunk_text(text: str) -> List[str]:
-    """Split text into overlapping chunks using LangChain RecursiveCharacterTextSplitter."""
+    """Split text into 512-token overlapping chunks (64-token overlap, cl100k_base tokenizer)."""
     chunks = _text_splitter.split_text(text)
     return [c for c in chunks if len(c) > 20]
 

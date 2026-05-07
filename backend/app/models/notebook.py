@@ -9,7 +9,7 @@ to avoid COUNT(*) on every sidebar render.
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -20,20 +20,18 @@ class Notebook(Base, TimestampMixin):
 
     # --- Primary key ---
     id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+        Uuid(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4())
     )
 
     # --- Ownership (nullable until auth is introduced) ---
     user_id: Mapped[str | None] = mapped_column(
-        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True
+        Uuid(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True
     )
 
     # --- Display fields ---
     title: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    color_tag: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
-    # --- Denormalised counter (updated by router, not by trigger) ---
+    # --- Denormalised counter (maintained by DB trigger in PostgreSQL; by router in SQLite dev) ---
     paper_count_cached: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     # --- Soft delete ---

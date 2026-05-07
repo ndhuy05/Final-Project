@@ -12,7 +12,7 @@ This is kept as a TEXT column (not a JSON column) for maximum SQLite compatibili
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -23,17 +23,16 @@ class ChatSession(Base, TimestampMixin):
 
     # --- Primary key ---
     id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+        Uuid(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4())
     )
 
     # --- Parent ---
     notebook_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("notebooks.id", ondelete="CASCADE"), nullable=False, index=True
+        Uuid(as_uuid=False), ForeignKey("notebooks.id", ondelete="CASCADE"), nullable=False, index=True
     )
 
     # --- Display ---
     title: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    summary: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
     # --- Soft delete ---
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
@@ -48,7 +47,7 @@ class ChatSession(Base, TimestampMixin):
 
     # --- Methods ---
 
-    def send_message(self, role: str, content: str, citations_json: str | None = None) -> "ChatMessage":
+    def send_message(self, role: str, content: str, citations_json: str | None = None, user_id: str | None = None) -> "ChatMessage":
         """
         Append a new message to this session and return it.
         The caller is responsible for flushing/committing the session to the DB.
@@ -58,6 +57,7 @@ class ChatSession(Base, TimestampMixin):
             role=role,
             content=content,
             citations_json=citations_json,
+            user_id=user_id,
         )
         self.messages.append(msg)
         return msg
@@ -84,17 +84,17 @@ class ChatMessage(Base):
 
     # --- Primary key ---
     id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+        Uuid(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4())
     )
 
     # --- Parent ---
     chat_session_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("chat_sessions.id", ondelete="CASCADE"), nullable=False, index=True
+        Uuid(as_uuid=False), ForeignKey("chat_sessions.id", ondelete="CASCADE"), nullable=False, index=True
     )
 
     # --- Optional user FK (null for assistant messages) ---
     user_id: Mapped[str | None] = mapped_column(
-        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+        Uuid(as_uuid=False), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
 
     # --- Content ---

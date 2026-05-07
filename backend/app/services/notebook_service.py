@@ -4,10 +4,15 @@ All SQL queries that touch the notebooks table live here.
 """
 import uuid
 import logging
+import os
+import shutil
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.models.notebook import Notebook
+from app.models.paper import Paper
+from app.services import qdrant_service
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +67,27 @@ def rename_notebook(db: Session, notebook_id: str, user_id: str, name: str) -> N
 
 
 def delete_notebook(db: Session, notebook_id: str, user_id: str) -> None:
-    """Soft-delete a notebook. Raises HTTP 404 if not found or not owned by user."""
+    """Hard-delete a notebook and clean up all associated files and Qdrant vectors."""
     notebook = get_notebook_for_user(db, notebook_id, user_id)
-    notebook.delete()
+
+    # Collect papers before the cascade wipes them
+    papers = db.query(Paper).filter(Paper.notebook_id == notebook_id).all()
+
+    # Delete Qdrant collection for this notebook (all paper vectors)
+    try:
+        qdrant_service.delete_collection(notebook_id)
+    except Exception:
+        logger.warning("Failed to delete Qdrant collection for notebook %s", notebook_id)
+
+    # Delete PDF files and page image directories for each paper
+    for paper in papers:
+        if paper.storage_path:
+            pdf_path = os.path.join(settings.UPLOAD_DIR, paper.storage_path)
+            if os.path.exists(pdf_path):
+                os.remove(pdf_path)
+        image_dir = os.path.join(settings.IMAGE_DIR, paper.id)
+        if os.path.exists(image_dir):
+            shutil.rmtree(image_dir)
+
+    db.delete(notebook)
     db.commit()

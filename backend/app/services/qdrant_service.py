@@ -168,3 +168,11 @@ def delete_paper_points(notebook_id: str, paper_id: str):
             must=[FieldCondition(key="paper_id", match=MatchValue(value=paper_id))]
         ),
     )
+
+
+def delete_collection(notebook_id: str):
+    """Delete the entire Qdrant collection for a notebook."""
+    client = get_client()
+    name = collection_name(notebook_id)
+    if client.collection_exists(name):
+        client.delete_collection(name)

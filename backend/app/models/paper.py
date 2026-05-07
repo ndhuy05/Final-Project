@@ -15,7 +15,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, JSON, String, Text, UniqueConstraint, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -29,12 +29,12 @@ class Paper(Base, TimestampMixin):
 
     # --- Primary key ---
     id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+        Uuid(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4())
     )
 
     # --- Parent ---
     notebook_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("notebooks.id", ondelete="CASCADE"), nullable=False, index=True
+        Uuid(as_uuid=False), ForeignKey("notebooks.id", ondelete="CASCADE"), nullable=False, index=True
     )
 
     # --- File info ---
@@ -42,7 +42,6 @@ class Paper(Base, TimestampMixin):
     storage_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
     file_size_mb: Mapped[float | None] = mapped_column(Float, nullable=True)
     page_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    total_chunks: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # --- Extracted metadata (populated by ExtractionAgent) ---
     title: Mapped[str | None] = mapped_column(String(512), nullable=True)
@@ -60,9 +59,6 @@ class Paper(Base, TimestampMixin):
 
     # --- Relationships ---
     notebook: Mapped["Notebook"] = relationship("Notebook", back_populates="papers")  # type: ignore[name-defined]  # noqa: F821
-    generation_jobs: Mapped[list["GenerationJob"]] = relationship(  # type: ignore[name-defined]  # noqa: F821
-        "GenerationJob", back_populates="paper", cascade="all, delete-orphan"
-    )
 
     # --- Methods ---
 

@@ -430,9 +430,12 @@
 
             <!-- AI Message -->
             <div v-else class="max-w-[80%] flex gap-3">
-              <img src="/O.png" alt="OpenLab" class="w-6 h-6 object-contain opacity-60" draggable="false"/>
+              <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
+                <img src="/O.png" alt="OpenLab" class="w-6 h-6 object-contain opacity-60" draggable="false"/>
+              </div>              
               <div class="flex-1">
-                <div class="prose prose-sm max-w-none" v-html="renderMarkdown(message.content)"></div>
+                <div class="prose prose-sm max-w-none" v-html="renderMarkdown(message.content)">
+                </div>
                 
                 <!-- Citations -->
                 <div v-if="message.citations && message.citations.length > 0" class="flex flex-wrap gap-2 mt-3">
@@ -453,8 +456,8 @@
 
         <!-- Typing Indicator -->
         <div v-if="store.isTyping" class="max-w-3xl mx-auto mt-6 flex gap-3 justify-start">
-          <div class="w-8 h-8 rounded-full bg-brand flex items-center justify-center flex-shrink-0">
-            <component :is="icons.Sparkles" :size="16" class="text-white" />
+          <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
+            <img src="/O.png" alt="OpenLab" class="w-6 h-6 object-contain opacity-60" draggable="false"/>
           </div>
           <div class="bg-notebook-100 rounded-2xl px-4 py-3 flex items-center gap-1">
             <span class="w-2 h-2 bg-notebook-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>

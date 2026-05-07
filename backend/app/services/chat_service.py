@@ -29,6 +29,7 @@ def persist_chat_turn(
     user_content: str,
     assistant_content: str,
     citations: list,
+    user_id: str | None = None,
 ) -> None:
     """
     Persist one full chat turn (user + assistant messages) to the notebook's session.
@@ -36,7 +37,7 @@ def persist_chat_turn(
     """
     try:
         chat_session = get_or_create_chat_session(db, notebook)
-        chat_session.send_message(role="user", content=user_content)
+        chat_session.send_message(role="user", content=user_content, user_id=user_id)
         citations_json = json.dumps([c.model_dump() for c in citations]) if citations else None
         chat_session.send_message(role="assistant", content=assistant_content, citations_json=citations_json)
         db.commit()
