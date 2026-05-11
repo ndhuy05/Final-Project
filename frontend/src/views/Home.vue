@@ -392,22 +392,22 @@
 
           <!-- Feature Cards -->
           <div class="grid grid-cols-2 gap-4 mt-12">
-            <div class="p-4 border border-notebook-200 rounded-2xl hover:shadow-brand-glow transition-shadow cursor-pointer">
+            <div class="p-4 border border-notebook-200 rounded-2xl hover:shadow-brand-glow transition-shadow cursor-default">
               <component :is="icons.Brain" :size="24" class="text-brand mb-2" />
               <h3 class="font-semibold text-notebook-900 mb-1">Smart Analysis</h3>
               <p class="text-sm text-notebook-600">AI-powered insights from your research papers</p>
             </div>
-            <div class="p-4 border border-notebook-200 rounded-2xl hover:shadow-brand-glow transition-shadow cursor-pointer">
+            <div class="p-4 border border-notebook-200 rounded-2xl hover:shadow-brand-glow transition-shadow cursor-default">
               <component :is="icons.Quote" :size="24" class="text-green-500 mb-2" />
               <h3 class="font-semibold text-notebook-900 mb-1">Source Citations</h3>
               <p class="text-sm text-notebook-600">Every answer linked to original sources</p>
             </div>
-            <div class="p-4 border border-notebook-200 rounded-2xl hover:shadow-brand-glow transition-shadow cursor-pointer">
+            <div class="p-4 border border-notebook-200 rounded-2xl hover:shadow-brand-glow transition-shadow cursor-default">
               <component :is="icons.Layers" :size="24" class="text-purple-500 mb-2" />
               <h3 class="font-semibold text-notebook-900 mb-1">Multi-Paper Query</h3>
               <p class="text-sm text-notebook-600">Ask questions across multiple documents</p>
             </div>
-            <div class="p-4 border border-notebook-200 rounded-2xl hover:shadow-brand-glow transition-shadow cursor-pointer">
+            <div class="p-4 border border-notebook-200 rounded-2xl hover:shadow-brand-glow transition-shadow cursor-default">
               <component :is="icons.Sparkles" :size="24" class="text-orange-500 mb-2" />
               <h3 class="font-semibold text-notebook-900 mb-1">Generate Content</h3>
               <p class="text-sm text-notebook-600">Create code, posters, and website</p>
@@ -430,24 +430,19 @@
 
             <!-- AI Message -->
             <div v-else class="max-w-[80%] flex gap-3">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
-                <img src="/O.png" alt="OpenLab" class="w-6 h-6 object-contain opacity-60" draggable="false"/>
-              </div>              
               <div class="flex-1">
                 <div class="prose prose-sm max-w-none" v-html="renderMarkdown(message.content)">
                 </div>
                 
                 <!-- Citations -->
                 <div v-if="message.citations && message.citations.length > 0" class="flex flex-wrap gap-2 mt-3">
-                  <button
-                    v-for="citation in message.citations"
-                    :key="citation.id"
-                    @click="store.selectCitation(citation)"
-                    class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors border border-blue-200"
+                  <div
+                    @click="store.selectCitation(message.citations[0])"
+                    class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-md transition-colors border border-blue-200 cursor-default"
                   >
                     <component :is="icons.FileText" :size="12" />
-                    [{{ citation.id }}] {{ citation.title }}
-                  </button>
+                    [Page {{ message.citations[0].page }}] {{ message.citations[0].title }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -456,9 +451,6 @@
 
         <!-- Typing Indicator -->
         <div v-if="store.isTyping" class="max-w-3xl mx-auto mt-6 flex gap-3 justify-start">
-          <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
-            <img src="/O.png" alt="OpenLab" class="w-6 h-6 object-contain opacity-60" draggable="false"/>
-          </div>
           <div class="bg-notebook-100 rounded-2xl px-4 py-3 flex items-center gap-1">
             <span class="w-2 h-2 bg-notebook-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
             <span class="w-2 h-2 bg-notebook-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
@@ -1193,6 +1185,26 @@ const handleSendMessage = () => {
 
 :deep(.prose code) {
   @apply bg-notebook-100 px-1 py-0.5 rounded text-sm;
+}
+
+:deep(.prose table) {
+  @apply w-full border-collapse text-sm mb-4;
+}
+
+:deep(.prose thead) {
+  @apply bg-notebook-100;
+}
+
+:deep(.prose th) {
+  @apply border border-notebook-300 px-3 py-2 text-left font-semibold text-notebook-800;
+}
+
+:deep(.prose td) {
+  @apply border border-notebook-300 px-3 py-2 text-notebook-700;
+}
+
+:deep(.prose tbody tr:nth-child(even)) {
+  @apply bg-notebook-50;
 }
 
 /* Auto-resize textarea */

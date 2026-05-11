@@ -38,6 +38,7 @@ import re
 import shutil
 import sys
 import warnings
+import zipfile
 from types import SimpleNamespace
 
 warnings.filterwarnings("ignore", category=FutureWarning, module="transformers")
@@ -64,10 +65,11 @@ def main() -> None:  # noqa: C901
     parser.add_argument("--pdf_path",     required=True,  help="Absolute path to paper.pdf")
     parser.add_argument("--website_name", required=True,  help="Short slug for intermediate filenames")
     parser.add_argument("--output_dir",   required=True,  help="Directory where the ZIP is written")
-    parser.add_argument("--model_t",      default="openrouter_qwen3_30b_a3b", help="Text model alias (parse/filter/outline/extract)")
-    parser.add_argument("--model_g",      default="openrouter_qwen3_coder",   help="Generator model alias (HTML generation)")
-    parser.add_argument("--model_v",      default="openrouter_qwen2_5_VL_72B", help="Vision model alias (iterative optimizer)")
-    parser.add_argument("--model_c",      default="openrouter_qwen3_coder",   help="Coder model alias (iterative optimizer)")
+    parser.add_argument("--model_t",        default="openrouter_qwen3_30b_a3b", help="Text model alias (parse/filter/outline/extract)")
+    parser.add_argument("--model_g",        default="openrouter_qwen3_coder",   help="Generator model alias (HTML generation)")
+    parser.add_argument("--model_v",        default="openrouter_qwen2_5_VL_72B", help="Vision model alias (iterative optimizer)")
+    parser.add_argument("--model_c",        default="openrouter_qwen3_coder",   help="Coder model alias (iterative optimizer)")
+    parser.add_argument("--paper_text_file", default=None, help="Path to pre-extracted paper text file; skips docling OCR and figure extraction")
     cli = parser.parse_args()
 
     os.makedirs(cli.output_dir, exist_ok=True)
@@ -127,11 +129,18 @@ def main() -> None:  # noqa: C901
 
     # --- Stage 1: Parse PDF text ---
     emit({"progress": 0.05, "step": "Parsing paper text\u2026"})
-    _in, _out, raw_result = parse_raw(args, agent_config_t, version=2)
+    if cli.paper_text_file:
+        with open(cli.paper_text_file, "r", encoding="utf-8") as _f:
+            _pre_text = _f.read()
+        _in, _out, raw_result = parse_raw(args, agent_config_t, version=2, pre_extracted_text=_pre_text)
+        # Skip figure/table extraction — downstream stages handle empty dicts gracefully
+        images, tables = {}, {}
+    else:
+        _in, _out, raw_result = parse_raw(args, agent_config_t, version=2)
 
-    # --- Stage 2: Extract figures/tables ---
-    emit({"progress": 0.12, "step": "Extracting figures and tables\u2026"})
-    _, _, images, tables = gen_image_and_table(args, raw_result)
+        # --- Stage 2: Extract figures/tables ---
+        emit({"progress": 0.12, "step": "Extracting figures and tables\u2026"})
+        _, _, images, tables = gen_image_and_table(args, raw_result)
 
     # --- Stage 3: Filter figures ---
     emit({"progress": 0.20, "step": "Filtering figures\u2026"})
@@ -145,6 +154,24 @@ def main() -> None:  # noqa: C901
             json.dump({}, _f)
         with open(f'{_img_dir}/{args.website_name}_tables_filtered.json', 'w') as _f:
             json.dump({}, _f)
+
+    # --- Fallback: if filter removed all images, restore unfiltered so the outline
+    #     and HTML generator receive real figure paths instead of using placeholders ---
+    _img_dir = f'{args.model_name_t}_images_and_tables'
+    _filt_path = f'{_img_dir}/{args.website_name}_images_filtered.json'
+    _orig_path = f'{_img_dir}/{args.website_name}_images.json'
+    if os.path.exists(_filt_path) and os.path.exists(_orig_path):
+        with open(_filt_path) as _f:
+            _filt_data = json.load(_f)
+        if not _filt_data:
+            with open(_orig_path) as _f:
+                _orig_data = json.load(_f)
+            if _orig_data:
+                shutil.copy2(_orig_path, _filt_path)
+                logger.warning(
+                    "filter_image_table removed all %d images; restored unfiltered as fallback.",
+                    len(_orig_data),
+                )
 
     # --- Stage 4: Generate website outline ---
     emit({"progress": 0.30, "step": "Planning website outline\u2026"})
@@ -244,8 +271,29 @@ def main() -> None:  # noqa: C901
 
     # --- Stage 9: Package ZIP ---
     emit({"progress": 0.95, "step": "Packaging ZIP\u2026"})
-    zip_base = os.path.join(cli.output_dir, cli.website_name)
-    zip_path = shutil.make_archive(zip_base, 'zip', v1_v3_dir)
+    zip_path = os.path.join(cli.output_dir, cli.website_name) + '.zip'
+
+    # Docling's save_as_markdown(REFERENCED) creates deeply-nested `_artifacts/`
+    # directories with hash-named images alongside `*-with-image-refs.md` /
+    # `*-with-image-refs.html` exports.  These paths exceed 260 chars inside the
+    # archive, which causes the Windows built-in zip extractor to refuse to open
+    # the file.  We build the zip manually and skip those files entirely — they
+    # are not referenced by index.html.
+    _EXCLUDE_CONTAINS = ('with-image-refs', 'with-images', '_artifacts')
+    _EXCLUDE_EXT = {'.md'}
+
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as _zf:
+        for _root, _dirs, _files in os.walk(v1_v3_dir):
+            # Prune artifact directories from traversal so os.walk won't descend
+            _dirs[:] = [d for d in _dirs if not any(p in d for p in _EXCLUDE_CONTAINS)]
+            for _fname in _files:
+                _full = os.path.join(_root, _fname)
+                _rel  = os.path.relpath(_full, v1_v3_dir)
+                if any(p in _rel for p in _EXCLUDE_CONTAINS):
+                    continue
+                if os.path.splitext(_fname)[1].lower() in _EXCLUDE_EXT:
+                    continue
+                _zf.write(_full, _rel)
 
     emit({"progress": 1.0, "step": "Done", "done": True, "zip_path": zip_path})
 

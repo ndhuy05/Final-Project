@@ -1,50 +1,84 @@
 <template>
-  <div class="min-h-screen flex flex-col">
+  <div class="flex flex-col">
 
     <!-- ── MAIN: two panels ──────────────────────────────────── -->
-    <div class="flex flex-1">
+    <div class="flex min-h-screen">
 
-      <!-- ── LEFT PANEL (showcase) ─────────────────────────── -->
+      <!-- ── LEFT PANEL (landing) ───────────────────────────── -->
       <div
-        class="hidden lg:flex lg:w-[60%] bg-[#f2f3f5] flex-col items-center justify-center px-16 py-14 relative overflow-hidden sticky top-0 self-start h-screen"
+        class="hidden lg:flex lg:w-[58%] bg-[#f2f3f5] flex-col relative overflow-hidden sticky top-0 self-start h-screen"
         @mouseenter="stopTimer"
         @mouseleave="startTimer"
       >
         <!-- Decorative blobs -->
-        <div class="absolute top-[-80px] right-[-80px] w-80 h-80 rounded-full opacity-20"
+        <div class="absolute top-[-80px] right-[-80px] w-96 h-96 rounded-full opacity-15"
              style="background: radial-gradient(circle, #1456f0, #a855f7);"></div>
-        <div class="absolute bottom-[-60px] left-[-60px] w-64 h-64 rounded-full opacity-15"
+        <div class="absolute bottom-[-60px] left-[-60px] w-72 h-72 rounded-full opacity-10"
              style="background: radial-gradient(circle, #a855f7, #1456f0);"></div>
 
-        <!-- Content -->
-        <div class="relative z-10 w-full max-w-md flex flex-col items-center gap-10">
+        <!-- Nav -->
+        <nav class="relative z-10 flex items-center justify-between px-10 pt-8 pb-0">
+          <img src="/OpenLab_logo_lightmode.png" alt="OpenLab" class="h-8 object-contain" draggable="false"/>
+          <div class="flex items-center gap-6 text-sm text-[#45515e]">
+            <a href="#" class="hover:text-[#222222] transition-colors">About</a>
+            <a href="#" class="hover:text-[#222222] transition-colors">Docs</a>
+          </div>
+        </nav>
 
-          <!-- Brand identity -->
-          <div class="flex flex-col items-center gap-3">
-            <img src="/OpenLab_logo_lightmode.png" alt="OpenLab" class="w-30 h-16 object-contain" draggable="false"/>
-            <p class="text-sm text-[#45515e] text-center leading-relaxed">
-              Your AI-powered research workspace.<br>From paper to insight in minutes.
+        <!-- Hero + carousel -->
+        <div class="relative z-10 flex flex-col flex-1 px-10 pb-8 justify-center gap-8">
+
+          <!-- Hero text -->
+          <div>
+            <div class="inline-flex items-center gap-2 bg-[#1456f0]/10 text-[#1456f0] text-xs font-semibold rounded-full px-3 py-1.5 mb-5">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#1456f0] animate-pulse"></span>
+              AI-Powered Research Platform
+            </div>
+            <h1 class="font-display text-[2.75rem] font-semibold leading-[1.12] text-[#181e25] mb-4">
+              Turn papers into insights,<br>code &amp; presentations.
+            </h1>
+            <p class="text-base text-[#45515e] leading-relaxed max-w-[380px]">
+              Upload research PDFs, ask questions, generate working code, and create
+              conference-ready posters — all powered by AI.
             </p>
           </div>
 
+          <!-- Stats row -->
+          <div class="flex items-center gap-8">
+            <div>
+              <p class="text-xl font-bold text-[#181e25]">5,000+</p>
+              <p class="text-xs text-[#45515e] mt-0.5">Researchers</p>
+            </div>
+            <div class="w-px h-7 bg-[#d1d5db]"></div>
+            <div>
+              <p class="text-xl font-bold text-[#181e25]">50K+</p>
+              <p class="text-xs text-[#45515e] mt-0.5">Papers analyzed</p>
+            </div>
+            <div class="w-px h-7 bg-[#d1d5db]"></div>
+            <div>
+              <p class="text-xl font-bold text-[#181e25]">10+</p>
+              <p class="text-xs text-[#45515e] mt-0.5">AI tools</p>
+            </div>
+          </div>
+
           <!-- Feature card carousel -->
-          <div class="w-full">
+          <div class="w-full max-w-md">
             <Transition name="card" mode="out-in">
               <div
                 :key="activeCard"
                 class="bg-white rounded-2xl overflow-hidden"
-                style="box-shadow: rgba(44,30,116,0.13) 0px 10px 40px;"
+                style="box-shadow: rgba(44,30,116,0.11) 0px 8px 32px;"
               >
                 <!-- Gradient header -->
                 <div
-                  class="h-40 flex items-center justify-center relative"
+                  class="h-32 flex items-center justify-center relative"
                   :style="{ background: cards[activeCard].gradient }"
                 >
-                  <div class="absolute -top-4 -right-4 w-36 h-36 rounded-full bg-white/10"></div>
-                  <div class="absolute -bottom-3 -left-3 w-24 h-24 rounded-full bg-white/10"></div>
-                  <div class="relative z-10 w-16 h-16 rounded-2xl bg-white/25 flex items-center justify-center">
+                  <div class="absolute -top-4 -right-4 w-28 h-28 rounded-full bg-white/10"></div>
+                  <div class="absolute -bottom-3 -left-3 w-20 h-20 rounded-full bg-white/10"></div>
+                  <div class="relative z-10 w-12 h-12 rounded-xl bg-white/25 flex items-center justify-center">
                     <svg
-                      width="28" height="28" viewBox="0 0 24 24"
+                      width="22" height="22" viewBox="0 0 24 24"
                       fill="none" stroke="white" stroke-width="1.75"
                       stroke-linecap="round" stroke-linejoin="round"
                       v-html="cards[activeCard].iconHtml"
@@ -52,25 +86,25 @@
                   </div>
                 </div>
                 <!-- Text content -->
-                <div class="px-6 py-5">
-                  <p class="text-base font-bold text-[#222222] mb-1.5">{{ cards[activeCard].title }}</p>
-                  <p class="text-sm text-[#45515e] leading-relaxed">{{ cards[activeCard].description }}</p>
+                <div class="px-5 py-4">
+                  <p class="text-sm font-bold text-[#222222] mb-1">{{ cards[activeCard].title }}</p>
+                  <p class="text-xs text-[#45515e] leading-relaxed">{{ cards[activeCard].description }}</p>
                 </div>
               </div>
             </Transition>
 
             <!-- Nav row: prev · dots · next -->
-            <div class="flex items-center justify-center gap-4 mt-5">
+            <div class="flex items-center justify-center gap-3 mt-4">
               <button
                 @click="prev"
-                class="w-8 h-8 flex items-center justify-center rounded-full text-[#45515e] hover:text-[#1456f0] hover:bg-white transition-all"
+                class="w-7 h-7 flex items-center justify-center rounded-full text-[#45515e] hover:text-[#1456f0] hover:bg-white transition-all"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="15 18 9 12 15 6"/>
                 </svg>
               </button>
 
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1.5">
                 <button
                   v-for="(_, i) in cards"
                   :key="i"
@@ -82,9 +116,9 @@
 
               <button
                 @click="next"
-                class="w-8 h-8 flex items-center justify-center rounded-full text-[#45515e] hover:text-[#1456f0] hover:bg-white transition-all"
+                class="w-7 h-7 flex items-center justify-center rounded-full text-[#45515e] hover:text-[#1456f0] hover:bg-white transition-all"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="9 18 15 12 9 6"/>
                 </svg>
               </button>
@@ -94,30 +128,30 @@
         </div>
       </div>
 
-      <!-- ── RIGHT PANEL (form) ─────────────────────────────── -->
-      <!--
-        overflow-y-auto: register form (3 fields) is taller than login; on shorter
-        viewports content overflowed onto the dark footer. The my-auto inner wrapper
-        keeps content vertically centered when there is space, and the scroll kicks in
-        only when there isn't.
-      -->
-      <div class="flex-1 lg:max-w-[40%] bg-white flex flex-col items-center overflow-y-auto px-8 py-10 lg:px-16 lg:py-14">
+      <!-- ── RIGHT PANEL (auth) ──────────────────────────────── -->
+      <div class="flex-1 lg:max-w-[42%] min-h-screen bg-white flex flex-col items-center px-8 py-10 lg:px-14 lg:py-12">
+
+        <!-- Mobile logo (hidden on desktop) -->
+        <div class="lg:hidden flex flex-col items-center mb-10">
+          <img src="/OpenLab_logo_lightmode.png" alt="OpenLab" class="h-10 object-contain" draggable="false"/>
+          <p class="text-sm text-[#45515e] mt-2 text-center">AI-powered research workspace</p>
+        </div>
 
         <div class="w-full max-w-sm my-auto flex flex-col">
 
-          <!-- Headline — transitions with tab switch -->
+          <!-- Headline -->
           <Transition name="panel" mode="out-in">
-            <div :key="tab" class="mb-10">
-              <h1 class="font-display text-[3.25rem] font-medium leading-[1.10] text-[#222222] mb-4">
-                {{ headlines[tab].line1 }}<br>{{ headlines[tab].line2 }}
-              </h1>
-              <p class="text-base font-normal leading-[1.5] text-[#45515e]">
+            <div :key="tab" class="mb-8">
+              <h2 class="font-display text-[2.5rem] font-semibold leading-[1.12] text-[#181e25] mb-2">
+                {{ tab === 'login' ? 'Welcome back.' : 'Get started.' }}
+              </h2>
+              <p class="text-sm text-[#45515e] leading-relaxed">
                 {{ headlines[tab].body }}
               </p>
             </div>
           </Transition>
 
-          <!-- API error banner (lives outside the keyed transition so it persists) -->
+          <!-- API error banner -->
           <div v-if="errorMessage" class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
             <p class="text-sm text-red-600">{{ errorMessage }}</p>
           </div>
@@ -125,7 +159,7 @@
           <Transition name="panel" mode="out-in">
             <div :key="tab">
 
-              <!-- Pill Tab Toggle — sliding indicator -->
+              <!-- Pill Tab Toggle -->
               <div class="flex bg-[rgba(0,0,0,0.05)] rounded-full p-1 mb-6 relative overflow-hidden">
                 <div
                   class="absolute inset-y-1 left-1 bg-white rounded-full shadow-[rgba(0,0,0,0.08)_0px_4px_6px] pointer-events-none transition-transform duration-200 ease-in-out"
@@ -178,6 +212,9 @@
                   :disabled="isLoading"
                   class="w-full px-5 py-[11px] bg-[#181e25] text-white rounded-lg text-sm font-semibold hover:bg-[#2d3a45] transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                 >{{ isLoading ? 'Signing in…' : 'Sign in' }}</button>
+                <p class="text-xs text-[#b0b7c3] text-center mt-8">
+                  Trusted by researchers worldwide
+                </p>
               </form>
 
               <!-- Register fields -->
@@ -229,14 +266,14 @@
                   :disabled="isLoading"
                   class="w-full px-5 py-[11px] bg-[#181e25] text-white rounded-lg text-sm font-semibold hover:bg-[#2d3a45] transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                 >{{ isLoading ? 'Creating account…' : 'Create account' }}</button>
+                <p class="text-xs text-[#b0b7c3] text-center mt-8">
+                  Trusted by researchers worldwide
+                </p>
               </form>
-
             </div>
           </Transition>
-
         </div>
       </div>
-
     </div>
 
     <!-- ── FOOTER ──────────────────────────────────────────── -->
@@ -253,7 +290,6 @@
         <a href="#" class="text-xs text-white/40 hover:text-white/70 transition-colors">Contact</a>
       </div>
     </footer>
-
   </div>
 </template>
 
@@ -326,17 +362,13 @@ function stopTimer() {
 onMounted(startTimer)
 onUnmounted(stopTimer)
 
-// ── Headlines (distinct per tab so the transition is meaningful) ──
+// ── Headlines ─────────────────────────────────────────────────────
 
 const headlines = {
   login: {
-    line1: 'Think deeper,',
-    line2: 'publish faster.',
-    body: 'AI-powered paper analysis, code generation, and poster creation.',
+    body: 'Sign in to continue your research.',
   },
   register: {
-    line1: 'Your research,',
-    line2: 'supercharged.',
     body: 'Join researchers using AI to read, understand, and publish faster.',
   },
 }
@@ -448,9 +480,9 @@ async function handleRegister() {
 
 <style scoped>
 img {
-  -webkit-user-drag: none; /* Chặn kéo ảnh trên Chrome, Safari, Edge */
-  pointer-events: none; /* Không cho tương tác chuột */
-  user-select: none;    /* Không cho chọn */
+  -webkit-user-drag: none;
+  pointer-events: none;
+  user-select: none;
 }
 
 .panel-enter-active,

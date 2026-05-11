@@ -1,0 +1,41 @@
+================================================================================
+🚀 Simple Gen Outline Layout Website - gen_outline_layout
+⏰ TIME: 2026-05-11 15:16:22
+📄 NAME: 89294530-fd19-4a48-9cdd-1f2240fbc23f
+================================================================================
+
+📝 THE PROMPT:
+------------------------------------------------------------
+Instructions:
+  1. Read and analyze the research paper's top-level sections from {'meta': {'website_title': 'Robust Object Detection in Adverse Weather Conditions: ECL-YOLOv11 for Automotive Vision Systems', 'authors': 'Zhaohui Liu, Jiaxu Zhang, Xiaojun Zhang, Hongle Song', 'affiliations': 'College of Transportation, Shandong University of Science and Technology'}, 'sections': [{'title': 'Introduction', 'content': 'Adverse weather severely blurs edges in autonomous perception. Traditional detectors miss small targets under fog, rain, and snow. We propose ECL-YOLOv11 to enhance robustness while maintaining real-time embedded efficiency. Our framework adds edge convolution, context-guided fusion, and a lightweight head. These components preserve boundaries, fuse multi-scale features, and reduce latency. Experiments confirm superior accuracy across degraded conditions.'}, {'title': 'Related Work', 'content': 'CNNs balance speed but fail at low-contrast boundaries. Transformers capture context yet demand heavy hardware. Image enhancement improves visibility but adds latency. Recent fusion methods often sacrifice real-time efficiency. Current research lacks architectures preserving edges without overhead. We address this by coupling explicit edge enhancement with lightweight convolutions. This design bridges the robustness-efficiency gap effectively.'}, {'title': 'Dataset Overview', 'content': 'We utilize a custom dataset of 9006 traffic images captured under rain, fog, and snow. The imagery covers urban highways with varying illumination and complex backgrounds. Annotations span seven traffic categories, including vehicles and pedestrians. Data is split into eighty percent training, ten percent validation, and ten percent testing. This composition ensures robust evaluation of adverse weather detection. Comparative analysis confirms the dataset’s unique focus on degraded visibility. Researchers can reliably benchmark model robustness using these annotations.'}, {'title': 'Methodology/Approach', 'content': 'ECL-YOLOv11 integrates three modules for robust detection. The CE module fuses Sobel gradients with learnable convolutions to preserve sharp boundaries. AENet replaces the standard neck using bidirectional semantic flow and rectangular calibration. This structure enhances multi-scale feature alignment for distant targets. The LDHead employs cross-scale parameter sharing and GroupNorm to minimize redundancy. Depthwise separable convolutions further accelerate regression and classification. Together, these components form a pipeline optimized for real-time automotive deployment.'}, {'title': 'Results/Evaluation', 'content': 'Experiments validate ECL-YOLOv11 against baseline models. The architecture achieves 62.7% mAP@50 and 40.5% mAP@50–95, surpassing baselines by 1.3% and 0.8%. Precision reaches 73.1%, significantly reducing false positives under occlusion. The framework maintains 237.8 FPS on standard GPUs, satisfying real-time constraints. Ablation studies confirm each module independently improves feature extraction. Category-wise analysis reveals superior detection of large vehicles while preserving pedestrian recognition. Comparisons demonstrate consistent confidence across degraded weather scenarios.'}, {'title': 'Applications', 'content': 'ECL-YOLOv11 delivers reliable perception for autonomous vehicles in winter environments. The lightweight architecture enables direct deployment on edge-computing platforms without external accelerators. Real-time bounding generation supports path planning and emergency braking systems. Traffic monitoring networks benefit from stable tracking during severe visibility drops. Fleet operators can utilize the model for weather-adaptive route optimization. Infrastructure managers can integrate the detector into smart intersection cameras for public safety. These applications bridge academic algorithms and industrial deployment.'}, {'title': 'Conclusion', 'content': 'ECL-YOLOv11 successfully addresses the trade-off between detection robustness and computational efficiency. By preserving edge features and optimizing fusion, the model maintains accuracy under fog, rain, and snow. Benchmarks confirm stable performance across varying motion states. Limitations include a modest dataset scale and single-camera reliance. Future work will explore multi-sensor fusion with LiDAR and continual learning. These advancements will enhance adaptability for autonomous driving systems. The framework establishes a solid foundation for all-weather perception.'}]} (each top-level section has a title and description). 
+  2. Look at {} and {}. Determine content-fit for a project website: 
+     - If a section's description or subject matter matches well with a given image/table caption, consider assigning it. 
+     - **IMPORTANT: If multiple images or tables seem relevant, prefer assigning multiple over single to provide comprehensive visual coverage.**
+     - If none of the images or tables are relevant, or if none are provided, do not assign anything for that section.
+  3. Produce a single JSON object. Each key is the exact name of a top-level section (e.g., "Introduction", "Methods", "Results"), and the value is an object with:
+     • "image": image_id (for single image) or "images": [image_id1, image_id2, ...] (for multiple images)
+     • "table": table_id (for single table) or "tables": [table_id1, table_id2, ...] (for multiple tables)
+     • "reason": short explanation describing why the image(s)/table(s) are assigned
+  4. If no assignment is made for a section, exclude that section from the JSON. 
+  5. No image/table can be reused for multiple sections. Each image/table can only be assigned to one section.
+  6. Ensure your final response strictly follows JSON syntax with no extra commentary.
+
+Example output format if two sections are assigned (note the preference for multiple assignments):
+{
+  "Introduction": {
+    "images": [1, 3],
+    "reason": "Image 1 depicts the central concept, Image 3 shows detailed implementation, perfect for comprehensive website coverage."
+  },
+  "Results": {
+    "tables": [2, 4],
+    "reason": "Table 2 summarizes key metrics, Table 4 shows detailed comparisons, ideal for comprehensive data presentation on website."
+  }
+}
+
+🤖 THE RETURN RESULT:
+------------------------------------------------------------
+{}
+
+================================================================================
+  - INPUT: 6281 TOKENS
+  - OUTPUT: 2 TOKENS

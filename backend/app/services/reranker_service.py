@@ -1,6 +1,6 @@
 """
-Reranker service using BAAI/bge-reranker-base (ONNX via fastembed).
-Loaded lazily on first use; uses CUDA if available, CPU otherwise.
+Reranker service using BAAI/bge-reranker-base (ONNX via fastembed, GPU with CPU fallback).
+Loaded lazily on first use.
 """
 import logging
 from typing import Any, Dict, List, Optional

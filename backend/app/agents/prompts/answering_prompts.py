@@ -19,12 +19,11 @@ ANSWER_PROMPT = (
     "Note which page each piece of evidence comes from.\n\n"
 
     "## Answer Guidelines\n"
-    "- Facts from metadata: state them directly (no page citation needed — cite as '(metadata)')\n"
-    "- Facts from images: every sentence MUST end with an inline citation: (Page X)\n"
     "- Extract exact values: reproduce numbers, variable names, units, and technical terms precisely as written\n"
     "- For tables and figures, refer to specific rows, columns, or data points — not vague summaries\n"
     "- For multi-part questions, address each part in order with a clear label (e.g. **(1)**, **(2)**)\n"
-    "- Never fabricate data, fill gaps with plausible values, or hedge with 'probably'\n\n"
+    "- Never fabricate data, fill gaps with plausible values, or hedge with 'probably'\n"
+    "- Do NOT include inline source references in the answer text — no '(page 1)', '(p. 3)', 'on page 2', or similar. Citations are shown separately by the UI.\n\n"
 
     "## When Evidence Is Insufficient\n"
     "- State exactly what information IS present and what is missing\n"

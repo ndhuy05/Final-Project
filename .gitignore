@@ -120,7 +120,9 @@ backend/app/agents/outlines/
 backend/app/agents/website_outlines/
 backend/app/agents/generated_website_*/
 
-
+# Test files
+extract_paper.py
+ECL-YOLOv11.md
 
 # fastembed / HuggingFace model cache (downloaded on first use)
 .fastembed_cache/

@@ -2,7 +2,6 @@
 Chat service: session and message persistence for the notebook chat feature.
 All SQL operations that touch chat_sessions and chat_messages live here.
 """
-import json
 import logging
 
 from sqlalchemy.orm import Session
@@ -38,8 +37,8 @@ def persist_chat_turn(
     try:
         chat_session = get_or_create_chat_session(db, notebook)
         chat_session.send_message(role="user", content=user_content, user_id=user_id)
-        citations_json = json.dumps([c.model_dump() for c in citations]) if citations else None
-        chat_session.send_message(role="assistant", content=assistant_content, citations_json=citations_json)
+        citations_data = [c.model_dump() for c in citations] if citations else None
+        chat_session.send_message(role="assistant", content=assistant_content, citations_json=citations_data)
         db.commit()
     except Exception:
         logger.exception("Failed to persist chat messages for notebook %s", notebook.id)

@@ -23,24 +23,29 @@ PLANNER_PROMPT = (
     "paper_id must be one of the exact UUIDs listed in the papers context, or null. "
     "Never invent or shorten a UUID.\n\n"
 
+    "## Query Writing Rules (retrieve only)\n"
+    "- Extract key concepts directly from the user's question — do not add assumptions\n"
+    "- Do NOT include paper titles, model names, or metric names unless the user explicitly stated them\n"
+    "- Keep queries concise and semantically focused on what the user actually asked\n\n"
+
     "## Output Contract\n"
     "Output a single JSON array. No markdown fences. No text before or after the array.\n"
     "Schema: [{\"action\": \"read_metadata\"|\"retrieve\", \"paper_id\": \"<uuid>|null\", \"query\": \"<string, retrieve only>\"}]\n\n"
 
     "## Examples\n"
-    "Q: 'Who are the authors of ECL-YOLOv11?'\n"
-    "[{\"action\": \"read_metadata\", \"paper_id\": \"60a91cb6-...\"}]\n\n"
+    "Q: 'Who are the authors of this paper?'\n"
+    "[{\"action\": \"read_metadata\", \"paper_id\": \"<uuid>\"}]\n\n"
 
-    "Q: 'What is the mAP@50 of ECL-YOLOv11?'\n"
-    "[{\"action\": \"retrieve\", \"paper_id\": \"60a91cb6-...\", \"query\": \"ECL-YOLOv11 mAP@50 detection accuracy results\"}]\n\n"
+    "Q: 'What performance did the proposed model achieve?'\n"
+    "[{\"action\": \"retrieve\", \"paper_id\": \"<uuid>\", \"query\": \"performance results evaluation\"}]\n\n"
 
     "Q: 'Compare the methods of paper A and paper B'\n"
-    "[{\"action\": \"retrieve\", \"paper_id\": \"uuid-A\", \"query\": \"paper A proposed method and approach\"}, "
-    "{\"action\": \"retrieve\", \"paper_id\": \"uuid-B\", \"query\": \"paper B proposed method and approach\"}]\n\n"
+    "[{\"action\": \"retrieve\", \"paper_id\": \"<uuid-A>\", \"query\": \"proposed method approach\"}, "
+    "{\"action\": \"retrieve\", \"paper_id\": \"<uuid-B>\", \"query\": \"proposed method approach\"}]\n\n"
 
-    "Q: 'When was this paper published and what accuracy did it achieve?'\n"
-    "[{\"action\": \"read_metadata\", \"paper_id\": \"uuid\"}, "
-    "{\"action\": \"retrieve\", \"paper_id\": \"uuid\", \"query\": \"accuracy results performance metrics\"}]"
+    "Q: 'When was this paper published and what is the main contribution?'\n"
+    "[{\"action\": \"read_metadata\", \"paper_id\": \"<uuid>\"}, "
+    "{\"action\": \"retrieve\", \"paper_id\": \"<uuid>\", \"query\": \"main contribution\"}]"
 )
 
 PLANNER_USER = """\

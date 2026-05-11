@@ -45,7 +45,7 @@ doc_converter = DocumentConverter(
 )
 
 @retry(stop=stop_after_attempt(5))
-def parse_raw(args, actor_config, version=2):
+def parse_raw(args, actor_config, version=2, pre_extracted_text=None):
     """
     Parse raw PDF document and generate JSON format data for website content
     
@@ -57,28 +57,36 @@ def parse_raw(args, actor_config, version=2):
         args: Command line arguments object, containing attributes like website_path (website path) and website_name (website name)
         actor_config (dict): LLM model configuration information, including model platform, type, configuration dictionary and optional URL
         version (int, optional): Prompt template version to use, defaults to 2
+        pre_extracted_text (str | None): If provided, skip docling/marker PDF parsing and use
+            this text directly. raw_result will be None in this case.
         
     Returns:
         tuple: Tuple containing the following three elements:
             - input_token (int): Number of tokens input to the model
             - output_token (int): Number of tokens output by the model
-            - raw_result: Raw result object from docling document conversion
+            - raw_result: Raw result object from docling document conversion, or None if
+              pre_extracted_text was provided
     """
     raw_source = args.website_path
     markdown_clean_pattern = re.compile(r"<!--[\s\S]*?-->")
 
-    raw_result = doc_converter.convert(raw_source)
+    if pre_extracted_text is not None:
+        # Skip PDF parsing entirely — use caller-supplied text
+        text_content = pre_extracted_text
+        raw_result = None
+    else:
+        raw_result = doc_converter.convert(raw_source)
 
-    raw_markdown = raw_result.document.export_to_markdown()
-    text_content = markdown_clean_pattern.sub("", raw_markdown)
+        raw_markdown = raw_result.document.export_to_markdown()
+        text_content = markdown_clean_pattern.sub("", raw_markdown)
 
-    # If docling parsing result is too short, fall back to marker parser
-    if len(text_content) < 500:
-        print('\nParsing with docling failed, using marker instead\n')
-        import torch
-        from marker.models import create_model_dict
-        parser_model = create_model_dict(device='cuda', dtype=torch.float16)
-        text_content, rendered = parse_pdf(raw_source, model_lst=parser_model, save_file=False)
+        # If docling parsing result is too short, fall back to marker parser
+        if len(text_content) < 500:
+            print('\nParsing with docling failed, using marker instead\n')
+            import torch
+            from marker.models import create_model_dict
+            parser_model = create_model_dict(device='cuda', dtype=torch.float16)
+            text_content, rendered = parse_pdf(raw_source, model_lst=parser_model, save_file=False)
 
     # Select corresponding prompt template based on version
     if version == 1:

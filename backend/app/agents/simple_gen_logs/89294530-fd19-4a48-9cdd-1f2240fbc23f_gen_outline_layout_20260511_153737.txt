@@ -1,0 +1,58 @@
+================================================================================
+🚀 Simple Gen Outline Layout Website - gen_outline_layout
+⏰ TIME: 2026-05-11 15:37:37
+📄 NAME: 89294530-fd19-4a48-9cdd-1f2240fbc23f
+================================================================================
+
+📝 THE PROMPT:
+------------------------------------------------------------
+Instructions:
+  1. Read and analyze the research paper's top-level sections from {'meta': {'website_title': 'Robust Object Detection in Adverse Weather Conditions: ECL-YOLOv11 for Automotive Vision Systems', 'authors': 'Zhaohui Liu, Jiaxu Zhang, Xiaojun Zhang, Hongle Song', 'affiliations': 'College of Transportation, Shandong University of Science and Technology'}, 'sections': [{'title': 'Introduction', 'content': 'Weather conditions severely degrade image contrast and blur critical object boundaries. Traditional detectors struggle with low visibility while meeting real-time constraints. We propose ECL-YOLOv11 to address these challenges through three integrated modules. The framework preserves structural boundaries and optimizes inference speed via edge extraction, multi-scale fusion, and a shared detection head. Validation confirms improved accuracy and stable performance across fog, rain, and snow. This system ensures continuous autonomous navigation.'}, {'title': 'Related Work', 'content': 'CNN detectors perform well in clear conditions but degrade significantly when visibility drops. Anchor mechanisms frequently misalign in low-contrast environments, causing missed targets. Transformers effectively model global dependencies but incur prohibitive computational costs. Their heavy context reliance obscures local structural cues during occlusion. Preprocessing enhancement improves visibility but adds unacceptable latency. Consequently, a critical gap remains for models ensuring edge preservation, multi-scale fusion, and lightweight deployment without sacrificing real-time requirements.'}, {'title': 'Dataset Overview', 'content': 'This dataset contains 9,006 road images captured under fog, rain, and snow conditions. Vehicle cameras logged visuals across diverse urban and highway routes. The collection annotates seven critical traffic categories, including vehicles, pedestrians, and cyclists. Distribution analysis reveals car dominance followed by persons and trucks, mirroring actual traffic density. Images follow a strict 80 percent training, 10 percent validation, and 10 percent testing split. This resource directly addresses the scarcity of standardized extreme-weather detection benchmarks.'}, {'title': 'Methodology/Approach', 'content': 'Our framework addresses feature degradation via three integrated modules. The Edge-enhancement uses fixed Sobel gradients alongside learnable convolutions to preserve boundaries. The Context-Guided Fusion Network employs rectangular calibration and bidirectional flow to strengthen cross-scale alignment. The Lightweight Detection Head replaces independent branches with parameter-sharing depthwise convolutions and GroupNorm. This pipeline efficiently decouples regression and classification tasks while minimizing overhead. The design ensures robust retention and efficient inference.'}, {'title': 'Results/Evaluation', 'content': 'Models trained on an RTX 3060 GPU using 600 epochs with early stopping prevent overfitting. The architecture achieved 62.7% mAP@50 and 40.5% mAP@50-95, outperforming YOLOv11 by 1.3 and 0.8 percent. Precision reached 73.1%, demonstrating reduced false positives during heavy occlusion. Ablation studies confirmed that each module independently contributes to accuracy gains. Comparative evaluations against RT-DETR highlight superior accuracy-to-speed ratios under meteorological interference. Results validate consistent system reliability across diverse environments.'}, {'title': 'Applications', 'content': 'The framework provides critical perception capabilities for autonomous platforms operating in unpredictable weather. Urban transit fleets deploy it to maintain lane monitoring and pedestrian detection during heavy rain or dense fog. Highway systems benefit from stable long-range localization required for high-speed tracking under snow. Traffic infrastructure integrates the model into smart intersections to sustain object recognition during severe weather. The lightweight design enables seamless edge deployment without cloud reliance. These implementations enhance safety in adverse environments.'}, {'title': 'Conclusion', 'content': 'This study presents ECL-YOLOv11, a framework balancing robust boundary preservation and lightweight inference for adverse weather detection. Three synergistic modules directly address feature degradation and latency constraints. Validation demonstrates consistent accuracy improvements across fog, rain, and snow without excessive overhead. However, evaluations rely on a compact dataset and vision-only inputs, potentially constraining generalization. Future work will prioritize LiDAR sensor fusion and develop continual learning for dynamic adaptation. These advancements will establish highly resilient autonomous perception systems.'}]} (each top-level section has a title and description). 
+  2. Look at {'6': {'Figure 1. CE module structure diagram.'}, '7': {'Figure 2. Sobel Conv framework diagram.'}, '8': {'Figure 3. CEB framework diagram.'}, '9': {'Figure 4. PCE module mechanism.'}, '12': {'Figure 7. AENet network framework diagram.'}, '13': {'Figure 8. LDHead framework diagram.'}, '14': {'Figure 9. Architecture diagram of ECL-YOLOv11, Notes: CE: Convolutional Edge-Enhancement module; AENet: Context-Guided Multi-Scale Fusion Network; LDHead: Lightweight Shared Convolutional Detection Head; RCM: Rectangular Calibration Module; C3K2: Cross-Stage Partial Connection block; DIF: Down-to-Up Information Flow module.'}, '15': {'Figure 10. Sample images from the dataset.'}, '16': {'Figure 11. Distribution of dataset targets.'}, '19': {'Figure 14. Comparison experimental results between ECL-YOLOv11 and YOLOv11.'}, '20': {'Figure 15. Ablation study evaluation metrics.'}, '21': {'Figure 16. Overall performance metrics of the comparative experiment.'}, '22': {'Figure 17. Qualitative visualization results of different models.'}, '23': {'Figure 18. Model validation results considering adverse weather conditions and motion states.'}} and {}. Determine content-fit for a project website: 
+     - If a section's description or subject matter matches well with a given image/table caption, consider assigning it. 
+     - **IMPORTANT: If multiple images or tables seem relevant, prefer assigning multiple over single to provide comprehensive visual coverage.**
+     - If none of the images or tables are relevant, or if none are provided, do not assign anything for that section.
+  3. Produce a single JSON object. Each key is the exact name of a top-level section (e.g., "Introduction", "Methods", "Results"), and the value is an object with:
+     • "image": image_id (for single image) or "images": [image_id1, image_id2, ...] (for multiple images)
+     • "table": table_id (for single table) or "tables": [table_id1, table_id2, ...] (for multiple tables)
+     • "reason": short explanation describing why the image(s)/table(s) are assigned
+  4. If no assignment is made for a section, exclude that section from the JSON. 
+  5. No image/table can be reused for multiple sections. Each image/table can only be assigned to one section.
+  6. Ensure your final response strictly follows JSON syntax with no extra commentary.
+
+Example output format if two sections are assigned (note the preference for multiple assignments):
+{
+  "Introduction": {
+    "images": [1, 3],
+    "reason": "Image 1 depicts the central concept, Image 3 shows detailed implementation, perfect for comprehensive website coverage."
+  },
+  "Results": {
+    "tables": [2, 4],
+    "reason": "Table 2 summarizes key metrics, Table 4 shows detailed comparisons, ideal for comprehensive data presentation on website."
+  }
+}
+
+🤖 THE RETURN RESULT:
+------------------------------------------------------------
+{
+  "Introduction": {
+    "image": 14,
+    "reason": "Figure 9 provides a clear, high-level architecture diagram of the entire ECL-YOLOv11 framework, giving website visitors an immediate visual overview of the proposed system and its core components."
+  },
+  "Dataset Overview": {
+    "images": [15, 16],
+    "reason": "Figure 10 displays representative sample images from the adverse weather collection, while Figure 11 visualizes the target class distribution analysis, together offering a comprehensive and intuitive introduction to the dataset's composition and diversity."
+  },
+  "Methodology/Approach": {
+    "images": [6, 12, 13],
+    "reason": "Figures 1, 7, and 8 directly illustrate the three integrated modules (CE module, AENet Context-Guided Fusion Network, and LDHead Lightweight Detection Head) that form the technical foundation of the proposed framework."
+  },
+  "Results/Evaluation": {
+    "images": [19, 20, 21, 22, 23],
+    "reason": "These five figures comprehensively cover all evaluation aspects highlighted in the paper: quantitative comparisons against YOLOv11, ablation study metrics, overall performance benchmarks, qualitative detection visualizations, and robustness validation under adverse weather and motion conditions."
+  }
+}
+
+================================================================================
+  - INPUT: 7665 TOKENS
+  - OUTPUT: 1258 TOKENS

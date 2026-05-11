@@ -5,7 +5,6 @@ actions execute in parallel, then a VLM generates the final answer.
 All turns are persisted to the notebook's single ChatSession.
 """
 import asyncio
-import json
 import logging
 import os
 from fastapi import APIRouter, Depends, HTTPException
@@ -56,15 +55,9 @@ class ChatResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 def _collect_images(paper_id: str, page: int) -> List[str]:
-    """Return existing image paths for pages N-1, N, N+1."""
-    paths = []
-    for p in [page - 1, page, page + 1]:
-        if p < 1:
-            continue
-        img_path = os.path.join(settings.IMAGE_DIR, paper_id, f"page_{p}.png")
-        if os.path.exists(img_path):
-            paths.append(img_path)
-    return paths
+    """Return existing image path for page N only."""
+    img_path = os.path.join(settings.IMAGE_DIR, paper_id, f"page_{page}.png")
+    return [img_path] if os.path.exists(img_path) else []
 
 
 def _make_citations(results: List[dict]) -> List[Citation]:
@@ -194,10 +187,9 @@ async def get_chat_history(
         citations: List[Citation] = []
         if msg.citations_json:
             try:
-                raw = json.loads(msg.citations_json)
-                citations = [Citation(**c) for c in raw]
+                citations = [Citation(**c) for c in msg.citations_json]
             except Exception:
-                logger.warning("Failed to parse citations_json for message %s", msg.id)
+                logger.exception("Failed to deserialize citations for message %s", msg.id)
         messages.append(MessageOut(role=msg.role, content=msg.content, citations=citations))
     return HistoryResponse(messages=messages)
 

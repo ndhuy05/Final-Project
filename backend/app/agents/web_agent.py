@@ -15,6 +15,7 @@ from typing import Any
 
 from app.core.config import settings
 from app.agents.generation_agent import GenerationAgent
+from app.services import qdrant_service
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,7 @@ class WebAgent(GenerationAgent):
         pdf_path: str,
         paper_id: str,
         notebook_id: str,
+        paper_text_file: str | None = None,
     ) -> None:
         job_output_dir = os.path.join(self._OUTPUT_DIR, job_id)
         os.makedirs(job_output_dir, exist_ok=True)
@@ -69,6 +71,8 @@ class WebAgent(GenerationAgent):
             "--model_v",      settings.PAPER2WEB_VISION_MODEL,
             "--model_c",      settings.PAPER2WEB_CODE_MODEL,
         ]
+        if paper_text_file:
+            cmd += ["--paper_text_file", paper_text_file]
 
         env = os.environ.copy()
         env["OPENROUTER_API_KEY"] = settings.OPENROUTER_API_KEY
@@ -208,9 +212,33 @@ class WebAgent(GenerationAgent):
             job_id = self._new_job()
             self.__class__._running_job_id = job_id
 
+        # Fetch pre-extracted page texts from Qdrant so the subprocess can skip
+        # docling OCR entirely (saves ~2–5 min and avoids the heavy model download).
+        paper_text_file: str | None = None
+        try:
+            page_texts = qdrant_service.get_all_page_texts(notebook_id, paper_id)
+            if page_texts:
+                combined = "\n\n".join(page_texts[p] for p in sorted(page_texts))
+                job_output_dir = os.path.join(self._OUTPUT_DIR, job_id)
+                os.makedirs(job_output_dir, exist_ok=True)
+                paper_text_file = os.path.join(job_output_dir, "paper_text.txt")
+                with open(paper_text_file, "w", encoding="utf-8") as f:
+                    f.write(combined)
+                logger.info(
+                    "Web job %s: wrote %d pages of pre-extracted text to %s",
+                    job_id, len(page_texts), paper_text_file,
+                )
+        except Exception as exc:
+            logger.warning(
+                "Web job %s: failed to fetch Qdrant texts (%s); falling back to docling.",
+                job_id, exc,
+            )
+            paper_text_file = None
+
         t = threading.Thread(
             target=self._run_pipeline,
             args=(job_id, pdf_path, paper_id, notebook_id),
+            kwargs={"paper_text_file": paper_text_file},
             daemon=True,
             name=f"web-{job_id[:8]}",
         )

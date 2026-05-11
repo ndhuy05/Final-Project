@@ -12,7 +12,7 @@ This is kept as a TEXT column (not a JSON column) for maximum SQLite compatibili
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, Uuid
+from sqlalchemy import DateTime, ForeignKey, JSON, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -103,7 +103,7 @@ class ChatMessage(Base):
     message_type: Mapped[str] = mapped_column(
         String(32), nullable=False, default="text"
     )  # "text" | "retrieval_summary" | "metadata_block"
-    citations_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    citations_json: Mapped[list | None] = mapped_column(JSON, nullable=True)
 
     # --- Timestamp (immutable) ---
     created_at: Mapped[datetime] = mapped_column(

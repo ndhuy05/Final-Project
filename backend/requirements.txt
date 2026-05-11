@@ -22,10 +22,10 @@ aiofiles
 # OpenRouter API (OpenAI-compatible)
 openai>=1.30.0
 
-# Local text embeddings (GPU via ONNX Runtime CUDA)
+# Local text embeddings + reranking (GPU via ONNX Runtime CUDA)
 fastembed-gpu
 
-# Reranking (ONNX via fastembed — BAAI/bge-reranker-base)
+# Reranking (ONNX via fastembed — BAAI/bge-reranker-v2-m3)
 # TextCrossEncoder is bundled with fastembed-gpu; no extra package needed
 
 # Text chunking
