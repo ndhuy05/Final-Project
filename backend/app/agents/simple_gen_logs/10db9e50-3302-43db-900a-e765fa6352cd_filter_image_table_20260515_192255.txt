@@ -1,0 +1,110 @@
+================================================================================
+🚀 Simple Gen Outline Layout Website - filter_image_table
+⏰ TIME: 2026-05-15 19:22:55
+📄 NAME: 10db9e50-3302-43db-900a-e765fa6352cd
+================================================================================
+
+📝 THE PROMPT:
+------------------------------------------------------------
+Instructions:
+The user will provide JSON: 
+  1. "json_content": The content of the research paper (sections, text, etc.). 
+  2. "image_information": A dict of images (each with caption, path, size constraints). 
+  3. "table_information": A dict of tables (each with caption, path, size constraints).
+
+Your task:
+  1. Read the research paper outline (json_content).
+  2. Filter image_information and table_information so that only entries relevant to the project website content remain. 
+     • Relevance is determined by matching or relating their captions to the paper's sections or content. 
+     • Consider which visual elements would be most valuable for a project website (e.g., methodology diagrams, result charts, data summaries).
+     • If an image or table does not clearly match or support any content in json_content, remove it.
+     • IMPORTANT: Keep ALL relevant visual elements - do not limit the quantity artificially.
+  3. Return a JSON with the structure:
+     {
+       "image_information": <filtered image information JSON>,
+       "table_information": <filtered table information JSON>
+     }
+
+Output Format:
+Just return a JSON object with the two keys: "image_information" and "table_information" — each containing the filtered data.
+No additional keys or text. Both "image_information" and "table_information" should present even if they are empty.
+
+Note:
+• If no entries remain for either images or tables, just return an empty dict for that key.
+• Keep ALL entries that are relevant to the paper content (no artificial limit on quantity).
+• The goal is to include every visual element that enhances understanding of the research.
+• Make sure the JSON you output is valid.
+
+Please provide only the JSON object as your final output.
+
+json_content:
+{'meta': {'website_title': 'Automated testing reactive systems from Event-B model', 'authors': 'Dieu Huong Vu, Anh Hoang Truong, Yuki Chiba, Toshiaki Aoki', 'affiliations': 'VNU University of Engineering and Technology, Vietnam; Japan Advanced Institute of Science and Technology, Japan'}, 'sections': [{'title': 'Introduction', 'content': 'Reactive systems require testing growing exponentially, creating scalability bottlenecks. We propose generating test cases and oracles from restricted Event-B specifications to solve state space explosion. Domain knowledge automates variable restriction, reducing models to representative values while preserving critical testing paths. This yields equivalent path coverage with minimal test suites. A supporting tool and skeleton enable developers to efficiently verify implementations against formal Event-B models.'}, {'title': 'Related Work', 'content': 'Prior testing targets negative cases or misses full service combinations. UML yields semi-formal models, making oracles unreliable versus formal semantics. Promela focuses on internal behaviors, neglecting external reactive interfaces. Techniques limit sequence lengths, missing unbounded reactive behaviors. We generate positive test sequences with complete coverage from Event-B specifications. Our approach supports infinite lengths and external conformance, offering superior validation.'}, {'title': 'Dataset Overview', 'content': 'We evaluate our approach using case studies involving bank ATM and vending machine systems modeled in Event-B. The ATM specification includes accounts and balances, with a knowledge base restricting domains to {a,b} accounts and {0,50,100} amounts. The vending machine model tracks stock and credit, utilizing a knowledge base defining products {water,tea,coffee}, prices {$1}, and coins {quarter,dollar}. These restricted domains ensure feasible state space exploration while covering practical scenarios. Experiments run on Intel Core i5 processors, demonstrating tool usability. The test environments cover both financial transactions and retail dispensing behaviors effectively.'}, {'title': 'Methodology/Approach', 'content': 'Our methodology constructs a Specification for Test by restricting original Event-B domains using domain knowledge and equivalence partitioning. This produces a reduced model with representative values, minimizing state space while preserving behavior. We generate a Labeled Transition System via breadth-first search over restricted states, defining transitions via event guards. Test sequences explore infinite paths through this LTS, capturing arbitrary event invocations. Test oracles are derived from state labels, asserting SUT values match LTS variable assignments after each event. A flexible test driver skeleton executes runs and validates conformance automatically.'}, {'title': 'Results/Evaluation', 'content': 'Experiments on ATM and vending machine models achieved 100% state and arc coverage with minimal memory usage. We tested infinite scenarios at approximately 800 invocations per second, verifying system correctness effectively. Version 2 of the vending machine passed all tests, while Version 1 successfully detected a bug in the item selection service. Our tool quickly identified guard condition violations and state update errors injected into implementations. Results demonstrate that restricted models maintain full coverage while reducing computational overhead compared to original specifications.'}, {'title': 'Applications', 'content': "This framework applies to various reactive systems, exemplified by bank ATMs handling financial transactions and vending machines managing inventory. Developers can use the provided tool and skeleton to create custom test drivers for arbitrary scenarios without complex setup. The approach supports both random exploration and systematic path strategies, adapting to diverse testing needs. It effectively validates infinite behavior sequences, ensuring long-term system reliability in production environments. The tool's extensibility allows integration into Rodin plugins for broader Event-B model support across engineering projects."}, {'title': 'Conclusion', 'content': 'We presented a model-based testing approach using restricted Event-B models to address state space explosion in reactive systems. By applying domain knowledge to reduce variable domains, we achieve equivalent path coverage with significantly smaller state spaces. The method generates comprehensive test sequences and oracles, supported by an easy-to-use driver skeleton for developers. Memory usage remains minimal, and performance is efficient for infinite test executions. Future work includes developing a Rodin plugin to extend this framework to generic Event-B models broadly.'}]}
+
+image_information:
+{
+    "1": {
+        "caption": "Fig. 3. LTS built from Figure 1",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/10db9e50-3302-43db-900a-e765fa6352cd/10db9e50-3302-43db-900a-e765fa6352cd-picture-1.png",
+        "width": 1285,
+        "height": 801,
+        "figure_size": 1029285,
+        "figure_aspect": 1.6042446941323345
+    },
+    "3": {
+        "caption": "Fig. 5. Specification of Vending Machines",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/10db9e50-3302-43db-900a-e765fa6352cd/10db9e50-3302-43db-900a-e765fa6352cd-picture-3.png",
+        "width": 1217,
+        "height": 299,
+        "figure_size": 363883,
+        "figure_aspect": 4.070234113712375
+    }
+}
+
+table_information:
+{
+    "1": {
+        "caption": "TABLE I. EXPERIMENT RESULTS",
+        "table_path": "qwen-qwen3.6-flash_images_and_tables/10db9e50-3302-43db-900a-e765fa6352cd/10db9e50-3302-43db-900a-e765fa6352cd-table-1.png",
+        "width": 1137,
+        "height": 235,
+        "figure_size": 267195,
+        "figure_aspect": 4.8382978723404255
+    }
+}
+
+🤖 THE RETURN RESULT:
+------------------------------------------------------------
+{
+  "image_information": {
+    "1": {
+      "caption": "Fig. 3. LTS built from Figure 1",
+      "image_path": "qwen-qwen3.6-flash_images_and_tables/10db9e50-3302-43db-900a-e765fa6352cd/10db9e50-3302-43db-900a-e765fa6352cd-picture-1.png",
+      "width": 1285,
+      "height": 801,
+      "figure_size": 1029285,
+      "figure_aspect": 1.6042446941323345
+    },
+    "3": {
+      "caption": "Fig. 5. Specification of Vending Machines",
+      "image_path": "qwen-qwen3.6-flash_images_and_tables/10db9e50-3302-43db-900a-e765fa6352cd/10db9e50-3302-43db-900a-e765fa6352cd-picture-3.png",
+      "width": 1217,
+      "height": 299,
+      "figure_size": 363883,
+      "figure_aspect": 4.070234113712375
+    }
+  },
+  "table_information": {
+    "1": {
+      "caption": "TABLE I. EXPERIMENT RESULTS",
+      "table_path": "qwen-qwen3.6-flash_images_and_tables/10db9e50-3302-43db-900a-e765fa6352cd/10db9e50-3302-43db-900a-e765fa6352cd-table-1.png",
+      "width": 1137,
+      "height": 235,
+      "figure_size": 267195,
+      "figure_aspect": 4.8382978723404255
+    }
+  }
+}
+
+================================================================================
+  - INPUT: 7646 TOKENS
+  - OUTPUT: 1057 TOKENS

@@ -3,6 +3,7 @@ Chat service: session and message persistence for the notebook chat feature.
 All SQL operations that touch chat_sessions and chat_messages live here.
 """
 import logging
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
@@ -36,9 +37,14 @@ def persist_chat_turn(
     """
     try:
         chat_session = get_or_create_chat_session(db, notebook)
-        chat_session.send_message(role="user", content=user_content, user_id=user_id)
+        # Stamp both messages from a single snapshot so they never share a timestamp.
+        # Tied created_at values cause non-deterministic ORDER BY in PostgreSQL.
+        now = datetime.now(timezone.utc)
+        user_msg = chat_session.send_message(role="user", content=user_content, user_id=user_id)
+        user_msg.created_at = now
         citations_data = [c.model_dump() for c in citations] if citations else None
-        chat_session.send_message(role="assistant", content=assistant_content, citations_json=citations_data)
+        asst_msg = chat_session.send_message(role="assistant", content=assistant_content, citations_json=citations_data)
+        asst_msg.created_at = now + timedelta(milliseconds=1)
         db.commit()
     except Exception:
         logger.exception("Failed to persist chat messages for notebook %s", notebook.id)

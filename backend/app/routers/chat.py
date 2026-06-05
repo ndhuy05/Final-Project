@@ -153,6 +153,7 @@ async def _execute_actions(
                     metadata_papers.append(p)
         elif kind == "retrieve":
             retrieved.extend(data)
+        logger.debug(metadata_papers)
 
     return metadata_papers, retrieved
 
@@ -229,7 +230,17 @@ async def chat(
             key = (r.get("paper_id"), r.get("page_num"))
             if key not in seen_pages or r.get("score", 0) > seen_pages[key].get("score", 0):
                 seen_pages[key] = r
-        top_results = list(seen_pages.values())
+        deduped = list(seen_pages.values())
+
+        # Reorder: best-per-paper entries first (guarantees one citation per paper at the top)
+        best_per_paper: dict = {}
+        for r in deduped:
+            pid = r.get("paper_id")
+            if pid not in best_per_paper or r.get("score", 0) > best_per_paper[pid].get("score", 0):
+                best_per_paper[pid] = r
+        per_paper_bests = sorted(best_per_paper.values(), key=lambda r: r.get("score", 0), reverse=True)
+        per_paper_set = {id(r) for r in per_paper_bests}
+        top_results = per_paper_bests + [r for r in deduped if id(r) not in per_paper_set]
 
         # Collect images: best result per retrieve-target paper (N-1, N, N+1 each)
         image_paths: List[str] = []

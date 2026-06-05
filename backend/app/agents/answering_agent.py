@@ -81,8 +81,20 @@ class AnsweringAgent:
         logger.debug("======================================")
 
         if image_paths:
+            # Build paper_id → title lookup from results
+            pid_to_title: dict[str, str] = {}
+            for r in results:
+                pid = r.get("paper_id")
+                if pid and pid not in pid_to_title:
+                    pid_to_title[pid] = r.get("paper_title", "Unknown")
+
             user_content: list[dict] = [{"type": "text", "text": question}]
             for path in image_paths:
+                parts = path.replace("\\", "/").split("/")
+                paper_id_from_path = parts[-2]
+                page_str = parts[-1].replace("page_", "").replace(".png", "")
+                title = pid_to_title.get(paper_id_from_path, paper_id_from_path)
+                user_content.append({"type": "text", "text": f"[Paper: {title}, Page {page_str}]"})
                 b64 = self._encode_image(path)
                 user_content.append({
                     "type": "image_url",

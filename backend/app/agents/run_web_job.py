@@ -92,7 +92,7 @@ def main() -> None:  # noqa: C901
     # --- Import pipeline modules ---
     emit({"progress": 0.02, "step": "Importing pipeline modules\u2026"})
     try:
-        from web_tools.parse_raw import parse_raw, gen_image_and_table
+        from web_tools.parse_raw import parse_raw, gen_image_and_table, docling_convert
         from web_tools.simple_gen_outline_layout_website import (
             filter_image_table, gen_outline_layout_website_simple,
         )
@@ -133,8 +133,10 @@ def main() -> None:  # noqa: C901
         with open(cli.paper_text_file, "r", encoding="utf-8") as _f:
             _pre_text = _f.read()
         _in, _out, raw_result = parse_raw(args, agent_config_t, version=2, pre_extracted_text=_pre_text)
-        # Skip figure/table extraction — downstream stages handle empty dicts gracefully
-        images, tables = {}, {}
+        # Run docling conversion separately just for image/table extraction
+        emit({"progress": 0.12, "step": "Extracting figures and tables\u2026"})
+        _conv = docling_convert(cli.pdf_path)
+        _, _, images, tables = gen_image_and_table(args, _conv)
     else:
         _in, _out, raw_result = parse_raw(args, agent_config_t, version=2)
 

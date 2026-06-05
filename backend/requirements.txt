@@ -40,14 +40,11 @@ python-pptx @ git+https://github.com/Force1ess/python-pptx@dc356685d4d210a10abe1
 docling>=2.0.0
 docling-core>=2.0.0
 
-# Fallback PDF parser used by parse_raw.py (marker is imported at module level)
-marker-pdf
-
-# ML libs required by Docling / marker
+# ML libs required by Docling
 torch
 torchvision
-transformers
-FlagEmbedding
+transformers>=5.0.0
+tokenizers>=0.22.0,<=0.23.0
 
 # Utilities used by PosterAgent
 python-Levenshtein

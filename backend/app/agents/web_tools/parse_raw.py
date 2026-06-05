@@ -5,7 +5,6 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.src.utils import get_json_from_response
-from utils.src.model_utils import parse_pdf
 import json
 import random
 
@@ -13,10 +12,6 @@ from camel.models import ModelFactory
 from camel.agents import ChatAgent
 from tenacity import retry, stop_after_attempt
 from docling_core.types.doc import ImageRefMode, PictureItem, TableItem
-
-from docling.datamodel.base_models import InputFormat
-from docling.datamodel.pipeline_options import PdfPipelineOptions
-from docling.document_converter import DocumentConverter, PdfFormatOption
 
 from pathlib import Path
 
@@ -33,16 +28,26 @@ import argparse
 load_dotenv()
 IMAGE_RESOLUTION_SCALE = 5.0
 
-pipeline_options = PdfPipelineOptions()
-pipeline_options.images_scale = IMAGE_RESOLUTION_SCALE
-pipeline_options.generate_page_images = True
-pipeline_options.generate_picture_images = True
 
-doc_converter = DocumentConverter(
-    format_options={
-        InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
-    }
-)
+def docling_convert(pdf_path: str):
+    """Run docling PDF conversion and return the ConversionResult.
+
+    Used by the pre-extracted-text path in run_web_job.py to extract images
+    via gen_image_and_table() without re-running the expensive LLM text pass.
+    """
+    from docling.datamodel.base_models import InputFormat
+    from docling.datamodel.pipeline_options import PdfPipelineOptions
+    from docling.document_converter import DocumentConverter, PdfFormatOption
+
+    pipeline_options = PdfPipelineOptions()
+    pipeline_options.images_scale = IMAGE_RESOLUTION_SCALE
+    pipeline_options.generate_page_images = True
+    pipeline_options.generate_picture_images = True
+    doc_converter = DocumentConverter(
+        format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)}
+    )
+    return doc_converter.convert(pdf_path)
+
 
 @retry(stop=stop_after_attempt(5))
 def parse_raw(args, actor_config, version=2, pre_extracted_text=None):
@@ -75,18 +80,23 @@ def parse_raw(args, actor_config, version=2, pre_extracted_text=None):
         text_content = pre_extracted_text
         raw_result = None
     else:
+        from docling.datamodel.base_models import InputFormat
+        from docling.datamodel.pipeline_options import PdfPipelineOptions
+        from docling.document_converter import DocumentConverter, PdfFormatOption
+
+        pipeline_options = PdfPipelineOptions()
+        pipeline_options.images_scale = IMAGE_RESOLUTION_SCALE
+        pipeline_options.generate_page_images = True
+        pipeline_options.generate_picture_images = True
+        doc_converter = DocumentConverter(
+            format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)}
+        )
+
         raw_result = doc_converter.convert(raw_source)
 
         raw_markdown = raw_result.document.export_to_markdown()
         text_content = markdown_clean_pattern.sub("", raw_markdown)
 
-        # If docling parsing result is too short, fall back to marker parser
-        if len(text_content) < 500:
-            print('\nParsing with docling failed, using marker instead\n')
-            import torch
-            from marker.models import create_model_dict
-            parser_model = create_model_dict(device='cuda', dtype=torch.float16)
-            text_content, rendered = parse_pdf(raw_source, model_lst=parser_model, save_file=False)
 
     # Select corresponding prompt template based on version
     if version == 1:

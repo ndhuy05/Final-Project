@@ -439,14 +439,24 @@ def save_website_files(args, website_code):
         raise FileNotFoundError(f"No image and table directory found, search patterns: {possible_patterns}")
     
     target_images_dir = os.path.join(output_dir, os.path.basename(source_images_dir_pattern))
-    
+
     if os.path.exists(target_images_dir):
-        print(f'Removing existing directory: {target_images_dir}')
         shutil.rmtree(target_images_dir)
-    
-    print(f'Copying image and table directory: {source_images_dir_pattern} -> {target_images_dir}')
-    shutil.copytree(source_images_dir_pattern, target_images_dir)
-    print(f'Image and table directory copied successfully: {target_images_dir}')
+    os.makedirs(target_images_dir, exist_ok=True)
+
+    # Copy only this paper's subdirectory (contains its extracted images/tables)
+    paper_img_subdir = os.path.join(source_images_dir_pattern, args.website_name)
+    if os.path.exists(paper_img_subdir):
+        shutil.copytree(paper_img_subdir, os.path.join(target_images_dir, args.website_name))
+        print(f'Copied image subdirectory: {paper_img_subdir}')
+
+    # Copy only this paper's JSON sidecar files
+    for _suffix in ('_images.json', '_tables.json', '_images_filtered.json', '_tables_filtered.json'):
+        _src = os.path.join(source_images_dir_pattern, f'{args.website_name}{_suffix}')
+        if os.path.exists(_src):
+            shutil.copy2(_src, target_images_dir)
+
+    print(f'Image and table directory populated for {args.website_name}: {target_images_dir}')
     
     print(f'Single-file website generation complete! Saved to: {output_dir}')
     return output_dir

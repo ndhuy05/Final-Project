@@ -1,0 +1,892 @@
+================================================================================
+🚀 Simple Gen Outline Layout Website - filter_image_table
+⏰ TIME: 2026-05-15 18:19:55
+📄 NAME: a08276d0-d96e-4d8e-980e-72d7c0e153d3
+================================================================================
+
+📝 THE PROMPT:
+------------------------------------------------------------
+Instructions:
+The user will provide JSON: 
+  1. "json_content": The content of the research paper (sections, text, etc.). 
+  2. "image_information": A dict of images (each with caption, path, size constraints). 
+  3. "table_information": A dict of tables (each with caption, path, size constraints).
+
+Your task:
+  1. Read the research paper outline (json_content).
+  2. Filter image_information and table_information so that only entries relevant to the project website content remain. 
+     • Relevance is determined by matching or relating their captions to the paper's sections or content. 
+     • Consider which visual elements would be most valuable for a project website (e.g., methodology diagrams, result charts, data summaries).
+     • If an image or table does not clearly match or support any content in json_content, remove it.
+     • IMPORTANT: Keep ALL relevant visual elements - do not limit the quantity artificially.
+  3. Return a JSON with the structure:
+     {
+       "image_information": <filtered image information JSON>,
+       "table_information": <filtered table information JSON>
+     }
+
+Output Format:
+Just return a JSON object with the two keys: "image_information" and "table_information" — each containing the filtered data.
+No additional keys or text. Both "image_information" and "table_information" should present even if they are empty.
+
+Note:
+• If no entries remain for either images or tables, just return an empty dict for that key.
+• Keep ALL entries that are relevant to the paper content (no artificial limit on quantity).
+• The goal is to include every visual element that enhances understanding of the research.
+• Make sure the JSON you output is valid.
+
+Please provide only the JSON object as your final output.
+
+json_content:
+{'meta': {'website_title': 'Robust Object Detection in Adverse Weather Conditions: ECL-YOLOv11 for Automotive Vision Systems', 'authors': 'Zhaohui Liu, Jiaxu Zhang, Xiaojun Zhang, Hongle Song', 'affiliations': 'College of Transportation, Shandong University of Science and Technology'}, 'sections': [{'title': 'Introduction', 'content': 'Adverse weather degrades automotive vision, causing blurred edges and missed detections. Traditional detectors fail in low-visibility conditions. We propose ECL-YOLOv11 to address this. It combines edge enhancement, context fusion, and lightweight heads. These components explicitly preserve structural contours and optimize multi-scale aggregation. The framework improves precision while maintaining real-time speeds. This ensures reliable all-weather perception for vehicles.'}, {'title': 'Related Work', 'content': 'Traditional CNNs lose edge details and localize poorly in fog. Transformer models capture global semantics but incur high computational costs. Preprocessing enhancement improves visibility yet introduces unacceptable latency. Existing multi-branch fusion architectures significantly increase parameter redundancy. Current methods cannot simultaneously preserve structural features and meet hardware constraints. This gap motivates a unified, lightweight architectural strategy.'}, {'title': 'Dataset Overview', 'content': 'We introduce a custom dataset of 9006 traffic images captured under severe rain, fog, and snow. It features vehicle-mounted footage from urban roads across complex backgrounds. The data annotates seven traffic categories formatted for YOLOv11 training. Distribution analysis reveals concentrated smaller bounding boxes, reflecting realistic long-distance challenges. The dataset is partitioned into eighty percent training and twenty percent evaluation subsets. This composition ensures rigorous validation for automotive deployment.'}, {'title': 'Methodology/Approach', 'content': 'The architecture integrates three modules to optimize prediction. The CE module fuses fixed gradients with learnable convolutions using residuals. The AENet neck employs pyramid context extraction to align multi-scale features. Bi-directional flow transfers high-level guidance downward while feeding low-level details upward. The LDHead decouples classification and regression through shared convolutions and GroupNorm. This design reduces redundancy while stabilizing features. The pipeline efficiently processes degraded imagery for detection.'}, {'title': 'Results/Evaluation', 'content': 'Extensive experiments demonstrate significant gains over baselines. ECL-YOLOv11 achieves 62.7 percent mAP@50 and 40.5 percent mAP@50-95, improving YOLOv11 by 1.3 percent. Precision reaches 73.1 percent, reducing false positives. The model maintains 237.8 frames per second on standard hardware. Ablation studies confirm each module independently enhances retention and fusion. Cross-model comparisons show superiority against Faster R-CNN and RT-DETR. Visualizations verify stable confidences across severe weather.'}, {'title': 'Applications', 'content': 'The framework is engineered for automotive vision systems and autonomous driving platforms. Its lightweight design enables real-time inference on resource-constrained edge hardware. The model reliably identifies pedestrians and vehicles during dynamic maneuvers and static monitoring. Edge preservation directly mitigates misclassification risks caused by fog, rain, or snow. Traffic centers can integrate this architecture for all-season road safety analysis. The solution bridges academic robustness and practical vehicular deployment requirements.'}, {'title': 'Conclusion', 'content': 'This study presents ECL-YOLOv11, balancing interpretability with efficiency for adverse-weather detection. Integrated components successfully mitigate feature degradation while maintaining rapid inference. Although constrained by dataset scale and single-modality inputs, the model demonstrates consistent viability. Future research will prioritize multi-sensor fusion with LiDAR, radar, and vision. System-level co-optimization and continual learning will further improve adaptability. This work establishes a robust foundation for reliable autonomous perception.'}]}
+
+image_information:
+{
+    "1": {
+        "caption": "Figure 1 (page 6)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-1.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "2": {
+        "caption": "Figure 2 (page 6)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-2.png",
+        "width": 1200,
+        "height": 408,
+        "figure_size": 489600,
+        "figure_aspect": 2.9411764705882355
+    },
+    "3": {
+        "caption": "Figure 3 (page 11)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-3.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "4": {
+        "caption": "Figure 4 (page 11)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-4.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "5": {
+        "caption": "Figure 5 (page 11)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-5.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "6": {
+        "caption": "Figure 6 (page 11)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-6.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "7": {
+        "caption": "Figure 7 (page 11)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-7.jpeg",
+        "width": 4017,
+        "height": 1594,
+        "figure_size": 6403098,
+        "figure_aspect": 2.5200752823086576
+    },
+    "8": {
+        "caption": "Figure 8 (page 11)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-8.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "9": {
+        "caption": "Figure 9 (page 11)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-9.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "10": {
+        "caption": "Figure 10 (page 12)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-10.jpeg",
+        "width": 2000,
+        "height": 1400,
+        "figure_size": 2800000,
+        "figure_aspect": 1.4285714285714286
+    },
+    "11": {
+        "caption": "Figure 11 (page 12)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-11.jpeg",
+        "width": 1600,
+        "height": 1600,
+        "figure_size": 2560000,
+        "figure_aspect": 1.0
+    },
+    "12": {
+        "caption": "Figure 12 (page 13)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-12.png",
+        "width": 2400,
+        "height": 1200,
+        "figure_size": 2880000,
+        "figure_aspect": 2.0
+    },
+    "13": {
+        "caption": "Figure 13 (page 13)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-13.png",
+        "width": 1918,
+        "height": 1121,
+        "figure_size": 2150078,
+        "figure_aspect": 1.710972346119536
+    },
+    "14": {
+        "caption": "Figure 14 (page 14)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-14.png",
+        "width": 1500,
+        "height": 1000,
+        "figure_size": 1500000,
+        "figure_aspect": 1.5
+    },
+    "15": {
+        "caption": "Figure 15 (page 14)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-15.png",
+        "width": 1000,
+        "height": 1000,
+        "figure_size": 1000000,
+        "figure_aspect": 1.0
+    },
+    "16": {
+        "caption": "Figure 16 (page 15)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-16.png",
+        "width": 1000,
+        "height": 1000,
+        "figure_size": 1000000,
+        "figure_aspect": 1.0
+    },
+    "17": {
+        "caption": "Figure 17 (page 15)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-17.png",
+        "width": 1200,
+        "height": 600,
+        "figure_size": 720000,
+        "figure_aspect": 2.0
+    },
+    "18": {
+        "caption": "Figure 18 (page 17)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-18.png",
+        "width": 1200,
+        "height": 600,
+        "figure_size": 720000,
+        "figure_aspect": 2.0
+    },
+    "19": {
+        "caption": "Figure 19 (page 17)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-19.png",
+        "width": 1224,
+        "height": 968,
+        "figure_size": 1184832,
+        "figure_aspect": 1.2644628099173554
+    },
+    "20": {
+        "caption": "Figure 20 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-20.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "21": {
+        "caption": "Figure 21 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-21.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "22": {
+        "caption": "Figure 22 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-22.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "23": {
+        "caption": "Figure 23 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-23.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "24": {
+        "caption": "Figure 24 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-24.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "25": {
+        "caption": "Figure 25 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-25.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "26": {
+        "caption": "Figure 26 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-26.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "27": {
+        "caption": "Figure 27 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-27.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "28": {
+        "caption": "Figure 28 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-28.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "29": {
+        "caption": "Figure 29 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-29.jpeg",
+        "width": 2150,
+        "height": 2150,
+        "figure_size": 4622500,
+        "figure_aspect": 1.0
+    },
+    "30": {
+        "caption": "Figure 30 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-30.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "31": {
+        "caption": "Figure 31 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-31.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "32": {
+        "caption": "Figure 32 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-32.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "33": {
+        "caption": "Figure 33 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-33.jpeg",
+        "width": 2150,
+        "height": 2150,
+        "figure_size": 4622500,
+        "figure_aspect": 1.0
+    },
+    "34": {
+        "caption": "Figure 34 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-34.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "35": {
+        "caption": "Figure 35 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-35.jpeg",
+        "width": 2150,
+        "height": 2150,
+        "figure_size": 4622500,
+        "figure_aspect": 1.0
+    },
+    "36": {
+        "caption": "Figure 36 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-36.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "37": {
+        "caption": "Figure 37 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-37.jpeg",
+        "width": 2150,
+        "height": 2150,
+        "figure_size": 4622500,
+        "figure_aspect": 1.0
+    },
+    "38": {
+        "caption": "Figure 38 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-38.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "39": {
+        "caption": "Figure 39 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-39.jpeg",
+        "width": 2150,
+        "height": 2150,
+        "figure_size": 4622500,
+        "figure_aspect": 1.0
+    },
+    "40": {
+        "caption": "Figure 40 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-40.jpeg",
+        "width": 2150,
+        "height": 2150,
+        "figure_size": 4622500,
+        "figure_aspect": 1.0
+    },
+    "41": {
+        "caption": "Figure 41 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-41.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "42": {
+        "caption": "Figure 42 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-42.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "43": {
+        "caption": "Figure 43 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-43.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "44": {
+        "caption": "Figure 44 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-44.png",
+        "width": 1824,
+        "height": 889,
+        "figure_size": 1621536,
+        "figure_aspect": 2.0517435320584925
+    },
+    "45": {
+        "caption": "Figure 45 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-45.png",
+        "width": 1820,
+        "height": 888,
+        "figure_size": 1616160,
+        "figure_aspect": 2.0495495495495497
+    },
+    "46": {
+        "caption": "Figure 46 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-46.png",
+        "width": 1826,
+        "height": 888,
+        "figure_size": 1621488,
+        "figure_aspect": 2.0563063063063063
+    },
+    "47": {
+        "caption": "Figure 47 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-47.png",
+        "width": 1835,
+        "height": 890,
+        "figure_size": 1633150,
+        "figure_aspect": 2.061797752808989
+    },
+    "48": {
+        "caption": "Figure 48 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-48.png",
+        "width": 1833,
+        "height": 878,
+        "figure_size": 1609374,
+        "figure_aspect": 2.0876993166287017
+    },
+    "49": {
+        "caption": "Figure 49 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-49.png",
+        "width": 1837,
+        "height": 896,
+        "figure_size": 1645952,
+        "figure_aspect": 2.0502232142857144
+    },
+    "50": {
+        "caption": "Figure 50 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-50.png",
+        "width": 1836,
+        "height": 887,
+        "figure_size": 1628532,
+        "figure_aspect": 2.0698985343855694
+    },
+    "51": {
+        "caption": "Figure 51 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-51.png",
+        "width": 1838,
+        "height": 896,
+        "figure_size": 1646848,
+        "figure_aspect": 2.0513392857142856
+    },
+    "52": {
+        "caption": "Figure 52 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-52.png",
+        "width": 1836,
+        "height": 889,
+        "figure_size": 1632204,
+        "figure_aspect": 2.0652418447694036
+    }
+}
+
+table_information:
+{}
+
+🤖 THE RETURN RESULT:
+------------------------------------------------------------
+{
+  "image_information": {
+    "1": {
+        "caption": "Figure 1 (page 6)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-1.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "2": {
+        "caption": "Figure 2 (page 6)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-2.png",
+        "width": 1200,
+        "height": 408,
+        "figure_size": 489600,
+        "figure_aspect": 2.9411764705882355
+    },
+    "3": {
+        "caption": "Figure 3 (page 11)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-3.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "4": {
+        "caption": "Figure 4 (page 11)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-4.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "5": {
+        "caption": "Figure 5 (page 11)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-5.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "6": {
+        "caption": "Figure 6 (page 11)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-6.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "7": {
+        "caption": "Figure 7 (page 11)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-7.jpeg",
+        "width": 4017,
+        "height": 1594,
+        "figure_size": 6403098,
+        "figure_aspect": 2.5200752823086576
+    },
+    "8": {
+        "caption": "Figure 8 (page 11)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-8.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "9": {
+        "caption": "Figure 9 (page 11)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-9.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "10": {
+        "caption": "Figure 10 (page 12)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-10.jpeg",
+        "width": 2000,
+        "height": 1400,
+        "figure_size": 2800000,
+        "figure_aspect": 1.4285714285714286
+    },
+    "11": {
+        "caption": "Figure 11 (page 12)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-11.jpeg",
+        "width": 1600,
+        "height": 1600,
+        "figure_size": 2560000,
+        "figure_aspect": 1.0
+    },
+    "12": {
+        "caption": "Figure 12 (page 13)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-12.png",
+        "width": 2400,
+        "height": 1200,
+        "figure_size": 2880000,
+        "figure_aspect": 2.0
+    },
+    "13": {
+        "caption": "Figure 13 (page 13)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-13.png",
+        "width": 1918,
+        "height": 1121,
+        "figure_size": 2150078,
+        "figure_aspect": 1.710972346119536
+    },
+    "14": {
+        "caption": "Figure 14 (page 14)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-14.png",
+        "width": 1500,
+        "height": 1000,
+        "figure_size": 1500000,
+        "figure_aspect": 1.5
+    },
+    "15": {
+        "caption": "Figure 15 (page 14)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-15.png",
+        "width": 1000,
+        "height": 1000,
+        "figure_size": 1000000,
+        "figure_aspect": 1.0
+    },
+    "16": {
+        "caption": "Figure 16 (page 15)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-16.png",
+        "width": 1000,
+        "height": 1000,
+        "figure_size": 1000000,
+        "figure_aspect": 1.0
+    },
+    "17": {
+        "caption": "Figure 17 (page 15)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-17.png",
+        "width": 1200,
+        "height": 600,
+        "figure_size": 720000,
+        "figure_aspect": 2.0
+    },
+    "18": {
+        "caption": "Figure 18 (page 17)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-18.png",
+        "width": 1200,
+        "height": 600,
+        "figure_size": 720000,
+        "figure_aspect": 2.0
+    },
+    "19": {
+        "caption": "Figure 19 (page 17)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-19.png",
+        "width": 1224,
+        "height": 968,
+        "figure_size": 1184832,
+        "figure_aspect": 1.2644628099173554
+    },
+    "20": {
+        "caption": "Figure 20 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-20.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "21": {
+        "caption": "Figure 21 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-21.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "22": {
+        "caption": "Figure 22 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-22.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "23": {
+        "caption": "Figure 23 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-23.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "24": {
+        "caption": "Figure 24 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-24.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "25": {
+        "caption": "Figure 25 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-25.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "26": {
+        "caption": "Figure 26 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-26.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "27": {
+        "caption": "Figure 27 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-27.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "28": {
+        "caption": "Figure 28 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-28.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "29": {
+        "caption": "Figure 29 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-29.jpeg",
+        "width": 2150,
+        "height": 2150,
+        "figure_size": 4622500,
+        "figure_aspect": 1.0
+    },
+    "30": {
+        "caption": "Figure 30 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-30.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "31": {
+        "caption": "Figure 31 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-31.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "32": {
+        "caption": "Figure 32 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-32.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "33": {
+        "caption": "Figure 33 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-33.jpeg",
+        "width": 2150,
+        "height": 2150,
+        "figure_size": 4622500,
+        "figure_aspect": 1.0
+    },
+    "34": {
+        "caption": "Figure 34 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-34.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "35": {
+        "caption": "Figure 35 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-35.jpeg",
+        "width": 2150,
+        "height": 2150,
+        "figure_size": 4622500,
+        "figure_aspect": 1.0
+    },
+    "36": {
+        "caption": "Figure 36 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-36.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "37": {
+        "caption": "Figure 37 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-37.jpeg",
+        "width": 2150,
+        "height": 2150,
+        "figure_size": 4622500,
+        "figure_aspect": 1.0
+    },
+    "38": {
+        "caption": "Figure 38 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-38.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "39": {
+        "caption": "Figure 39 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-39.jpeg",
+        "width": 2150,
+        "height": 2150,
+        "figure_size": 4622500,
+        "figure_aspect": 1.0
+    },
+    "40": {
+        "caption": "Figure 40 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-40.jpeg",
+        "width": 2150,
+        "height": 2150,
+        "figure_size": 4622500,
+        "figure_aspect": 1.0
+    },
+    "41": {
+        "caption": "Figure 41 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-41.jpeg",
+        "width": 1280,
+        "height": 1280,
+        "figure_size": 1638400,
+        "figure_aspect": 1.0
+    },
+    "42": {
+        "caption": "Figure 42 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-42.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "43": {
+        "caption": "Figure 43 (page 19)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-43.jpeg",
+        "width": 640,
+        "height": 640,
+        "figure_size": 409600,
+        "figure_aspect": 1.0
+    },
+    "44": {
+        "caption": "Figure 44 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-44.png",
+        "width": 1824,
+        "height": 889,
+        "figure_size": 1621536,
+        "figure_aspect": 2.0517435320584925
+    },
+    "45": {
+        "caption": "Figure 45 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-45.png",
+        "width": 1820,
+        "height": 888,
+        "figure_size": 1616160,
+        "figure_aspect": 2.0495495495495497
+    },
+    "46": {
+        "caption": "Figure 46 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-46.png",
+        "width": 1826,
+        "height": 888,
+        "figure_size": 1621488,
+        "figure_aspect": 2.0563063063063063
+    },
+    "47": {
+        "caption": "Figure 47 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-47.png",
+        "width": 1835,
+        "height": 890,
+        "figure_size": 1633150,
+        "figure_aspect": 2.061797752808989
+    },
+    "48": {
+        "caption": "Figure 48 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-48.png",
+        "width": 1833,
+        "height": 878,
+        "figure_size": 1609374,
+        "figure_aspect": 2.0876993166287017
+    },
+    "49": {
+        "caption": "Figure 49 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-49.png",
+        "width": 1837,
+        "height": 896,
+        "figure_size": 1645952,
+        "figure_aspect": 2.0502232142857144
+    },
+    "50": {
+        "caption": "Figure 50 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-50.png",
+        "width": 1836,
+        "height": 887,
+        "figure_size": 1628532,
+        "figure_aspect": 2.0698985343855694
+    },
+    "51": {
+        "caption": "Figure 51 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-51.png",
+        "width": 1838,
+        "height": 896,
+        "figure_size": 1646848,
+        "figure_aspect": 2.0513392857142856
+    },
+    "52": {
+        "caption": "Figure 52 (page 21)",
+        "image_path": "qwen-qwen3.6-flash_images_and_tables/a08276d0-d96e-4d8e-980e-72d7c0e153d3/a08276d0-d96e-4d8e-980e-72d7c0e153d3-picture-52.png",
+        "width": 1836,
+        "height": 889,
+        "figure_size": 1632204,
+        "figure_aspect": 2.0652418447694036
+    }
+  },
+  "table_information": {}
+}
+
+================================================================================
+  - INPUT: 22876 TOKENS
+  - OUTPUT: 16847 TOKENS

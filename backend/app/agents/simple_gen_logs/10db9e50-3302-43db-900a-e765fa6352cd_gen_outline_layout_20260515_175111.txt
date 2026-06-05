@@ -1,0 +1,41 @@
+================================================================================
+🚀 Simple Gen Outline Layout Website - gen_outline_layout
+⏰ TIME: 2026-05-15 17:51:11
+📄 NAME: 10db9e50-3302-43db-900a-e765fa6352cd
+================================================================================
+
+📝 THE PROMPT:
+------------------------------------------------------------
+Instructions:
+  1. Read and analyze the research paper's top-level sections from {'meta': {'website_title': 'Automated Testing Reactive Systems from Event-B Models', 'authors': 'Dieu Huong Vu, Anh Hoang Truong, Yuki Chiba, Toshiaki Aoki', 'affiliations': 'VNU University of Engineering and Technology, Vietnam; Japan Advanced Institute of Science and Technology, Japan'}, 'sections': [{'title': 'Introduction', 'content': 'Reactive systems require automated testing for complex event sequences. Formal Event-B models guarantee correctness but cause state explosion. We propose a model-based approach generating test cases from restricted specifications. Equivalence partitioning compresses domains into compact models. These models yield Labeled Transition Systems extracting infinite sequences. Our framework delivers a driver skeleton for automatic Java validation.'}, {'title': 'Related Work', 'content': 'Prior model-based testing emphasizes negative cases or relies on semi-formal UML diagrams. These techniques struggle to generate precise oracles for complex transitions. Existing Event-B plugins mandate manual limits on test sequence lengths. Such restrictions fail to capture the infinite behavioral nature of reactive environments. Promela and CSP methods focus heavily on internal designs rather than external conformance. Our approach automatically extracts unrestricted sequences from formal requirement specifications.'}, {'title': 'Dataset Overview', 'content': 'Our evaluation benchmarks two reactive implementations: an automated teller machine and a retail vending unit. Both systems process complex external events while managing internal state logic. The ATM specification tracks accounts alongside dynamic balance constraints during withdrawals. The vending machine model handles inventory counts, monetary credit accumulation, and product dispensing. Each system enforces strict invariants preventing negative balances or invalid stock configurations. We curated specialized knowledge bases containing domain-typical values for precise equivalence partitioning.'}, {'title': 'Methodology/Approach', 'content': 'We construct a restricted Specification for Test by applying equivalence partitioning to original Event-B domains. This knowledge reduction drastically minimizes state space while preserving critical behavioral paths. We then execute a breadth-first search algorithm to generate a finite Labeled Transition System from the compact model. Every reachable state node inherently defines precise test oracles for direct system verification. Path traversals across the graph automatically yield infinite test sequences targeting arbitrary event combinations. Our framework maps these paths onto executable drivers via JSON serialization.'}, {'title': 'Results/Evaluation', 'content': 'We deployed our framework on standard processors running Windows against Java implementations. Metrics demonstrate minimal memory consumption while processing complex transition graphs. Our tool achieved one hundred percent state and arc coverage across all benchmark scenarios. The system processes approximately eight hundred method invocations per second continuously. Intentionally injected defects within both ATM and vending implementations were rapidly detected via assertion violations. Our approach guarantees exhaustive behavioral exploration without manual sequence curation.'}, {'title': 'Applications', 'content': 'This methodology directly benefits developers building safety-critical embedded systems and retail infrastructure. Quality assurance teams instantly validate complex service combinations without designing isolated unit tests. The automated driver skeleton drastically reduces manual coding efforts while ensuring strict specification adherence. Financial transaction modules benefit from rigorous balance verification across concurrent operations. Retail vending infrastructure gains reliable validation for credit accumulation and inventory routines. Organizations easily integrate these suites into continuous integration pipelines for robust deployments.'}, {'title': 'Conclusion', 'content': 'We demonstrated an automated testing paradigm that effectively resolves state space explosion challenges. Our technique systematically compresses Event-B domains using domain-specific knowledge bases for efficiency. The resulting framework automatically generates exhaustive sequences alongside precise execution oracles. Current limitations include dependency on manually curated knowledge for optimal domain restriction. We also acknowledge the need for enhanced support handling highly nondeterministic industrial designs. Future development will focus on creating native Rodin platform plugins for broader model compatibility.'}]} (each top-level section has a title and description). 
+  2. Look at {} and {}. Determine content-fit for a project website: 
+     - If a section's description or subject matter matches well with a given image/table caption, consider assigning it. 
+     - **IMPORTANT: If multiple images or tables seem relevant, prefer assigning multiple over single to provide comprehensive visual coverage.**
+     - If none of the images or tables are relevant, or if none are provided, do not assign anything for that section.
+  3. Produce a single JSON object. Each key is the exact name of a top-level section (e.g., "Introduction", "Methods", "Results"), and the value is an object with:
+     • "image": image_id (for single image) or "images": [image_id1, image_id2, ...] (for multiple images)
+     • "table": table_id (for single table) or "tables": [table_id1, table_id2, ...] (for multiple tables)
+     • "reason": short explanation describing why the image(s)/table(s) are assigned
+  4. If no assignment is made for a section, exclude that section from the JSON. 
+  5. No image/table can be reused for multiple sections. Each image/table can only be assigned to one section.
+  6. Ensure your final response strictly follows JSON syntax with no extra commentary.
+
+Example output format if two sections are assigned (note the preference for multiple assignments):
+{
+  "Introduction": {
+    "images": [1, 3],
+    "reason": "Image 1 depicts the central concept, Image 3 shows detailed implementation, perfect for comprehensive website coverage."
+  },
+  "Results": {
+    "tables": [2, 4],
+    "reason": "Table 2 summarizes key metrics, Table 4 shows detailed comparisons, ideal for comprehensive data presentation on website."
+  }
+}
+
+🤖 THE RETURN RESULT:
+------------------------------------------------------------
+{}
+
+================================================================================
+  - INPUT: 6495 TOKENS
+  - OUTPUT: 2 TOKENS

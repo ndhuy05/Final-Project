@@ -425,23 +425,25 @@
           >
             <!-- User Message -->
             <div v-if="message.role === 'user'" class="max-w-[80%] bg-[#f0f0f0] rounded-2xl px-4 py-3">
-              <p class="text-sm text-notebook-900">{{ message.content }}</p>
+              <p class="text-base text-notebook-900">{{ message.content }}</p>
             </div>
 
             <!-- AI Message -->
             <div v-else class="max-w-[80%] flex gap-3">
               <div class="flex-1">
-                <div class="prose prose-sm max-w-none" v-html="renderMarkdown(message.content)">
+                <div class="prose max-w-none" v-html="renderMarkdown(message.content)">
                 </div>
                 
-                <!-- Citations -->
+                <!-- Citations: one badge per paper (best-scoring chunk from each) -->
                 <div v-if="message.citations && message.citations.length > 0" class="flex flex-wrap gap-2 mt-3">
                   <div
-                    @click="store.selectCitation(message.citations[0])"
+                    v-for="citation in uniquePerPaperCitations(message.citations)"
+                    :key="citation.title"
+                    @click="store.selectCitation(citation)"
                     class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-md transition-colors border border-blue-200 cursor-default"
                   >
                     <component :is="icons.FileText" :size="12" />
-                    [Page {{ message.citations[0].page }}] {{ message.citations[0].title }}
+                    [Page {{ citation.page }}] {{ citation.title }}
                   </div>
                 </div>
               </div>
@@ -1152,6 +1154,16 @@ const renderMarkdown = (text) => {
   return marked(text, { breaks: true, gfm: true })
 }
 
+// Return the first (best-scoring) citation for each unique paper title
+const uniquePerPaperCitations = (citations) => {
+  const seen = new Set()
+  return citations.filter(c => {
+    if (seen.has(c.title)) return false
+    seen.add(c.title)
+    return true
+  })
+}
+
 // Handle message sending
 const handleSendMessage = () => {
   if (!inputMessage.value.trim() || store.isTyping) return
@@ -1165,10 +1177,12 @@ const handleSendMessage = () => {
 /* Markdown prose styles */
 :deep(.prose) {
   @apply text-notebook-800;
+  font-size: 1rem;
 }
 
 :deep(.prose p) {
   @apply mb-3;
+  font-size: 1rem;
 }
 
 :deep(.prose strong) {
